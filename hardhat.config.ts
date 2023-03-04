@@ -9,6 +9,7 @@ import "@openzeppelin/hardhat-upgrades";
 import "hardhat-abi-exporter";
 import "hardhat-contract-sizer"
 import "hardhat-deploy";
+import "hardhat-interact";
 import "@typechain/hardhat";
 
 import "./tasks";

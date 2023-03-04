@@ -1,9 +1,9 @@
 {
-  "name": "@jasmine/pools",
+  "name": "@jasmine-energy/pools",
   "version": "1.0.0",
   "description": "Jasmine EVM smart contracts for liquidity pools",
   "homepage": "https://jasmine.energy",
-  "license": "Absolutely Proprietary",
+  "license": "BUSL-1.1",
   "private": true,
   "author": "Kai Aldag <kai.aldag@jasmine.energy>",
   "scripts": {
@@ -24,6 +24,9 @@
   ],
   "bugs": {
     "url": "https://github.com/Jasmine-Energy/v1-pools-contracts/issues"
+  },
+  "dependencies": {
+    "@jasmine-energy/contracts": "^1.0.0"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
@@ -47,6 +50,7 @@
     "hardhat-contract-sizer": "^2.8.0",
     "hardhat-deploy": "^0.11.24",
     "hardhat-gas-reporter": "^1.0.9",
+    "hardhat-interact": "^0.2.3",
     "mocha": "^10.2.0",
     "prettier": "^2.8.4",
     "prettier-plugin-solidity": "^1.1.3",
