@@ -1,0 +1,29 @@
+{
+  "name": "jasmine-pools",
+  "version": "1.0.0",
+  "description": "Jasmine EVM smart contracts for liquidity pools",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jasmine-Energy/v1-pools-contracts.git"
+  },
+  "keywords": [
+    "solidity",
+    "evm",
+    "smart-contracts",
+    "jasmine"
+  ],
+  "author": "Kai Aldag <kai.aldag@jasmine.energy>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jasmine-Energy/v1-pools-contracts/issues"
+  },
+  "homepage": "https://github.com/Jasmine-Energy/v1-pools-contracts#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "hardhat": "^2.13.0"
+  }
+}
