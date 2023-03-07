@@ -5,7 +5,9 @@ pragma solidity ^0.8.18;
 // Base
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 // Jasmine Types
-import { IQualifiedPool } from "./pool/IQualifiedPool.sol";
+import { IEATBackedPool  } from "./pool/IEATBackedPool.sol";
+import { IQualifiedPool  } from "./pool/IQualifiedPool.sol";
+import { IRetireablePool } from "./pool/IRetireablePool.sol";
 // Token Metadata Support
 import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import { IERC1046 }       from "../interfaces/ERC/IERC1046.sol";
@@ -13,7 +15,6 @@ import { IERC1046 }       from "../interfaces/ERC/IERC1046.sol";
 import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 // Token utility extensions
 import { IERC777 }  from "@openzeppelin/contracts/interfaces/IERC777.sol";
-import { IERC4626 } from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import { IERC1363 } from "@openzeppelin/contracts/interfaces/IERC1363.sol";
 import { IERC2612 } from "@openzeppelin/contracts/interfaces/draft-IERC2612.sol";
 
@@ -29,10 +30,10 @@ import { IERC3156FlashLender } from "@openzeppelin/contracts/interfaces/IERC3156
  */
 interface IJasminePool is 
     IERC20,
-    IQualifiedPool,
+    IEATBackedPool, IQualifiedPool, IRetireablePool,
     IERC20Metadata, IERC1046,
     IERC1155Receiver,
-    IERC777, IERC4626, IERC2612, IERC1363 {
+    IERC777, IERC2612, IERC1363 {
 
     /// @dev Required override due to ERC-20 & ERC-777 conflicts
     function totalSupply() external view override(IERC20, IERC777) returns (uint256);

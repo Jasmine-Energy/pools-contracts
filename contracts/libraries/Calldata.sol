@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: BUSL-1.1
+
+pragma solidity ^0.8.18;
+
+
+/**
+ * @title Calldata
+ * @author Kai Aldag<kai.aldag@jasmine.energy>
+ * @notice Utility library encoding and decoding calldata between contracts
+ */
+library Calldata {
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Constants
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /// @dev Calldata prefix for retirement operations
+    bytes32 constant RETIREMENT_OP = keccak256("RETIRE");
+
+    /// @dev Calldata prefix for bridge-off operations
+    bytes32 constant BRIDGE_OFF_OP = keccak256("BRIDGE OFF");
+    
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Utility Functions
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+
+    //  ────────────────────────────────  Encoding  ────────────────────────────────  \\
+
+    function encodeRetirementCalldata(address benificiary, bytes32 memoHash) external view returns(bytes memory data) {
+
+    }
+}

@@ -10,10 +10,9 @@ pragma solidity ^0.8.18;
  */
 library PoolPolicy {
     /**
-     * @title DepositPolicy
-     * @dev A deposit policy is a pool's constraints on what EATs may
-     * be depositted. 
-     * @notice Only supports metadata V1
+     * @title Deposit Policy
+     * @notice A deposit policy is a pool's constraints on what EATs may be depositted. 
+     * @dev Only supports metadata V1
      */
     struct DepositPolicy {
         uint256[2] vintagePeriod;
@@ -29,7 +28,7 @@ library PoolPolicy {
     //  ─────────────────────────────────────────────────────────────────────────────
 
 
-    //  ───────────────────────────  Vintage Utilities  ────────────────────────────  \\
+    //  ───────────────────────────  Vintage Utilities  ─────────────────────────────  \\
 
     function frontHalfOfYear(uint16 year) external pure returns(uint256[2] memory period) {
 
