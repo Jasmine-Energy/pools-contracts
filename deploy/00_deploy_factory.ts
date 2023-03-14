@@ -10,10 +10,12 @@ const deployFactory: DeployFunction = async function (
 
     
   const baseJasminePool = await ethers.getContractFactory("JasminePool");
-  const poolAddress = await baseJasminePool.deploy()
+  const poolAddress = await baseJasminePool.deploy();
 
   const factoryContract = await ethers.getContractFactory("JasminePoolFactory");
   const factory = await factoryContract.deploy(poolAddress.address);
+
+  console.log(`Deployed factory to: ${factory.address} Poo impl to: ${poolAddress.address}`);
 
   if (network.name === "polygon" || network.name === "mumbai") {
     console.log("Verifyiyng on Etherscan...");

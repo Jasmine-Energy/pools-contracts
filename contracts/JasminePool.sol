@@ -4,16 +4,48 @@ pragma solidity ^0.8.18;
 
 
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract JasminePool is IJasminePool {
+// Utility Libraries
+import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 
+contract JasminePool is IJasminePool, UUPSUpgradeable {
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Fields
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    /// @dev Policy to deposit into pool
+    // NOTE: Should be Constant but...
+    PoolPolicy.DepositPolicy internal _depositPolicy;
+
+    string public name;
+    string public symbol;
+
+    uint8 public constant decimals = 18;
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Setup
+    // ──────────────────────────────────────────────────────────────────────────────
 
     // TODO must use onlyProxy modifier
     function initialize(
-        bytes calldata policy,
-        string calldata name,
-        string calldata symbol
-    ) external override {}
+        bytes calldata _policy,
+        string calldata _name,
+        string calldata _symbol
+    ) external override initializer onlyInitializing {
+        _depositPolicy = abi.decode(_policy, (PoolPolicy.DepositPolicy));
+        name = _name;
+        symbol = _symbol;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // 
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal virtual override {}
 
     function meetsPolicy(
         uint256 tokenId
@@ -87,12 +119,6 @@ contract JasminePool is IJasminePool {
         address to,
         uint256 amount
     ) external override returns (bool) {}
-
-    function name() external view override returns (string memory) {}
-
-    function symbol() external view override returns (string memory) {}
-
-    function decimals() external view override returns (uint8) {}
 
     function tokenURI() external view override returns (string memory) {}
 
