@@ -6,6 +6,8 @@ pragma solidity ^0.8.18;
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
 
 contract JasminePool is IJasminePool {
+
+    
     function meetsPolicy(
         uint256 tokenId
     ) external view override returns (bool isEligible) {}
