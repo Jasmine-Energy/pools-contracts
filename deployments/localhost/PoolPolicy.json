@@ -1,0 +1,9 @@
+{
+  "address": "0xa41Ee73984a9DAD0fA22937DB3097EBFE4cee791",
+  "abi": [
+    "function backHalfOfYear(uint16 year) pure returns (uint256[2] period) @29000000",
+    "function frontHalfOfYear(uint16 year) pure returns (uint256[2] period) @29000000"
+  ],
+  "transactionHash": "0x7d9f7d6beca98bba96cc01c58239c087524f1d5f4708e99ad9da9689dc1f5651",
+  "numDeployments": 1
+}
