@@ -12,6 +12,8 @@ import "hardhat-deploy";
 import "hardhat-interact";
 import "@typechain/hardhat";
 
+import "tsconfig-paths/register";
+
 import "./tasks";
 
 dotenv.config();
