@@ -39,7 +39,7 @@ library PoolPolicy {
      */
     function toBytes(
         PoolPolicy.DepositPolicy calldata policy
-    ) external returns(bytes memory) {
+    ) external pure returns(bytes memory) {
         return abi.encodePacked(
             policy.vintagePeriod,
             policy.techTypes,

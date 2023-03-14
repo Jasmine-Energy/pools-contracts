@@ -12,8 +12,7 @@ const deployFactory: DeployFunction = async function (
   const policy = await deployments.get(Contracts.poolPolicy);  
   const pool = await deployments.get(Contracts.pool);
 
-  const factoryContract = await ethers.getContractFactory(Contracts.factory,
-    {
+  const factoryContract = await ethers.getContractFactory(Contracts.factory, {
         libraries: {
             PoolPolicy: policy.address
         }

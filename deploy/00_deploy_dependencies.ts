@@ -6,7 +6,7 @@ import { Contracts, colouredLog, LogColours } from "@/utils";
 const deployDependencies: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
-  console.log("deploying Pool Factory to: ", hre.network.name);
+  console.log("deploying dependencies to: ", hre.network.name);
   const { ethers, deployments, network } = hre;
 //   const { owner, admin } = await hre.getNamedAccounts();
 

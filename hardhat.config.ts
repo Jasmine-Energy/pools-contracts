@@ -72,6 +72,9 @@ const config: HardhatUserConfig = {
       chainId: 137
     }
   },
+  paths: {
+    deployments: "deployments",
+  },
   abiExporter: {
     path: "./abi",
     runOnCompile: true,
