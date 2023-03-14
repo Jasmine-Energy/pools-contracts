@@ -32,6 +32,11 @@ library PoolPolicy {
     //  Type Casting Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
+    /**
+     * @dev Converts a policy to bytes
+     * 
+     * @param policy Input policy to convert to bytes
+     */
     function toBytes(
         PoolPolicy.DepositPolicy calldata policy
     ) external returns(bytes memory) {

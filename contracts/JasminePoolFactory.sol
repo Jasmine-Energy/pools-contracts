@@ -105,7 +105,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
             poolImplementation, 
             abi.encodeCall(
                 IJasminePool(poolImplementation).initialize,
-                (packedPolicy(policy), name, symbol)
+                (policy.toBytes(), name, symbol)
             ),
             policyHash
         );
