@@ -9,6 +9,11 @@ pragma solidity >=0.8.0;
  * @notice Utility library for Pool Policy types
  */
 library PoolPolicy {
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Types
+    //  ─────────────────────────────────────────────────────────────────────────────
+
     /**
      * @title Deposit Policy
      * @notice A deposit policy is a pool's constraints on what EATs may be depositted. 
@@ -22,6 +27,22 @@ library PoolPolicy {
         uint256[]  endorsements;
     }
 
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Type Casting Functions
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    function toBytes(
+        PoolPolicy.DepositPolicy calldata policy
+    ) external returns(bytes memory) {
+        return abi.encodePacked(
+            policy.vintagePeriod,
+            policy.techTypes,
+            policy.registries,
+            policy.certificationTypes,
+            policy.endorsements
+        );
+    }
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Utility Functions

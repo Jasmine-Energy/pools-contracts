@@ -40,6 +40,8 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     // TODO: Move to library and create type for Bytes32 to Address
     using EnumerableMap for EnumerableMap.Bytes32ToBytes32Map;
 
+    using PoolPolicy for PoolPolicy.DepositPolicy;
+
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
@@ -93,7 +95,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         string calldata name, 
         string calldata symbol
     ) external onlyOwner {
-        bytes32 policyHash = keccak256(packedPolicy(policy));
+        bytes32 policyHash = keccak256(policy.toBytes());
 
         if (_pools.contains(policyHash)) {
             revert PoolExists();
@@ -108,7 +110,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
             policyHash
         );
 
-        emit PoolCreated(packedPolicy(policy), newPool, name, symbol);
+        emit PoolCreated(policy.toBytes(), newPool, name, symbol);
 
         _pools.set(policyHash, bytes32(uint256(uint160(newPool))));
     }
@@ -125,18 +127,4 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    /**
-     * @dev Converts DepositPolicy struct to bytes
-     * 
-     * @param policy Deposit Policy to convert
-     */
-    function packedPolicy(PoolPolicy.DepositPolicy calldata policy) private pure returns(bytes memory) {
-        return abi.encodePacked(
-            policy.vintagePeriod,
-            policy.techTypes,
-            policy.registries,
-            policy.certificationTypes,
-            policy.endorsements
-        );
-    }
 }
