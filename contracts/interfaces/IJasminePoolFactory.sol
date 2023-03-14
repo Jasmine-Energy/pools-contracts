@@ -17,12 +17,17 @@ interface IJasminePoolFactory {
 
     /**
      * @notice Emitted when a new Jasmine pool is created
+     * 
      * @param policy Pool's deposit policy in bytes
      * @param pool Address of newly created pool
+     * @param name Name of the pool
+     * @param symbol Token symbol of the pool
      */
     event PoolCreated(
         bytes policy,
-        address indexed pool
+        address indexed pool,
+        string  indexed name,
+        string  indexed symbol
     );
 
 
