@@ -7,7 +7,14 @@ import { IJasminePool } from "./interfaces/IJasminePool.sol";
 
 contract JasminePool is IJasminePool {
 
-    
+
+    // TODO must use onlyProxy modifier
+    function initialize(
+        bytes calldata policy,
+        string calldata name,
+        string calldata symbol
+    ) external override {}
+
     function meetsPolicy(
         uint256 tokenId
     ) external view override returns (bool isEligible) {}

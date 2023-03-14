@@ -16,6 +16,15 @@ import "./tasks";
 
 dotenv.config();
 
+// TODO Move this
+const mnemonic = "tattoo clip ankle prefer cruise car motion borrow bread future legal system";
+const accounts = {
+  mnemonic: mnemonic,
+  path: "m/44'/60'/0'/0",
+  initialIndex: 0,
+  count: 10,
+  passphrase: "",
+};
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -44,6 +53,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 31337,
       loggingEnabled: true,
+      accounts,
       forking: {
         url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },

@@ -35,6 +35,8 @@ interface IJasminePool is
     IERC1155Receiver,
     IERC777, IERC2612, IERC1363 {
 
+    function initialize(bytes calldata policy, string calldata name, string calldata symbol) external;
+
     /// @dev Required override due to ERC-20 & ERC-777 conflicts
     function totalSupply() external view override(IERC20, IERC777) returns (uint256);
     function balanceOf(address account) external view override(IERC20, IERC777) returns (uint256);
