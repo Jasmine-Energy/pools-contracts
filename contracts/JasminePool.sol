@@ -3,6 +3,10 @@
 pragma solidity >=0.8.0;
 
 
+//  ─────────────────────────────────────────────────────────────────────────────
+//  Imports
+//  ─────────────────────────────────────────────────────────────────────────────
+
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC777 } from "@openzeppelin/contracts/token/ERC777/ERC777.sol";
@@ -97,6 +101,9 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
     // Jasmine Pool Conformance Implementations
     // ──────────────────────────────────────────────────────────────────────────────
 
+
+    //  ────────────────────────────  Policy Functions  ─────────────────────────────  \\
+
     function meetsPolicy(
         uint256 tokenId
     ) public view returns (bool isEligible) {}
@@ -105,10 +112,45 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
         uint8 metadataVersion
     ) external view override returns (bytes memory policy) {}
 
+
+    //  ──────────────────────────  Retirement Functions  ───────────────────────────  \\
+
     function retire(
         address owner,
         address beneficiary,
         uint256 quantity,
+        bytes calldata data
+    ) external override returns (bool success) {}
+
+    //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
+
+    function deposit(
+        address from,
+        uint256 tokenId,
+        uint256 quantity
+    ) external override returns (bool success, uint256 jltQuantity) {}
+
+    function depositBatch(
+        address from,
+        uint256[] calldata tokenIds,
+        uint256[] calldata quantities
+    ) external override returns (bool success, uint256 jltQuantity) {}
+
+
+    //  ──────────────────────────  Withdrawal Functions  ───────────────────────────  \\
+
+    function withdraw(
+        address owner,
+        address recipient,
+        uint256 quantity,
+        bytes calldata data
+    ) external override returns (bool success) {}
+
+    function withdrawSpecific(
+        address owner,
+        address recipient,
+        uint256[] calldata tokenIds,
+        uint256[] calldata quantities,
         bytes calldata data
     ) external override returns (bool success) {}
 
@@ -190,39 +232,17 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
 
     //  ──────────────────────────  ERC-1046 Conformance  ───────────────────────────  \\
 
-    function tokenURI() external view returns (string memory) {}
+    function tokenURI() external view returns (string memory) {
+        // TODO Implement
+    }
 
-    function deposit(
-        address from,
-        uint256 tokenId,
-        uint256 quantity
-    ) external override returns (bool success, uint256 jltQuantity) {}
-
-    function depositBatch(
-        address from,
-        uint256[] calldata tokenIds,
-        uint256[] calldata quantities
-    ) external override returns (bool success, uint256 jltQuantity) {}
-
-    function withdraw(
-        address owner,
-        address recipient,
-        uint256 quantity,
-        bytes calldata data
-    ) external override returns (bool success) {}
-
-    function withdrawSpecific(
-        address owner,
-        address recipient,
-        uint256[] calldata tokenIds,
-        uint256[] calldata quantities,
-        bytes calldata data
-    ) external override returns (bool success) {}
-
+    //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
     function supportsInterface(
         bytes4 interfaceId
-    ) external view returns (bool) {}
+    ) external view returns (bool) {
+        // TODO Implement
+    }
 
     
 

@@ -29,4 +29,5 @@ import { IERC3156FlashLender } from "@openzeppelin/contracts/interfaces/IERC3156
  * @dev 
  */
 interface IJasminePool is IEATBackedPool, IQualifiedPool, IRetireablePool {
+        function initialize(bytes calldata policy, string calldata name, string calldata symbol) external;
 }
