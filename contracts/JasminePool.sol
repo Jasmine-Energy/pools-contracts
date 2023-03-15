@@ -1,51 +1,164 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity ^0.8.18;
+pragma solidity >=0.8.0;
 
+
+//  ─────────────────────────────────────────────────────────────────────────────
+//  Imports
+//  ─────────────────────────────────────────────────────────────────────────────
 
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
+import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import { ERC777 } from "@openzeppelin/contracts/token/ERC777/ERC777.sol";
+// import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+// import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract JasminePool is IJasminePool {
+// TODO Oracle interface in core contracts need to be updated
+import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
+import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
+
+// Utility Libraries
+import { PoolPolicy } from "./libraries/PoolPolicy.sol";
+
+
+//  ─────────────────────────────────────────────────────────────────────────────
+//  Custom Errors
+//  ─────────────────────────────────────────────────────────────────────────────
+
+error Unqualified(uint256 tokenId);
+
+
+/**
+ * TODO: Write docs
+ * @title Jasmine Reference Pool
+ * @author Kai Aldag<kai.aldag@jasmine.energy>
+ * @notice 
+ * @custom:security-contact // TODO: set sec contact
+ */
+contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Libraries
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    using PoolPolicy for PoolPolicy.DepositPolicy;
+    using PoolPolicy for bytes;
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Fields
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    /// @dev Policy to deposit into pool
+    // NOTE: Should be Constant but...
+    PoolPolicy.DepositPolicy internal _depositPolicy;
+
+    JasmineOracle public immutable oracle;
+    JasmineEAT public immutable EAT;
+
+    string public _name;
+    string public _symbol;
+
+    // TODO: Should discuss internally before making this assumption
+    uint8 public constant _decimals = 18;
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Setup
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    constructor(address _eat, address _oracle) ERC777("", "", new address[](0)) {
+        require(_eat != address(0), "JasminePool: EAT must be set");
+        require(_oracle != address(0), "JasminePool: Oracle must be set");
+
+        // TODO: Add supports interface checks
+
+        oracle = JasmineOracle(_oracle);
+        EAT = JasmineEAT(_eat);
+    }
+
+    /**
+     * @dev
+     *
+     * @param policy_ Deposit Policy
+     * @param name_ JLT token name
+     * @param symbol_ JLT token symbol
+     */
+    function initialize(
+        bytes calldata policy_,
+        string calldata name_,
+        string calldata symbol_
+    ) external initializer onlyInitializing {
+        _depositPolicy = policy_.toDepositPolicy();
+        _name = name_;
+        _symbol = symbol_;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // User Functionality
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Jasmine Pool Conformance Implementations
+    // ──────────────────────────────────────────────────────────────────────────────
+
+
+    //  ────────────────────────────  Policy Functions  ─────────────────────────────  \\
+
     function meetsPolicy(
         uint256 tokenId
-    ) external view override returns (bool isEligible) {}
+    ) public view returns (bool isEligible) {}
 
     function policyForVersion(
         uint8 metadataVersion
     ) external view override returns (bytes memory policy) {}
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) external view override returns (bool) {}
 
-    function totalSupply() external view override returns (uint256) {}
+    //  ──────────────────────────  Retirement Functions  ───────────────────────────  \\
 
-    function balanceOf(
-        address account
-    ) external view override returns (uint256) {}
-
-    function transfer(
-        address to,
-        uint256 amount
-    ) external override returns (bool) {}
-
-    function allowance(
+    function retire(
         address owner,
-        address spender
-    ) external view override returns (uint256) {}
+        address beneficiary,
+        uint256 quantity,
+        bytes calldata data
+    ) external override returns (bool success) {}
 
-    function approve(
-        address spender,
-        uint256 amount
-    ) external override returns (bool) {}
+    //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
 
-    function transferFrom(
+    function deposit(
         address from,
-        address to,
-        uint256 amount
-    ) external override returns (bool) {}
+        uint256 tokenId,
+        uint256 quantity
+    ) external override returns (bool success, uint256 jltQuantity) {}
 
-    function tokenURI() external view override returns (string memory) {}
+    function depositBatch(
+        address from,
+        uint256[] calldata tokenIds,
+        uint256[] calldata quantities
+    ) external override returns (bool success, uint256 jltQuantity) {}
+
+
+    //  ──────────────────────────  Withdrawal Functions  ───────────────────────────  \\
+
+    function withdraw(
+        address owner,
+        address recipient,
+        uint256 quantity,
+        bytes calldata data
+    ) external override returns (bool success) {}
+
+    function withdrawSpecific(
+        address owner,
+        address recipient,
+        uint256[] calldata tokenIds,
+        uint256[] calldata quantities,
+        bytes calldata data
+    ) external override returns (bool success) {}
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // ERC Conformance Implementations
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    //  ──────────────────────  ERC-1155 Receiver Conformance  ──────────────────────  \\
 
     function onERC1155Received(
         address operator,
@@ -53,7 +166,30 @@ contract JasminePool is IJasminePool {
         uint256 id,
         uint256 value,
         bytes calldata data
-    ) external override returns (bytes4) {}
+    ) external returns (bytes4) {
+        // 1. Ensure tokens received are EATs
+        require(
+            operator == address(EAT),
+            "JasminePool: Pool only accept Jasmine Energy Attribution Tokens"
+        );
+
+        // 2. Verify token is eligible for pool
+        if (!meetsPolicy(id)) {
+            revert Unqualified(id);
+        }
+
+        // 3. Mint Tokens
+        _mint(
+            from,
+            value,
+            "", // TODO: Anything to pass here🤔
+            ""
+        );
+
+        // TODO: Call data
+
+        return this.onERC1155Received.selector;
+    }
 
     function onERC1155BatchReceived(
         address operator,
@@ -61,177 +197,65 @@ contract JasminePool is IJasminePool {
         uint256[] calldata ids,
         uint256[] calldata values,
         bytes calldata data
-    ) external override returns (bytes4) {}
+    ) external returns (bytes4) {
+        // 1. Ensure tokens received are EATs
+        require(
+            operator == address(EAT),
+            "JasminePool: Pool only accept Jasmine Energy Attribution Tokens"
+        );
+        require(
+            ids.length == values.length,
+            "JasminePool: Length of token IDs and values must match"
+        );
 
-    function name() external view override returns (string memory) {}
+        // 2. Verify all tokens are eligible for pool - and sum total EATs sent
+        uint256 total;
+        for (uint256 i = 0; i < ids.length; i++) {
+            if (!meetsPolicy(ids[i])) {
+                revert Unqualified(ids[i]);
+            }
+            total != values[i];
+        }
 
-    function symbol() external view override returns (string memory) {}
+        // 3. Authorize JLT mint
+        _mint(
+            from,
+            total,
+            "", // TODO: Anything to pass here🤔
+            ""
+        );
 
-    function granularity() external view override returns (uint256) {}
+        // TODO: Call data
 
-    function send(
-        address recipient,
-        uint256 amount,
-        bytes calldata data
-    ) external override {}
+        return this.onERC1155BatchReceived.selector;
+    }
 
-    function burn(uint256 amount, bytes calldata data) external override {}
+    //  ──────────────────────────  ERC-1046 Conformance  ───────────────────────────  \\
 
-    function isOperatorFor(
-        address operator,
-        address tokenHolder
-    ) external view override returns (bool) {}
+    function tokenURI() external view returns (string memory) {
+        // TODO Implement
+    }
 
-    function authorizeOperator(address operator) external override {}
+    //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
-    function revokeOperator(address operator) external override {}
+    function supportsInterface(
+        bytes4 interfaceId
+    ) external view returns (bool) {
+        // TODO Implement
+    }
 
-    function defaultOperators()
-        external
-        view
-        override
-        returns (address[] memory)
-    {}
+    
 
-    function operatorSend(
-        address sender,
-        address recipient,
-        uint256 amount,
-        bytes calldata data,
-        bytes calldata operatorData
-    ) external override {}
+    
 
-    function operatorBurn(
-        address account,
-        uint256 amount,
-        bytes calldata data,
-        bytes calldata operatorData
-    ) external override {}
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Internal
+    //  ─────────────────────────────────────────────────────────────────────────────
 
-    function decimals() external view override returns (uint8) {}
+    // function _mint(
 
-    function asset()
-        external
-        view
-        override
-        returns (address assetTokenAddress)
-    {}
+    // )
 
-    function totalAssets()
-        external
-        view
-        override
-        returns (uint256 totalManagedAssets)
-    {}
 
-    function convertToShares(
-        uint256 assets
-    ) external view override returns (uint256 shares) {}
-
-    function convertToAssets(
-        uint256 shares
-    ) external view override returns (uint256 assets) {}
-
-    function maxDeposit(
-        address receiver
-    ) external view override returns (uint256 maxAssets) {}
-
-    function previewDeposit(
-        uint256 assets
-    ) external view override returns (uint256 shares) {}
-
-    function deposit(
-        uint256 assets,
-        address receiver
-    ) external override returns (uint256 shares) {}
-
-    function maxMint(
-        address receiver
-    ) external view override returns (uint256 maxShares) {}
-
-    function previewMint(
-        uint256 shares
-    ) external view override returns (uint256 assets) {}
-
-    function mint(
-        uint256 shares,
-        address receiver
-    ) external override returns (uint256 assets) {}
-
-    function maxWithdraw(
-        address owner
-    ) external view override returns (uint256 maxAssets) {}
-
-    function previewWithdraw(
-        uint256 assets
-    ) external view override returns (uint256 shares) {}
-
-    function withdraw(
-        uint256 assets,
-        address receiver,
-        address owner
-    ) external override returns (uint256 shares) {}
-
-    function maxRedeem(
-        address owner
-    ) external view override returns (uint256 maxShares) {}
-
-    function previewRedeem(
-        uint256 shares
-    ) external view override returns (uint256 assets) {}
-
-    function redeem(
-        uint256 shares,
-        address receiver,
-        address owner
-    ) external override returns (uint256 assets) {}
-
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external override {}
-
-    function nonces(address owner) external view override returns (uint256) {}
-
-    function DOMAIN_SEPARATOR() external view override returns (bytes32) {}
-
-    function transferAndCall(
-        address to,
-        uint256 value
-    ) external override returns (bool) {}
-
-    function transferAndCall(
-        address to,
-        uint256 value,
-        bytes memory data
-    ) external override returns (bool) {}
-
-    function transferFromAndCall(
-        address from,
-        address to,
-        uint256 value
-    ) external override returns (bool) {}
-
-    function transferFromAndCall(
-        address from,
-        address to,
-        uint256 value,
-        bytes memory data
-    ) external override returns (bool) {}
-
-    function approveAndCall(
-        address spender,
-        uint256 value
-    ) external override returns (bool) {}
-
-    function approveAndCall(
-        address spender,
-        uint256 value,
-        bytes memory data
-    ) external override returns (bool) {}
+    
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity ^0.8.18;
+pragma solidity >=0.8.0;
 
 
 /**
@@ -9,6 +9,11 @@ pragma solidity ^0.8.18;
  * @notice Utility library for Pool Policy types
  */
 library PoolPolicy {
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Types
+    //  ─────────────────────────────────────────────────────────────────────────────
+
     /**
      * @title Deposit Policy
      * @notice A deposit policy is a pool's constraints on what EATs may be depositted. 
@@ -22,6 +27,47 @@ library PoolPolicy {
         uint256[]  endorsements;
     }
 
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Type Casting Functions
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @dev Converts a policy to bytes
+     * 
+     * @param policy Input policy to convert to bytes
+     */
+    function toBytes(
+        PoolPolicy.DepositPolicy calldata policy
+    ) external pure returns(bytes memory) {
+        return abi.encode(
+            policy.vintagePeriod,
+            policy.techTypes,
+            policy.registries,
+            policy.certificationTypes,
+            policy.endorsements
+        );
+    }
+
+    /**
+     * @dev Converts bytes to Deposit Policy
+     * 
+     * @param _encodedPolicy Byte encode policy to decode
+     */
+    function toDepositPolicy(
+        bytes calldata _encodedPolicy
+    ) external pure returns(DepositPolicy memory) {
+        uint256[2] memory vintagePeriod;
+        uint256[]  memory techTypes;
+        uint256[]  memory registries;
+        uint256[]  memory certificationTypes;
+        uint256[]  memory endorsements;
+        (vintagePeriod, techTypes, registries, certificationTypes, endorsements) = abi.decode(_encodedPolicy, (uint256[2], uint256[], uint256[], uint256[], uint256[]));
+
+        return DepositPolicy(
+            vintagePeriod, techTypes, registries, certificationTypes, endorsements
+        );
+    }
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Utility Functions
