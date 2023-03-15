@@ -1,15 +1,23 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity ^0.8.18;
+pragma solidity >=0.8.0;
 
 
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 // Utility Libraries
 import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 
-contract JasminePool is IJasminePool, UUPSUpgradeable {
+contract JasminePool is IJasminePool, Initializable {
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Libraries
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    using PoolPolicy for PoolPolicy.DepositPolicy;
+    using PoolPolicy for bytes;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -30,11 +38,11 @@ contract JasminePool is IJasminePool, UUPSUpgradeable {
 
     // TODO must use onlyProxy modifier
     function initialize(
-        bytes calldata _policy,
+        bytes  calldata _policy,
         string calldata _name,
         string calldata _symbol
-    ) external override initializer onlyInitializing {
-        _depositPolicy = abi.decode(_policy, (PoolPolicy.DepositPolicy));
+    ) external initializer onlyInitializing {
+        _depositPolicy = _policy.toDepositPolicy();
         name = _name;
         symbol = _symbol;
     }
@@ -42,10 +50,6 @@ contract JasminePool is IJasminePool, UUPSUpgradeable {
     // ──────────────────────────────────────────────────────────────────────────────
     // 
     // ──────────────────────────────────────────────────────────────────────────────
-
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal virtual override {}
 
     function meetsPolicy(
         uint256 tokenId

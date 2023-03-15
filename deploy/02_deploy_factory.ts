@@ -14,7 +14,7 @@ const deployFactory: DeployFunction = async function (
 
   // 1. Get deployments
   const pool = await deployments.get(Contracts.pool);
-  const policy = await deployments.get(Libraries.poolPolicy);  
+  const policy = await deployments.get(Libraries.poolPolicy);
 
   // 2. Deploy Pool Factory Contract
   const factory = await deploy(Contracts.factory, {
@@ -38,17 +38,17 @@ const deployFactory: DeployFunction = async function (
 
   // 4. If not prod, create test pool
   if (!network.tags['public']) {
-    // const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address) as JasminePoolFactory;
-    // await factoryContract.deployNewPool({
-    //   vintagePeriod: [
-    //     new Date().valueOf() / 1_000,
-    //     new Date().valueOf() + 100_000  / 1_000
-    //   ],
-    //   techTypes: [],
-    //   registries: [],
-    //   certificationTypes: [],
-    //   endorsements: []
-    // }, "Any Tech '23", "a23JLT");
+    const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address) as JasminePoolFactory;
+    await factoryContract.deployNewPool({
+      vintagePeriod: [
+        Math.ceil(new Date().valueOf() / 1_000),
+        Math.ceil(new Date().valueOf() + 100_000  / 1_000)
+      ],
+      techTypes: [],
+      registries: [],
+      certificationTypes: [],
+      endorsements: []
+    }, "Any Tech '23", "a23JLT");
   }
 };
 deployFactory.tags = ['Factory'];

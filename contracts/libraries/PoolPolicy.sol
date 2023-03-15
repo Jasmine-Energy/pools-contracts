@@ -40,12 +40,27 @@ library PoolPolicy {
     function toBytes(
         PoolPolicy.DepositPolicy calldata policy
     ) external pure returns(bytes memory) {
-        return abi.encodePacked(
+        return abi.encode(
             policy.vintagePeriod,
             policy.techTypes,
             policy.registries,
             policy.certificationTypes,
             policy.endorsements
+        );
+    }
+
+    function toDepositPolicy(
+        bytes calldata _encodedPolicy
+    ) external pure returns(DepositPolicy memory) {
+        uint256[2] memory vintagePeriod;
+        uint256[] memory techTypes;
+        uint256[] memory registries;
+        uint256[] memory certificationTypes;
+        uint256[] memory endorsements;
+        (vintagePeriod, techTypes, registries, certificationTypes, endorsements) = abi.decode(_encodedPolicy, (uint256[2], uint256[], uint256[], uint256[], uint256[]));
+
+        return DepositPolicy(
+            vintagePeriod, techTypes, registries, certificationTypes, endorsements
         );
     }
 

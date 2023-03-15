@@ -101,18 +101,19 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
             revert PoolExists();
         }
 
-        address newPool = ERC1967UUPSProxy.createDeterministic(
-            poolImplementation, 
+        ERC1967Proxy poolProxy = new ERC1967Proxy{ salt: policyHash }(
+            poolImplementation,
             abi.encodeCall(
-                IJasminePool(poolImplementation).initialize,
+                IJasminePool.initialize,
                 (policy.toBytes(), name, symbol)
-            ),
-            policyHash
+            )
         );
+        // address newPool = Create2.deploy(0, policyHash, poolImplementation.code);
+        // IJasminePool(newPool).initialize(policy.toBytes(), name, symbol);
 
-        emit PoolCreated(policy.toBytes(), newPool, name, symbol);
+        emit PoolCreated(policy.toBytes(), address(poolProxy), name, symbol);
 
-        _pools.set(policyHash, bytes32(uint256(uint160(newPool))));
+        _pools.set(policyHash, bytes32(uint256(uint160(address(poolProxy)))));
     }
 
 

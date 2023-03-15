@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { Contracts, colouredLog, LogColours } from "@/utils";
+import { Contracts, Libraries, colouredLog, LogColours } from "@/utils";
 
 const deployPoolImplementation: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
@@ -11,14 +11,20 @@ const deployPoolImplementation: DeployFunction = async function (
   const { deploy } = deployments;
   const { owner } = await getNamedAccounts();
 
-  // 1. Deploy Pool Contract
+  // 1. Get deployements
+  const policy = await deployments.get(Libraries.poolPolicy);
+
+  // 2. Deploy Pool Contract
   const pool = await deploy(Contracts.pool, {
-    from: owner
+    from: owner,
+    libraries: {
+      PoolPolicy: policy.address
+    }
   });
 
   colouredLog(LogColours.blue, `Deployed Pool impl to: ${pool.address}`);
 
-  // 2. If on external network, verify contracts
+  // 3. If on external network, verify contracts
   if (network.tags["public"]) {
     console.log("Verifyiyng on Etherscan...");
     await hre.run("verify:verify", {
