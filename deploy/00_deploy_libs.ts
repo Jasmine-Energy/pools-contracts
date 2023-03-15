@@ -24,7 +24,7 @@ const deployDependencies: DeployFunction = async function (
   colouredLog(LogColours.blue, `Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address}`);
   
   // 3. If on external network, verify contracts
-  if (network.name === "polygon" || network.name === "mumbai") {
+  if (network.tags["public"]) {
     console.log("Verifyiyng on Etherscan...");
     await hre.run("verify:verify", {
       address: calldataLib,

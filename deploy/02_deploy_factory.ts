@@ -1,13 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { Contracts, Libraries, colouredLog, LogColours } from "@/utils";
+import { JasminePoolFactory } from "@/typechain";
 
 const deployFactory: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
   colouredLog(LogColours.yellow, `deploying Pool Factory to: ${hre.network.name}`);
 
-  const { deployments, network, getNamedAccounts } = hre;
+  const { ethers, deployments, network, getNamedAccounts } = hre;
   const { deploy } = deployments;
   const { owner } = await getNamedAccounts();
 
@@ -27,13 +28,29 @@ const deployFactory: DeployFunction = async function (
   colouredLog(LogColours.blue, `Deployed factory to: ${factory.address}`);
 
   // 3. If on external network, verify contracts
-  if (network.name === "polygon" || network.name === "mumbai") {
+  if (network.tags["public"]) {
     console.log("Verifyiyng on Etherscan...");
     await hre.run("verify:verify", {
         address: factory,
         constructorArguments: [pool.address],
     });
   }
+
+  // 4. If not prod, create test pool
+  if (!network.tags['public']) {
+    // const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address) as JasminePoolFactory;
+    // await factoryContract.deployNewPool({
+    //   vintagePeriod: [
+    //     new Date().valueOf() / 1_000,
+    //     new Date().valueOf() + 100_000  / 1_000
+    //   ],
+    //   techTypes: [],
+    //   registries: [],
+    //   certificationTypes: [],
+    //   endorsements: []
+    // }, "Any Tech '23", "a23JLT");
+  }
 };
 deployFactory.tags = ['Factory'];
+deployFactory.dependencies = ['Libraries', 'Pool'];
 export default deployFactory;

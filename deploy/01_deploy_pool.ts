@@ -12,8 +12,6 @@ const deployPoolImplementation: DeployFunction = async function (
   const { owner } = await getNamedAccounts();
 
   // 1. Deploy Pool Contract
-  // const JasminePool = await ethers.getContractFactory(Contracts.pool);
-  // const pool = await JasminePool.deploy();
   const pool = await deploy(Contracts.pool, {
     from: owner
   });
@@ -21,7 +19,7 @@ const deployPoolImplementation: DeployFunction = async function (
   colouredLog(LogColours.blue, `Deployed Pool impl to: ${pool.address}`);
 
   // 2. If on external network, verify contracts
-  if (network.name === "polygon" || network.name === "mumbai") {
+  if (network.tags["public"]) {
     console.log("Verifyiyng on Etherscan...");
     await hre.run("verify:verify", {
       address: pool,

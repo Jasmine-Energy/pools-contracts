@@ -40,20 +40,24 @@ const config: HardhatUserConfig = {
         url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
       saveDeployments: true,
+      tags: ["local"],
     },
     localhost: {
       url: "http://127.0.0.1:8545",
       saveDeployments: true,
+      tags: ["local"],
     },
     mumbai: {
       url: "https://matic-testnet-archive-rpc.bwarelabs.com",
       chainId: 80001,
       saveDeployments: true,
+      tags: ["testnet", "public"],
     },
     polygon: {
       url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
       chainId: 137,
       saveDeployments: true,
+      tags: ["production", "public"],
     }
   },
   namedAccounts: {
