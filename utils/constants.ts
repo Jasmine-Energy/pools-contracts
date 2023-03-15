@@ -2,9 +2,13 @@
 const Contracts = {
     pool: "JasminePool",
     factory: "JasminePoolFactory",
-    poolPolicy: "PoolPolicy"
+};
+
+const Libraries = {
+    poolPolicy: "PoolPolicy",
+    calldata: "Calldata",
 }
 
 export {
-    Contracts
+    Contracts, Libraries
 };

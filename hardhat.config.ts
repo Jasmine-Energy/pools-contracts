@@ -9,6 +9,7 @@ import "@openzeppelin/hardhat-upgrades";
 import "hardhat-abi-exporter";
 import "hardhat-contract-sizer"
 import "hardhat-deploy";
+import "hardhat-deploy-ethers";
 import "hardhat-interact";
 import "@typechain/hardhat";
 
@@ -29,6 +30,37 @@ const accounts = {
 };
 
 const config: HardhatUserConfig = {
+  defaultNetwork: "hardhat",
+  networks: {
+    hardhat: {
+      chainId: 31337,
+      loggingEnabled: true,
+      accounts,
+      forking: {
+        url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      },
+      saveDeployments: true,
+    },
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      saveDeployments: true,
+    },
+    mumbai: {
+      url: "https://matic-testnet-archive-rpc.bwarelabs.com",
+      chainId: 80001,
+      saveDeployments: true,
+    },
+    polygon: {
+      url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      chainId: 137,
+      saveDeployments: true,
+    }
+  },
+  namedAccounts: {
+    owner: {
+      default: 0
+    }
+  },
   solidity: {
     compilers: [
       {
@@ -50,27 +82,6 @@ const config: HardhatUserConfig = {
         },
       },
     ],
-  },
-  networks: {
-    hardhat: {
-      chainId: 31337,
-      loggingEnabled: true,
-      accounts,
-      forking: {
-        url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      },
-    },
-    localhost: {
-      url: "http://127.0.0.1:8545",
-    },
-    mumbai: {
-      url: "https://matic-testnet-archive-rpc.bwarelabs.com",
-      chainId: 80001,
-    },
-    polygon: {
-      url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      chainId: 137
-    }
   },
   paths: {
     deployments: "deployments",
