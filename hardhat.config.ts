@@ -3,6 +3,7 @@ import * as dotenv from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-chai-matchers"
+import "@nomicfoundation/hardhat-network-helpers";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-etherscan";
 import "@openzeppelin/hardhat-upgrades";
@@ -39,11 +40,6 @@ const config: HardhatUserConfig = {
       forking: {
         url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
-      saveDeployments: true,
-      tags: ["local"],
-    },
-    localhost: {
-      url: "http://127.0.0.1:8545",
       saveDeployments: true,
       tags: ["local"],
     },

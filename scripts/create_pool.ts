@@ -1,9 +1,13 @@
-import { ethers, deployments } from "hardhat";
+import { ethers, deployments, getNamedAccounts } from "hardhat";
 import { JasminePoolFactory, PoolPolicy } from "@/typechain";
 import { Contracts, Libraries, colouredLog, LogColours } from "@/utils";
 
 async function main() {
   // 1. Connect to contract
+  const { owner } = await getNamedAccounts();
+  console.log(await deployments.all(), await deployments.getDeploymentsFromAddress(owner))
+  const factory = await ethers.getContract(Contracts.factory);
+  console.log(factory)
   const deployedFactory = await deployments.get(Contracts.factory);
   const poolFactory = (await ethers.getContractAt(
     Contracts.factory,
@@ -11,7 +15,6 @@ async function main() {
   )) as JasminePoolFactory;
 
 //   ethers.getContract(Libraries.poolPolicy);
-//   console.log(await deployments.all())
 
 //   const deployedPolicyLib = await deployments.get(Libraries.poolPolicy);
 //   const poolPolicyLib = (await ethers.getContractAt(

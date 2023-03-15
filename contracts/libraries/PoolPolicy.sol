@@ -49,14 +49,19 @@ library PoolPolicy {
         );
     }
 
+    /**
+     * @dev Converts bytes to Deposit Policy
+     * 
+     * @param _encodedPolicy Byte encode policy to decode
+     */
     function toDepositPolicy(
         bytes calldata _encodedPolicy
     ) external pure returns(DepositPolicy memory) {
         uint256[2] memory vintagePeriod;
-        uint256[] memory techTypes;
-        uint256[] memory registries;
-        uint256[] memory certificationTypes;
-        uint256[] memory endorsements;
+        uint256[]  memory techTypes;
+        uint256[]  memory registries;
+        uint256[]  memory certificationTypes;
+        uint256[]  memory endorsements;
         (vintagePeriod, techTypes, registries, certificationTypes, endorsements) = abi.decode(_encodedPolicy, (uint256[2], uint256[], uint256[], uint256[], uint256[]));
 
         return DepositPolicy(

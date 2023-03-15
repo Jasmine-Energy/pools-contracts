@@ -18,9 +18,12 @@ import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
 // Utility Libraries
 import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import { ERC1967UUPSProxy } from "@jasmine-energy/contracts/src/ERC1967UUPSProxy.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
+
+//  ─────────────────────────────────────────────────────────────────────────────
+//  Custom Errors
+//  ─────────────────────────────────────────────────────────────────────────────
 
 error NoPools();
 error PoolExists();
@@ -28,8 +31,9 @@ error PoolExists();
 
 /**
  * @title Jasmine Pool Factory
- * @author 
+ * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice 
+ * @custom:security-contact // TODO: set sec contact
  */
 contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
 
@@ -50,7 +54,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     // Note: Can probably remove since pool addresses are deterministic through CREATE2
     EnumerableMap.Bytes32ToBytes32Map private _pools;
 
-    /// @dev UUPS implementation address for pools
+    /// @dev Implementation address for pools
     address public poolImplementation;
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -108,8 +112,6 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
                 (policy.toBytes(), name, symbol)
             )
         );
-        // address newPool = Create2.deploy(0, policyHash, poolImplementation.code);
-        // IJasminePool(newPool).initialize(policy.toBytes(), name, symbol);
 
         emit PoolCreated(policy.toBytes(), address(poolProxy), name, symbol);
 
@@ -117,10 +119,17 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     }
 
 
+    /**
+     * @dev Allows owner to update the address pool proxies point to.
+     * 
+     * @param newPoolImplementation Address new pool proxies will point to
+     */
     function updateImplementationAddress(
         address newPoolImplementation
     ) external onlyOwner {
         poolImplementation = newPoolImplementation;
+
+        // TODO: Should prob update existing proxy implementations
     }
 
 

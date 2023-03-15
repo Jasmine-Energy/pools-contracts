@@ -17,6 +17,10 @@ const deployPoolImplementation: DeployFunction = async function (
   // 2. Deploy Pool Contract
   const pool = await deploy(Contracts.pool, {
     from: owner,
+    args: [
+      // EAT contract address
+      // Oracle contract address
+    ],
     libraries: {
       PoolPolicy: policy.address
     }
@@ -34,4 +38,5 @@ const deployPoolImplementation: DeployFunction = async function (
   }
 };
 deployPoolImplementation.tags = ['Pool'];
+deployPoolImplementation.dependencies = ['Libraries'];
 export default deployPoolImplementation;

@@ -28,19 +28,5 @@ import { IERC3156FlashLender } from "@openzeppelin/contracts/interfaces/IERC3156
  * @notice 
  * @dev 
  */
-interface IJasminePool is 
-    IERC20,
-    IEATBackedPool, IQualifiedPool, IRetireablePool,
-    IERC20Metadata, IERC1046,
-    IERC1155Receiver,
-    IERC777, IERC2612, IERC1363 {
-
-    function initialize(bytes calldata policy, string calldata name, string calldata symbol) external;
-
-    /// @dev Required override due to ERC-20 & ERC-777 conflicts
-    function totalSupply() external view override(IERC20, IERC777) returns (uint256);
-    function balanceOf(address account) external view override(IERC20, IERC777) returns (uint256);
-    function name() external view override(IERC20Metadata, IERC777) returns (string memory);
-    function symbol() external view override(IERC20Metadata, IERC777) returns (string memory);
-
+interface IJasminePool is IEATBackedPool, IQualifiedPool, IRetireablePool {
 }
