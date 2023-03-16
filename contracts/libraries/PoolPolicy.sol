@@ -3,6 +3,8 @@
 pragma solidity >=0.8.0;
 
 
+import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+
 /**
  * @title PoolPolicy
  * @author Kai Aldag<kai.aldag@jasmine.energy>
@@ -10,9 +12,35 @@ pragma solidity >=0.8.0;
  */
 library PoolPolicy {
 
+    using EnumerableMap for EnumerableMap.Bytes32ToBytes32Map;
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Types
     //  ─────────────────────────────────────────────────────────────────────────────
+
+    struct Policy {
+        // TODO Use enumerable map (right?)
+        Condition[] conditions;
+    }
+
+    struct Condition {
+        address verifier;
+        bytes4 selector;
+        EvalOperation eval;
+        bytes verificationCalldata;
+    }
+
+    /**
+     * @dev Eval operation is used to validate the 
+     */
+    enum EvalOperation {
+        oneOf,  // At least one of the verification calls must pass
+        noneOf, // All of the verification calls must fail
+        allOf   // All of the verification calls must pass
+    }
+
+
+
 
     /**
      * @title Deposit Policy
