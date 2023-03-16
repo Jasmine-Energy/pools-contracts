@@ -13,12 +13,14 @@ const deployDependencies: DeployFunction = async function (
 
   // 1. Deploy Pool Policy Library
   const policyLib = await deploy(Libraries.poolPolicy, {
-    from: owner
+    from: owner,
+    log: true,
   });
   
   // 2. Deploy Calldata Library
   const calldataLib = await deploy(Libraries.calldata, {
-    from: owner
+    from: owner,
+    log: true,
   });
 
   colouredLog(LogColours.blue, `Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address}`);
@@ -37,5 +39,5 @@ const deployDependencies: DeployFunction = async function (
       });
   }
 };
-deployDependencies.tags = ['Libraries'];
+deployDependencies.tags = ['Libraries', 'all'];
 export default deployDependencies;

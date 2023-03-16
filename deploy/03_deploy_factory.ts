@@ -51,6 +51,6 @@ const deployFactory: DeployFunction = async function (
     }, "Any Tech '23", "a23JLT");
   }
 };
-deployFactory.tags = ['Factory'];
-deployFactory.dependencies = ['Libraries', 'Pool'];
+deployFactory.tags = ['Factory', 'all'];
+deployFactory.dependencies = ['Libraries', 'Pool', 'Core'];
 export default deployFactory;
