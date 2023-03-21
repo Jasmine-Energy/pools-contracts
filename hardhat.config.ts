@@ -59,6 +59,10 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     owner: {
       default: 0
+    },
+    bridge: {
+      default: 1,
+      // TODO: Set to correct address on Polygon and mumbai
     }
   },
   solidity: {

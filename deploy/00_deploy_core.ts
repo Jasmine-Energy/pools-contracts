@@ -1,43 +1,111 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { Contracts, Libraries, colouredLog, LogColours } from "@/utils";
+import { Contracts, colouredLog, LogColours } from "@/utils";
+import { FormatTypes } from "@ethersproject/abi";
 
-const deployDependencies: DeployFunction = async function (
+// TODO: Migrate this over to using Jasmine contract's deploy function - included via plugin
+const deployCore: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
-  colouredLog(LogColours.yellow, `deploying libraries to: ${hre.network.name}`);
+  colouredLog(LogColours.yellow, `deploying core contracts to: ${hre.network.name}`);
 
-  const { deployments, network, getNamedAccounts } = hre;
-  const { deploy } = deployments;
-  const { owner } = await getNamedAccounts();
+  // 1. Setup
+  const { ethers, upgrades, deployments, network, getNamedAccounts } = hre;
+  const { save } = deployments;
+  const { owner, bridge } = await getNamedAccounts();
+  const ownerSigner = await ethers.getSigner(owner);
 
-  // 1. Deploy Pool Policy Library
-  const policyLib = await deploy(Libraries.poolPolicy, {
+  const tokenURI = "https://api.jasmine.energy/v1/eat/{id}.json";
+  const ownerNonce = await ownerSigner.getTransactionCount();
+  const futureMinterAddress = ethers.utils.getContractAddress({
     from: owner,
-    log: true,
-  });
-  
-  // 2. Deploy Calldata Library
-  const calldataLib = await deploy(Libraries.calldata, {
-    from: owner,
-    log: true,
+    nonce: ownerNonce + 5,
   });
 
-  colouredLog(LogColours.blue, `Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address}`);
+  // 2. Deploy EAT Contract
+  const EAT = await ethers.getContractFactory(Contracts.eat);
+  const eat = await upgrades.deployProxy(EAT, [
+    tokenURI,               // initialURI
+    futureMinterAddress,    // initialMinter
+    owner,                  // initialOwner
+  ], {
+    kind: 'uups',
+  });
+  await eat.deployed();
+
+  // 3. Deploy Oracle Contract
+  const Oracle = await ethers.getContractFactory(Contracts.oracle);
+  const oracle = await upgrades.deployProxy(Oracle, [
+    futureMinterAddress,    // initialMinter
+    owner,                  // initialOwner
+  ], {
+    kind: 'uups',
+  });
+  await oracle.deployed();
+
+  // 4. Deploy Minter Contract
+  const Minter = await ethers.getContractFactory(Contracts.minter);
+  const minter = await upgrades.deployProxy(Minter, [
+    Contracts.minter, 
+    "1", 
+    bridge,
+    owner
+  ],
+  {
+    unsafeAllow: ["constructor", "state-variable-immutable"],
+    constructorArgs: [eat.address, oracle.address],
+    kind: 'uups',
+  });
+  await minter.deployed();
+
+  colouredLog(LogColours.blue, `Deployed EAT to: ${eat.address} Oracle to: ${oracle.address} Minter to: ${minter.address}`);
+
+  // 5. Save deployments
+  const eatImplementationAddress = await upgrades.erc1967.getImplementationAddress(eat.address);
+  const oracleImplementationAddress = await upgrades.erc1967.getImplementationAddress(oracle.address);
+  const minterImplementationAddress = await upgrades.erc1967.getImplementationAddress(minter.address);
+  await save(Contracts.eat, {
+    abi: <any[]>EAT.interface.format(FormatTypes.full),
+    address: eat.address,
+    transactionHash: eat.deployTransaction.hash,
+    implementation: eatImplementationAddress
+  });
+  await save(Contracts.oracle, {
+    abi: <any[]>Oracle.interface.format(FormatTypes.full),
+    address: oracle.address,
+    transactionHash: oracle.deployTransaction.hash,
+    implementation: oracleImplementationAddress
+  });
+  await save(Contracts.minter, {
+    abi: <any[]>Minter.interface.format(FormatTypes.full),
+    address: minter.address,
+    transactionHash: minter.deployTransaction.hash,
+    implementation: minterImplementationAddress
+  });
   
-  // 3. If on external network, verify contracts
+  // 6. If on external network, verify contracts
   if (network.tags["public"]) {
     console.log("Verifyiyng on Etherscan...");
     await hre.run("verify:verify", {
-      address: calldataLib,
+      address: eatImplementationAddress,
       constructorArguments: [],
     });
 
     await hre.run("verify:verify", {
-        address: policyLib,
-        constructorArguments: [],
-      });
+      address: oracleImplementationAddress,
+      constructorArguments: [],
+    });
+
+    await hre.run("verify:verify", {
+      address: minterImplementationAddress,
+      constructorArguments: [
+        Contracts.minter, 
+        "1", 
+        bridge,
+        owner
+      ],
+    });
   }
 };
-deployDependencies.tags = ['Core', 'all'];
-export default deployDependencies;
+deployCore.tags = ['Core', 'all'];
+export default deployCore;
