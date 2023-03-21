@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity ^0.8.18;
+pragma solidity >=0.8.0;
 
 
 import { IERC777Recipient } from "@openzeppelin/contracts/interfaces/IERC777Recipient.sol";

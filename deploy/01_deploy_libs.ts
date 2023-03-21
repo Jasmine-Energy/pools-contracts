@@ -14,13 +14,13 @@ const deployDependencies: DeployFunction = async function (
   // 1. Deploy Pool Policy Library
   const policyLib = await deploy(Libraries.poolPolicy, {
     from: owner,
-    log: true,
+    log: hre.hardhatArguments.verbose
   });
   
   // 2. Deploy Calldata Library
   const calldataLib = await deploy(Libraries.calldata, {
     from: owner,
-    log: true,
+    log: hre.hardhatArguments.verbose,
   });
 
   colouredLog(LogColours.blue, `Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address}`);

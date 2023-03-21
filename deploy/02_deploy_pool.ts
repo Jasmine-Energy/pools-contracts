@@ -8,22 +8,25 @@ const deployPoolImplementation: DeployFunction = async function (
   colouredLog(LogColours.yellow, `deploying dependencies to: ${hre.network.name}`);
 
   const { deployments, network, getNamedAccounts } = hre;
-  const { deploy } = deployments;
+  const { deploy, get } = deployments;
   const { owner } = await getNamedAccounts();
 
   // 1. Get deployements
-  const policy = await deployments.get(Libraries.poolPolicy);
+  const policy = await get(Libraries.poolPolicy);
+  const eat = await get(Contracts.eat);
+  const oracle = await get(Contracts.oracle);
 
   // 2. Deploy Pool Contract
   const pool = await deploy(Contracts.pool, {
     from: owner,
     args: [
-      // EAT contract address
-      // Oracle contract address
+      eat.address,
+      oracle.address
     ],
     libraries: {
       PoolPolicy: policy.address
-    }
+    },
+    log: hre.hardhatArguments.verbose
   });
 
   colouredLog(LogColours.blue, `Deployed Pool impl to: ${pool.address}`);

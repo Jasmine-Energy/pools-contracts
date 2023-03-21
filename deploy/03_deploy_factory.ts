@@ -22,7 +22,8 @@ const deployFactory: DeployFunction = async function (
     args: [pool.address],
     libraries: {
       PoolPolicy: policy.address
-    }
+    },
+    log: hre.hardhatArguments.verbose
   });
 
   colouredLog(LogColours.blue, `Deployed factory to: ${factory.address}`);
