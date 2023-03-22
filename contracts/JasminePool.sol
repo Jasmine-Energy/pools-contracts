@@ -42,7 +42,7 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
 
-    using PoolPolicy for PoolPolicy.DepositPolicy;
+    using PoolPolicy for PoolPolicy.Policy;
     using PoolPolicy for bytes;
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
 
     /// @dev Policy to deposit into pool
     // NOTE: Should be Constant but...
-    PoolPolicy.DepositPolicy internal _depositPolicy;
+    PoolPolicy.Policy internal _policy;
 
     JasmineOracle public immutable oracle;
     JasmineEAT public immutable EAT;
@@ -67,7 +67,8 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
     // ──────────────────────────────────────────────────────────────────────────────
 
     // TODO: Need to override ERC777 name and symbol methods
-    constructor(address _eat, address _oracle) ERC777("", "", new address[](0)) {
+    constructor(address _eat, address _oracle) 
+        ERC777("Jasmine Liquidity Token Core", "JLT", new address[](0)) {
         require(_eat != address(0), "JasminePool: EAT must be set");
         require(_oracle != address(0), "JasminePool: Oracle must be set");
 
@@ -80,16 +81,17 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
     /**
      * @dev
      *
-     * @param policy_ Deposit Policy
+     * @param policyConditions_ Deposit Policy Conditions
      * @param name_ JLT token name
      * @param symbol_ JLT token symbol
      */
     function initialize(
-        bytes calldata policy_,
+        bytes calldata policyConditions_,
         string calldata name_,
         string calldata symbol_
     ) external initializer onlyInitializing {
-        _depositPolicy = policy_.toDepositPolicy();
+        PoolPolicy.Condition[] memory conditions = abi.decode(policyConditions_, (PoolPolicy.Condition[]));
+        _policy.insert(conditions);
         _name = name_;
         _symbol = symbol_;
     }
@@ -108,67 +110,15 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
     function meetsPolicy(
         uint256 tokenId
     ) public view returns (bool isEligible) {
-
-        // TODO: Need to enforce policy version. Oracle update in Core contracts required
-
-        if (oracle.hasVintage(tokenId, _depositPolicy.vintagePeriod[0], _depositPolicy.vintagePeriod[1])) {
-            return false;
-        }
-
-        if (_depositPolicy.techTypes.length != 0) {
-            bool meetsTechType = false;
-            for (uint256 i = 0; i < _depositPolicy.techTypes.length; i++) {
-                if (oracle.hasFuel(tokenId, _depositPolicy.techTypes[i])) {
-                    meetsTechType = true;
-                }
-            }
-            if (!meetsTechType) {
-                return false;
-            }
-        }
-
-        if (_depositPolicy.registries.length != 0) {
-            bool meetsTechType = false;
-            for (uint256 i = 0; i < _depositPolicy.registries.length; i++) {
-                if (oracle.hasFuel(tokenId, _depositPolicy.registries[i])) {
-                    meetsTechType = true;
-                }
-            }
-            if (!meetsTechType) {
-                return false;
-            }
-        }
-
-        if (_depositPolicy.certificationTypes.length != 0) {
-            bool meetsTechType = false;
-            for (uint256 i = 0; i < _depositPolicy.certificationTypes.length; i++) {
-                if (oracle.hasFuel(tokenId, _depositPolicy.certificationTypes[i])) {
-                    meetsTechType = true;
-                }
-            }
-            if (!meetsTechType) {
-                return false;
-            }
-        }
-
-        if (_depositPolicy.endorsements.length != 0) {
-            bool meetsTechType = false;
-            for (uint256 i = 0; i < _depositPolicy.endorsements.length; i++) {
-                if (oracle.hasFuel(tokenId, _depositPolicy.endorsements[i])) {
-                    meetsTechType = true;
-                }
-            }
-            if (!meetsTechType) {
-                return false;
-            }
-        }
+        isEligible = _policy.meetsPolicy(tokenId);
     }
 
     function policyForVersion(
         uint8 metadataVersion
     ) external view override returns (bytes memory policy) {
         require(metadataVersion == 1, "JasminePool: No policy for version");
-        return abi.encode(_depositPolicy);
+        // TODO: Encode packed conditions
+        return abi.encode(1);
     }
 
 

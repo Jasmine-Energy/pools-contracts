@@ -13,9 +13,9 @@ import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableM
 
 // TODO: Move
 interface IJasminePoolPolicyManager {
-    function basePolicy() external view returns(PoolPolicy.Policy memory);
+    // function basePolicy() external view returns(PoolPolicy.Policy storage);
     function totalPolicies() external view returns(uint256);
-    function getPolicy(bytes32 policyKey) external view returns(PoolPolicy.Policy memory);
+    // function getPolicy(bytes32 policyKey) external view returns(PoolPolicy.Policy memory);
 }
 
 /**
@@ -51,43 +51,43 @@ abstract contract JasminePoolPolicyManager is IJasminePoolPolicyManager {
     // External Functionality
     // ──────────────────────────────────────────────────────────────────────────────
 
-    function basePolicy() public view returns(PoolPolicy.Policy memory) {
-        return _basePolicy;
-    }
+    // function basePolicy() public view returns(PoolPolicy.Policy memory) {
+    //     return _basePolicy;
+    // }
 
     function totalPolicies() external view returns(uint256) {
         return _policyKeys.length();
     }
 
-    function getPolicy(bytes32 policyKey) external view returns(PoolPolicy.Policy memory) {
-        return _policies[_policyKeys.get(policyKey)];
-    }
+    // function getPolicy(bytes32 policyKey) external view returns(PoolPolicy.Policy memory) {
+    //     return _policies[_policyKeys.get(policyKey)];
+    // }
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Internal Functionality
     // ──────────────────────────────────────────────────────────────────────────────
 
-    function _addPolicy(PoolPolicy.Policy calldata _newPolicy) internal returns(bool success, bytes32 key) {
-        key = keccak256(abi.encode(_newPolicy));
+    // function _addPolicy(PoolPolicy.Policy calldata _newPolicy) internal returns(bool success, bytes32 key) {
+    //     key = keccak256(abi.encode(_newPolicy));
 
-        if (_policyKeys.contains(key)) {
-            return (false, key);
-        }
+    //     if (_policyKeys.contains(key)) {
+    //         return (false, key);
+    //     }
 
-        // TODO Verify _newPolicy is subPolicy of _basePolicy
+    //     // TODO Verify _newPolicy is subPolicy of _basePolicy
 
 
-        _policies[key] = _newPolicy;
-        _policyKeys.set(key, key);
-    }
+    //     _policies[key] = _newPolicy;
+    //     _policyKeys.set(key, key);
+    // }
 
-    function _removePolicy(bytes32 policyKey) internal returns(bool success) {
+    // function _removePolicy(bytes32 policyKey) internal returns(bool success) {
 
-        if (!_policyKeys.contains(policyKey)) {
-            return (false);
-        }
+    //     if (!_policyKeys.contains(policyKey)) {
+    //         return (false);
+    //     }
 
-        delete _policies[policyKey];
-        return _policyKeys.remove(policyKey);
-    }
+    //     delete _policies[policyKey];
+    //     return _policyKeys.remove(policyKey);
+    // }
 }

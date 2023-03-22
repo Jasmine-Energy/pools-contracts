@@ -31,7 +31,7 @@ interface IJasmineOracle {
 
 interface IJasmineCorePolicy is IJasminePoolPolicyManager {
     // NOTE: On the fench about removing/moving OG DepositPolicy struct here
-    function convertDepositPolicy(PoolPolicy.DepositPolicy calldata newPolicy) external view returns(PoolPolicy.Policy memory policy);
+    // function convertDepositPolicy(PoolPolicy.DepositPolicy calldata newPolicy) external view returns(PoolPolicy.Policy memory policy);
     
     function makeVintageCondition        (uint256[2] calldata vintagePeriod) external view returns(PoolPolicy.Condition memory vintagePeriodCondition);
     function makeTechTypesCondition      (uint256[ ] calldata techTypes) external view returns(PoolPolicy.Condition memory techTypeCondition);
@@ -43,6 +43,7 @@ interface IJasmineCorePolicy is IJasminePoolPolicyManager {
 
 abstract contract JasmineCorePolicy is JasminePoolPolicyManager, IJasmineCorePolicy {
 
+    using PoolPolicy for PoolPolicy.Policy;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -74,49 +75,50 @@ abstract contract JasmineCorePolicy is JasminePoolPolicyManager, IJasmineCorePol
     //  Internal Functionality
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function convertDepositPolicy(PoolPolicy.DepositPolicy calldata newPolicy) external view returns(PoolPolicy.Policy memory policy) {
+    // function convertDepositPolicy(PoolPolicy.DepositPolicy calldata newPolicy) external view returns(PoolPolicy.Policy memory policy) {
+    //     // 1. If vintage not empty, create vintage condition
+    //     if (newPolicy.vintagePeriod[0] != 0 && 
+    //         newPolicy.vintagePeriod[1] != 0) {
+    //         PoolPolicy.Condition memory vintageCondition = makeVintageCondition(newPolicy.vintagePeriod);
+    //         // conditions[0] = vintageCondition;
+    //         policy.insert(vintageCondition);
+    //     }
 
-        // 1. Create array of conditions
-        PoolPolicy.Condition[] memory conditions;
+    //     // 3. If 
+    //     if (newPolicy.techTypes.length != 0) {
+    //         PoolPolicy.Condition memory techTypeCondition = makeTechTypesCondition(newPolicy.techTypes);
+    //         // conditions[conditions.length > 0 ? conditions.length-1 : 0] = techTypeCondition;
+    //         policy.insert(techTypeCondition);
+    //     }
 
-        // 2. If vintage not empty, create vintage condition
-        if (newPolicy.vintagePeriod[0] != 0 && 
-            newPolicy.vintagePeriod[1] != 0) {
-            PoolPolicy.Condition memory vintageCondition = makeVintageCondition(newPolicy.vintagePeriod);
-            conditions[0] = vintageCondition;
-        }
+    //     // 3. If 
+    //     if (newPolicy.registries.length != 0) {
+    //         PoolPolicy.Condition memory registriesCondition = makeRegistriesCondition(newPolicy.registries);
+    //         // conditions[conditions.length > 0 ? conditions.length-1 : 0] = registriesCondition;
+    //         policy.insert(registriesCondition);
+    //     }
 
-        // 3. If 
-        if (newPolicy.techTypes.length != 0) {
-            PoolPolicy.Condition memory techTypeCondition = makeTechTypesCondition(newPolicy.techTypes);
-            conditions[conditions.length > 0 ? conditions.length-1 : 0] = techTypeCondition;
-        }
+    //     // 3. If 
+    //     if (newPolicy.certificationTypes.length != 0) {
+    //         PoolPolicy.Condition memory certificationsCondition = makeCertificationsCondition(newPolicy.certificationTypes);
+    //         // conditions[conditions.length > 0 ? conditions.length-1 : 0] = certificationsCondition;
+    //         policy.insert(certificationsCondition);
+    //     }
 
-        // 3. If 
-        if (newPolicy.registries.length != 0) {
-            PoolPolicy.Condition memory registriesCondition = makeRegistriesCondition(newPolicy.registries);
-            conditions[conditions.length > 0 ? conditions.length-1 : 0] = registriesCondition;
-        }
+    //     // 3. If endorsements
+    //     if (newPolicy.endorsements.length != 0) {
+    //         PoolPolicy.Condition memory endorsementsCondition = makeEndorsementCondition(newPolicy.endorsements);
+    //         // conditions[conditions.length > 0 ? conditions.length-1 : 0] = endorsementsCondition;
+    //         policy.insert(endorsementsCondition);
+    //     }
 
-        // 3. If 
-        if (newPolicy.certificationTypes.length != 0) {
-            PoolPolicy.Condition memory certificationsCondition = makeCertificationsCondition(newPolicy.certificationTypes);
-            conditions[conditions.length > 0 ? conditions.length-1 : 0] = certificationsCondition;
-        }
+    //     // 4. Verify at least one condition set
+    //     // require(conditions.length != 0, "JasmineCorePolicy: Deposit policy cannot be empty");
 
-        // 3. If endorsements
-        if (newPolicy.endorsements.length != 0) {
-            PoolPolicy.Condition memory endorsementsCondition = makeEndorsementCondition(newPolicy.endorsements);
-            conditions[conditions.length > 0 ? conditions.length-1 : 0] = endorsementsCondition;
-        }
+    //     // TODO: Apply new Conditions on top of _basePolicy
 
-        // 4. Verify at least one condition set
-        require(conditions.length != 0, "JasmineCorePolicy: Deposit policy cannot be empty");
-
-        // TODO: Apply new Conditions on top of _basePolicy
-
-        policy = PoolPolicy.Policy(conditions);
-    }
+    //     // policy = PoolPolicy.Policy(conditions);
+    // }
 
     function makeVintageCondition(
         uint256[2] calldata vintagePeriod
