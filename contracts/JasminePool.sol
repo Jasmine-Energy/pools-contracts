@@ -10,8 +10,6 @@ pragma solidity >=0.8.0;
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC777 } from "@openzeppelin/contracts/token/ERC777/ERC777.sol";
-// import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-// import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // TODO Oracle interface in core contracts need to be updated
@@ -90,8 +88,8 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
         string calldata name_,
         string calldata symbol_
     ) external initializer onlyInitializing {
-        PoolPolicy.Condition[] memory conditions = abi.decode(policyConditions_, (PoolPolicy.Condition[]));
-        _policy.insert(conditions);
+        // PoolPolicy.Condition[] memory conditions = abi.decode(policyConditions_, (PoolPolicy.Condition[]));
+        // _policy.insert(conditions);
         _name = name_;
         _symbol = symbol_;
     }
@@ -129,7 +127,7 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
         address beneficiary,
         uint256 quantity,
         bytes calldata data
-    ) external override returns (bool success) {}
+    ) external override nonReentrant returns (bool success) {}
 
     //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
 
@@ -137,13 +135,13 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
         address from,
         uint256 tokenId,
         uint256 quantity
-    ) external override returns (bool success, uint256 jltQuantity) {}
+    ) external override nonReentrant returns (bool success, uint256 jltQuantity) {}
 
     function depositBatch(
         address from,
         uint256[] calldata tokenIds,
         uint256[] calldata quantities
-    ) external override returns (bool success, uint256 jltQuantity) {}
+    ) external override nonReentrant returns (bool success, uint256 jltQuantity) {}
 
 
     //  ──────────────────────────  Withdrawal Functions  ───────────────────────────  \\
@@ -153,7 +151,7 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
         address recipient,
         uint256 quantity,
         bytes calldata data
-    ) external override returns (bool success) {}
+    ) external override nonReentrant returns (bool success) {}
 
     function withdrawSpecific(
         address owner,
@@ -161,7 +159,7 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
         uint256[] calldata tokenIds,
         uint256[] calldata quantities,
         bytes calldata data
-    ) external override returns (bool success) {}
+    ) external override nonReentrant returns (bool success) {}
 
     // ──────────────────────────────────────────────────────────────────────────────
     // ERC Conformance Implementations
@@ -175,7 +173,7 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
         uint256 id,
         uint256 value,
         bytes calldata data
-    ) external returns (bytes4) {
+    ) external nonReentrant returns (bytes4) {
         // 1. Ensure tokens received are EATs
         require(
             operator == address(EAT),
@@ -206,7 +204,7 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
         uint256[] calldata ids,
         uint256[] calldata values,
         bytes calldata data
-    ) external returns (bytes4) {
+    ) external nonReentrant returns (bytes4) {
         // 1. Ensure tokens received are EATs
         require(
             operator == address(EAT),
@@ -253,18 +251,8 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
         // TODO Implement
     }
 
-    
-
-    
-
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
-
-    // function _mint(
-
-    // )
-
-
     
 }

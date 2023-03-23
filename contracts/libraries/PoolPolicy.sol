@@ -22,6 +22,8 @@ library PoolPolicy {
     //  Types
     //  ─────────────────────────────────────────────────────────────────────────────
 
+    // TODO: Overhaul to use partially applied calls. See [gist.](https://gist.github.com/KaiCode2/55f9ce7dbe6461e068f11e7f36d22211)
+
     struct Policy {
         EnumerableSet.Bytes32Set _keys;
         mapping(bytes32 => Condition) _values;
