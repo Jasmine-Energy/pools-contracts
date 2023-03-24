@@ -114,27 +114,21 @@ task('mint', 'Mints an EAT')
                 taskArgs.certification,
                 taskArgs.endorsement
             );
-            console.log('Oracle data is: ', oracleData);
-            console.log("bridge is: ", bridge);
 
             const deadline = Math.ceil(new Date().getTime() / 1_000) + 86_400; // 1 day
             const nonce = ethers.utils.randomBytes(32);
             const value = {
-                minter: minterAddress,
+                minter: account,
                 id,
                 amount,
                 oracleData,
                 deadline,
                 nonce,
             };
-            // console.log('0x000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000e85413a48beb46fbaa3ff45416f5c69f00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000061d00a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
-            // console.log(oracleData);
-
             const signature = await bridgeSigner._signTypedData(domain, types, value);
-            console.log(`Signature is: ${signature}`);
 
             const tx = await minterContract.mint(
-                minterAddress,
+              account,
                 id,
                 amount,
                 [],
