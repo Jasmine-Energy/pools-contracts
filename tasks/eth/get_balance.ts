@@ -9,4 +9,4 @@ task("balance", "Prints an account's balance")
         const balance: BigNumber = await ethers.getDefaultProvider().getBalance(account)
 
         console.log(`${utils.formatEther(balance)} ETH`)
-    })
+    });

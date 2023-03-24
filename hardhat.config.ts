@@ -63,6 +63,18 @@ const config: HardhatUserConfig = {
     bridge: {
       default: 1,
       // TODO: Set to correct address on Polygon and mumbai
+    },
+    eat: {
+      "polygon": "0xba3aa8083f8978257aaafb19ed698a623197a7c1",
+      "mumbai": "0xae205e00c7dcb5292388bd8962e79582a5ae14d0"
+    },
+    minter: {
+      "polygon": "0x5e71fa178f3b8ca0fc4736b8a85a1b669c042dde",
+      "mumbai": "0xe9c135b9fb2942982e3df5b89a03e51d8ee6cb74"
+    },
+    oracle: {
+      "polygon": "0x954f12ab1e40fbd7c28f2ab5285d3c74ba6faf6f",
+      "mumbai": "0x3f3f61a613504166302c5ee3546b0e85c0a61934"
     }
   },
   solidity: {
