@@ -49,12 +49,7 @@ task('mint', 'Mints an EAT')
     .setAction(
         async (
             taskArgs: TaskArguments,
-            {
-                ethers,
-                deployments,
-                network,
-                getNamedAccounts,
-            }: HardhatRuntimeEnvironment
+            { ethers, network, getNamedAccounts, }: HardhatRuntimeEnvironment
         ): Promise<void> => {
             if (network.tags['production']) {
                 colouredLog(
