@@ -1,6 +1,6 @@
 import { ethers, deployments, getNamedAccounts } from 'hardhat';
 import { JasminePoolFactory, PoolPolicy } from '@/typechain';
-import { Contracts, Libraries, colouredLog, LogColours } from '@/utils';
+import { Contracts, Libraries, colouredLog } from '@/utils';
 
 async function main() {
     // 1. Connect to contract

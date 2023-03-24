@@ -1,11 +1,11 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { Contracts, Libraries, colouredLog, LogColours } from '@/utils';
+import { Contracts, Libraries, colouredLog } from '@/utils';
 
 const deployPoolImplementation: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
-    colouredLog(LogColours.yellow, `deploying dependencies to: ${hre.network.name}`);
+    colouredLog.yellow(`deploying dependencies to: ${hre.network.name}`);
 
     const { deployments, network, getNamedAccounts } = hre;
     const { deploy, get } = deployments;
@@ -29,7 +29,7 @@ const deployPoolImplementation: DeployFunction = async function (
         log: hre.hardhatArguments.verbose
     });
 
-    colouredLog(LogColours.blue, `Deployed Pool impl to: ${pool.address}`);
+    colouredLog.blue(`Deployed Pool impl to: ${pool.address}`);
 
     // 3. If on external network, verify contracts
     if (network.tags['public']) {

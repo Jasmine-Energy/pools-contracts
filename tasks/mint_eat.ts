@@ -1,7 +1,7 @@
 import { utils } from 'ethers';
 import { task } from 'hardhat/config';
 import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
-import { colouredLog, Contracts, LogColours } from '@/utils';
+import { colouredLog, Contracts } from '@/utils';
 import {
     FuelType,
     CertificateRegistry,
@@ -52,10 +52,7 @@ task('mint', 'Mints an EAT')
             { ethers, network, getNamedAccounts, }: HardhatRuntimeEnvironment
         ): Promise<void> => {
             if (network.tags['production']) {
-                colouredLog(
-                    LogColours.red,
-                    'Error: Unable to use mint on production network.'
-                );
+                colouredLog.red('Error: Unable to use mint on production network.');
                 return;
             }
             // 1. Load required accounts, contracts and info

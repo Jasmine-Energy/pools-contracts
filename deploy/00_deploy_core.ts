@@ -1,13 +1,13 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { Contracts, colouredLog, LogColours } from '@/utils';
+import { Contracts, colouredLog } from '@/utils';
 import { FormatTypes } from '@ethersproject/abi';
 
 // TODO: Migrate this over to using Jasmine contract's deploy function - included via plugin
 const deployCore: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
-    colouredLog(LogColours.yellow, `deploying core contracts to: ${hre.network.name}`);
+    colouredLog.yellow(`deploying core contracts to: ${hre.network.name}`);
 
     // 1. Setup
     const { ethers, upgrades, deployments, network, getNamedAccounts } = hre;
@@ -58,7 +58,7 @@ const deployCore: DeployFunction = async function (
     });
     await minter.deployed();
 
-    colouredLog(LogColours.blue, `Deployed EAT to: ${eat.address} Oracle to: ${oracle.address} Minter to: ${minter.address}`);
+    colouredLog.blue(`Deployed EAT to: ${eat.address} Oracle to: ${oracle.address} Minter to: ${minter.address}`);
 
     // 5. Save deployments
     const eatImplementationAddress = await upgrades.erc1967.getImplementationAddress(eat.address);

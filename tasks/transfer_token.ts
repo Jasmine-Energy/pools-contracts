@@ -1,7 +1,7 @@
 
 import { task } from 'hardhat/config';
 import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
-import { colouredLog, Contracts, LogColours } from '@/utils';
+import { colouredLog, Contracts } from '@/utils';
 import { IERC1155Upgradeable__factory } from '@/typechain';
 
 
@@ -32,8 +32,7 @@ task('transfer', 'Transfers an EAT')
             // 2. Verify ownership of token
             const tokenBalance = await contract.balanceOf(sender.address, tokenId);
             if (tokenBalance.lt(quantity)) {
-                colouredLog(
-                    LogColours.red,
+                colouredLog.red(
                     `Error: Insufficient balance. Sender (${sender.address}) has ${tokenBalance.toString()} of ${tokenId}`
                 );
                 return;
@@ -49,8 +48,7 @@ task('transfer', 'Transfers an EAT')
             );
             await sendTx.wait();
 
-            colouredLog(
-                LogColours.blue,
+            colouredLog.blue(
                 `Sent ${quantity} of token ID ${tokenId} to ${recipient} from ${sender.address} in Tx: ${sendTx.hash}`
             );
         }

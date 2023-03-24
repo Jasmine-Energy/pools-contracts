@@ -1,12 +1,12 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { Contracts, Libraries, colouredLog, LogColours } from '@/utils';
+import { Contracts, Libraries, colouredLog } from '@/utils';
 import { JasminePoolFactory } from '@/typechain';
 
 const deployFactory: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
-    colouredLog(LogColours.yellow, `deploying Pool Factory to: ${hre.network.name}`);
+    colouredLog.yellow(`deploying Pool Factory to: ${hre.network.name}`);
 
     const { ethers, deployments, network, getNamedAccounts } = hre;
     const { deploy } = deployments;
@@ -26,7 +26,7 @@ const deployFactory: DeployFunction = async function (
         log: hre.hardhatArguments.verbose
     });
 
-    colouredLog(LogColours.blue, `Deployed factory to: ${factory.address}`);
+    colouredLog.blue(`Deployed factory to: ${factory.address}`);
 
     // 3. If on external network, verify contracts
     if (network.tags['public']) {
