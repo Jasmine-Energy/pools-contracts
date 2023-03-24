@@ -65,19 +65,19 @@ const deployCore: DeployFunction = async function (
     const oracleImplementationAddress = await upgrades.erc1967.getImplementationAddress(oracle.address);
     const minterImplementationAddress = await upgrades.erc1967.getImplementationAddress(minter.address);
     await save(Contracts.eat, {
-        abi: <any[]>EAT.interface.format(FormatTypes.full),
+        abi: <string[]>EAT.interface.format(FormatTypes.full),
         address: eat.address,
         transactionHash: eat.deployTransaction.hash,
         implementation: eatImplementationAddress
     });
     await save(Contracts.oracle, {
-        abi: <any[]>Oracle.interface.format(FormatTypes.full),
+        abi: <string[]>Oracle.interface.format(FormatTypes.full),
         address: oracle.address,
         transactionHash: oracle.deployTransaction.hash,
         implementation: oracleImplementationAddress
     });
     await save(Contracts.minter, {
-        abi: <any[]>Minter.interface.format(FormatTypes.full),
+        abi: <string[]>Minter.interface.format(FormatTypes.full),
         address: minter.address,
         transactionHash: minter.deployTransaction.hash,
         implementation: minterImplementationAddress

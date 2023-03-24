@@ -15,7 +15,7 @@ import {
 interface ParsedEnergyAttributeTokenID {
   uuid: string;
   registry: CertificateRegistry;
-  vintage: Date; // NOTE: Vintage experiences data loss compared to DB. Fetch EAC from UUID to get exact vintage
+  vintage: Date;
 }
 
 
@@ -67,6 +67,18 @@ const encodeEnergyAttributeTokenId = (certificateId: string, registry: Certifica
     return (uuid << 128n) + (registryNumber << 96n) + (vintageNumber << 56n);
 };
 
+
+/**
+ * @dev encodes Oracle calldata to record EAT information
+ * 
+ * @param certificateId UUID of the certificate 
+ * @param registry Registry of EAT
+ * @param vintage EAT vintrage
+ * @param fuelType EAT fuel type
+ * @param certificateType Certificate type of EAT
+ * @param endorsement EAT endorsement
+ * @returns Hex encoded string to be used as calldata to Oracle contract
+ */
 const encodeOracleData = (
     certificateId: string,
     registry: CertificateRegistry,
@@ -81,12 +93,17 @@ const encodeOracleData = (
     const fuelTypeNumber = BigInt(FuelTypesArray.indexOf(fuelType)) & BigInt(2 ** 32 - 1);
     const certificationNumber = BigInt(CertificateArr.indexOf(certificateType)) & BigInt(2 ** 32 - 1);
     const endorsementNumber = BigInt(CertificateEndorsementArr.indexOf(endorsement)) & BigInt(2 ** 32 - 1);
-    return ethers.utils.hexlify((versionNumber << 8n) + (uuid << 128n) + (registryNumber << 32n) + (vintageNumber << 40n) + (fuelTypeNumber << 32n) + (certificationNumber << 32n) + (endorsementNumber << 32n));
+
+    const coder = new ethers.utils.AbiCoder();
+    return coder.encode(
+      ['uint8', 'uint128', 'uint32', 'uint40', 'uint32', 'uint32', 'uint32'],
+      [versionNumber, uuid, registryNumber, vintageNumber, fuelTypeNumber, certificationNumber, endorsementNumber]
+    );
 };
 
 export {
+    encodeOracleData,
     encodeEnergyAttributeTokenId,
-    ParsedEnergyAttributeTokenID,
     decodeEnergyAttributeTokenId,
-    encodeOracleData
+    ParsedEnergyAttributeTokenID,
 };
