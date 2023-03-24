@@ -1,8 +1,8 @@
 
 export function enumKeys<O extends object, K extends keyof O = keyof O>(
-  obj: O
+    obj: O
 ): K[] {
-  return Object.keys(obj).filter((k) => Number.isNaN(+k)) as K[];
+    return Object.keys(obj).filter((k) => Number.isNaN(+k)) as K[];
 }
 
 /**
@@ -10,9 +10,9 @@ export function enumKeys<O extends object, K extends keyof O = keyof O>(
  * @param enm Enum to list
  */
 export const enumValues = (enm: Record<string, unknown>): string[] => {
-  const values = [] as string[];
-  for (const key in enm) {
-    values.push(enm[key] as string);
-  }
-  return values;
+    const values = [] as string[];
+    for (const key in enm) {
+        values.push(enm[key] as string);
+    }
+    return values;
 };

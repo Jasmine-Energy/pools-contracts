@@ -2,9 +2,9 @@
 import { enumValues } from '@/utils/enums';
 
 export enum EnergyCertificateType {
-  REC = "REC",
-  IREC = "IREC",
-  GO = "GO"
+  REC = 'REC',
+  IREC = 'IREC',
+  GO = 'GO'
 }
 
 export const CertificateArr = enumValues(EnergyCertificateType);
