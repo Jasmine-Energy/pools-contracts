@@ -1,4 +1,4 @@
-import { utils } from 'ethers';
+
 import { task } from 'hardhat/config';
 import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
 import { colouredLog, Contracts } from '@/utils';
@@ -18,7 +18,7 @@ import {
 } from '@/utils/token_encoding';
 
 task('mint', 'Mints an EAT')
-    .addPositionalParam<string>('account', 'The account\'s address')
+    .addOptionalPositionalParam<string>('account', 'The account\'s address')
     .addParam<string>(
         'vintage',
         'EAT\'s vintage in form YYYY-MM-DD.',
@@ -49,17 +49,18 @@ task('mint', 'Mints an EAT')
     .setAction(
         async (
             taskArgs: TaskArguments,
-            { ethers, network, getNamedAccounts, }: HardhatRuntimeEnvironment
+            { ethers, deployments, network, getNamedAccounts, hardhatArguments }: HardhatRuntimeEnvironment
         ): Promise<void> => {
             if (network.tags['production']) {
                 colouredLog.red('Error: Unable to use mint on production network.');
                 return;
             }
             // 1. Load required accounts, contracts and info
-            const account: string = utils.getAddress(taskArgs.account);
             const { bridge, minter } = await getNamedAccounts();
-            const minterAddress = taskArgs.minter ?? minter;
-            const signer = await ethers.getSigner(account);
+            const minterDeployment = await deployments.get(Contracts.minter);
+            const minterAddress = taskArgs.minter ?? minterDeployment.address ?? minter;
+            const signer = taskArgs.account ? await ethers.getSigner(taskArgs.account) : (await ethers.getSigners())[0];
+            const recipientAddress: string = signer.address;
             const bridgeSigner = await ethers.getSigner(bridge);
             const chainId = await bridgeSigner.getChainId();
             const minterContract = await ethers.getContractAt(
@@ -115,7 +116,7 @@ task('mint', 'Mints an EAT')
             const deadline = Math.ceil(new Date().getTime() / 1_000) + 86_400; // 1 day
             const nonce = ethers.utils.randomBytes(32);
             const value = {
-                minter: account,
+                minter: recipientAddress,
                 id,
                 amount,
                 oracleData,
@@ -125,7 +126,7 @@ task('mint', 'Mints an EAT')
             const signature = await bridgeSigner._signTypedData(domain, types, value);
 
             const tx = await minterContract.mint(
-              account,
+              recipientAddress,
                 id,
                 amount,
                 [],
@@ -136,6 +137,11 @@ task('mint', 'Mints an EAT')
             );
 
             const result = await tx.wait();
-            console.log(tx, result);
+
+            colouredLog.blue(`Minted ${amount} tokens of ID ${id} to ${recipientAddress}. Tx: ${tx.hash}`);
+
+            if (hardhatArguments.verbose) {
+                console.log("Result: ", result);
+            }
         }
     );

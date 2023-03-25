@@ -25,6 +25,7 @@ import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 //  ─────────────────────────────────────────────────────────────────────────────
 
 error Unqualified(uint256 tokenId);
+error Prohibited();
 
 
 /**

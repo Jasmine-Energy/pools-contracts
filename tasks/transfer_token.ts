@@ -11,11 +11,11 @@ task('transfer', 'Transfers an EAT')
     .addParam<string>('quantity', 'Number of tokens to transfer', '1')
     .addOptionalParam<string>('sender', 'Account to transfer token from. Default is ether\'s default signer')
     .addOptionalParam<string>('contract', 'Address of ERC-1155 contract to interact with')
-    .addOptionalParam<string>('data', 'Optional data to include in transfer call')
+    .addOptionalParam<string>('data', 'Optional data to include in transfer call', "")
     .setAction(
         async (
             taskArgs: TaskArguments,
-            { ethers, getNamedAccounts, }: HardhatRuntimeEnvironment
+            { ethers, deployments, getNamedAccounts, }: HardhatRuntimeEnvironment
         ): Promise<void> => {
             
             // 1. Load required accounts, contracts and info
@@ -23,10 +23,11 @@ task('transfer', 'Transfers an EAT')
             const sender = taskArgs.sender ?
                 await ethers.getSigner(taskArgs.sender) : 
                 (await ethers.getSigners())[0];
-            const contractAddress = taskArgs.contract ?? eat;
+            const eatDeployment = await deployments.get(Contracts.eat);
+            const contractAddress = taskArgs.contract ?? eatDeployment.address ?? eat;
             const { recipient, data } = taskArgs;
-            const tokenId = parseInt(taskArgs.token);
-            const quantity = parseInt(taskArgs.quantity);
+            const tokenId = BigInt(taskArgs.token);
+            const quantity = BigInt(taskArgs.quantity);
             const contract = IERC1155Upgradeable__factory.connect(contractAddress, sender);
 
             // 2. Verify ownership of token
@@ -44,7 +45,7 @@ task('transfer', 'Transfers an EAT')
                 recipient,
                 tokenId,
                 quantity,
-                data
+                data.length == 0 ? [] : ethers.utils.hexValue(data)
             );
             await sendTx.wait();
 
