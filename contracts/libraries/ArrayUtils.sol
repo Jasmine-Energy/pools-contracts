@@ -22,4 +22,21 @@ library ArrayUtils {
             total += inputs[i];
         }
     }
+
+    /**
+     * @dev Creates an array of `repeatedAddress` with `amount` occurences.
+     * NOTE: Useful for ERC1155.balanceOfBatch
+     * 
+     * @param repeatedAddress Input address to duplicate
+     * @param amount Number of times to duplicate
+     * @return filledArray Array of length `amount` containing `repeatedAddress`
+     */
+    function fill(
+        address repeatedAddress,
+        uint256 amount
+    ) external pure returns(address[] memory filledArray) {
+        for (uint256 i = 0; i < amount; i++) {
+            filledArray[i] = repeatedAddress;
+        }
+    }
 }

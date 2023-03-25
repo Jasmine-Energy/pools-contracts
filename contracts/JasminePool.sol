@@ -228,7 +228,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
             "JasminePool: Insufficient funds"
         );
 
-        // 2. Burn tokens
+        // 2. Burn Tokens
         _burn(sender, amount, "", "");
 
         // 3. Select token to withdraw
@@ -245,13 +245,23 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         bytes calldata data
     ) external nonReentrant onlyOperator(sender) returns (bool success) {
         // 1. Ensure sender has sufficient JLTs and lengths match
+        uint256 amountSum = amounts.sum();
         require(
-            balanceOf(sender) >= amounts.sum(),
+            balanceOf(sender) >= amountSum,
             "JasminePool: Insufficient funds"
         );
         require(
             tokenIds.length == amounts.length,
             "JasminePool: Length of token IDs and amounts must match"
+        );
+
+        // 2. Burn Tokens
+        _burn(sender, amountSum, "", "");
+
+        // 3. Transfer Select Tokens
+        require(
+            _sendBatchEAT(recipient, tokenIds, amounts, data),
+            "JasminePool: Transfer failed"
         );
     }
 
@@ -377,8 +387,52 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
+
+    //  ─────────────────────────  EAT Transfer Utilities  ──────────────────────────  \\
+
+    /**
+     * @dev Internal method for sending EAT out of contract and updating holdings
+     */
+    function _sendEAT(
+        address to,
+        uint256 tokenId,
+        uint256 amount,
+        bytes calldata data
+    ) private returns(bool success) {
+        try EAT.safeTransferFrom(address(this), to, tokenId, amount, data) {
+            if (EAT.balanceOf(address(this), tokenId) == 0) {
+                _holdings.remove(tokenId);
+            }
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * @dev Internal method for sending batch of EATs out of contract and updating holdings
+     */
+    function _sendBatchEAT(
+        address to,
+        uint256[] calldata tokenIds,
+        uint256[] calldata amounts,
+        bytes calldata data
+    ) private returns(bool success) {
+        try EAT.safeBatchTransferFrom(address(this), to, tokenIds, amounts, data) {
+            uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
+            for (uint256 i = 0; i < balances.length; i++) {
+                if (balances[i] == 0) {
+                    _holdings.remove(tokenIds[i]);
+                }
+            }
+            return true;
+        } catch {
+            return false;
+        }
+    }
     
     //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
+
     /**
      * @dev Enforce msg sender is EAT contract
      */

@@ -27,23 +27,6 @@ function EAT() external view returns (contract JasmineEAT)
 |---|---|---|
 | _0 | contract JasmineEAT | undefined |
 
-### _decimals
-
-```solidity
-function _decimals() external view returns (uint8)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint8 | undefined |
-
 ### _name
 
 ```solidity
@@ -623,7 +606,7 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 
 
 
-*See {IERC165-supportsInterface}.*
+*Returns true if this contract implements the interface defined by `interfaceId`. See the corresponding https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section] to learn more about how these ids are created. This function call must use less than 30 000 gas.*
 
 #### Parameters
 
