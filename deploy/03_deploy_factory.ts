@@ -8,7 +8,7 @@ const deployFactory: DeployFunction = async function (
 ) {
     colouredLog.yellow(`deploying Pool Factory to: ${hre.network.name}`);
 
-    const { ethers, deployments, network, getNamedAccounts } = hre;
+    const { ethers, tenderly, deployments, network, getNamedAccounts } = hre;
     const { deploy } = deployments;
     const { owner } = await getNamedAccounts();
 
@@ -26,6 +26,15 @@ const deployFactory: DeployFunction = async function (
         log: hre.hardhatArguments.verbose
     });
 
+    await tenderly.persistArtifacts({
+        name: Contracts.factory,
+        address: factory.address,
+        network: network.name,
+        libraries: {
+            PoolPolicy: policy.address
+        }
+    });
+
     colouredLog.blue(`Deployed factory to: ${factory.address}`);
 
     // 3. If on external network, verify contracts
@@ -34,6 +43,14 @@ const deployFactory: DeployFunction = async function (
         await hre.run('verify:verify', {
             address: factory,
             constructorArguments: [pool.address],
+        });
+        await tenderly.verify({
+            name: Contracts.factory,
+            address: factory.address,
+            network: network.name,
+            libraries: {
+                PoolPolicy: policy.address
+            }
         });
     }
 

@@ -7,7 +7,7 @@ const deployPoolImplementation: DeployFunction = async function (
 ) {
     colouredLog.yellow(`deploying dependencies to: ${hre.network.name}`);
 
-    const { ethers, deployments, network, getNamedAccounts } = hre;
+    const { ethers, tenderly, deployments, network, getNamedAccounts } = hre;
     const { deploy, get } = deployments;
     const { owner } = await getNamedAccounts();
     const ownerSigner = await ethers.getSigner(owner);
@@ -38,6 +38,16 @@ const deployPoolImplementation: DeployFunction = async function (
         log: hre.hardhatArguments.verbose
     });
 
+    await tenderly.persistArtifacts({
+        name: Contracts.pool,
+        address: pool.address,
+        network: network.name,
+        libraries: {
+            PoolPolicy: policy.address,
+            ArrayUtils: arrayUtils.address
+        }
+    });
+
     colouredLog.blue(`Deployed Pool impl to: ${pool.address}`);
 
     // 3. If on external network, verify contracts
@@ -50,6 +60,16 @@ const deployPoolImplementation: DeployFunction = async function (
                 oracle.address,
                 poolFactoryFutureAddress
             ],
+        });
+
+        await tenderly.verify({
+            name: Contracts.pool,
+            address: pool.address,
+            network: network.name,
+            libraries: {
+                PoolPolicy: policy.address,
+                ArrayUtils: arrayUtils.address
+            }
         });
     }
 };

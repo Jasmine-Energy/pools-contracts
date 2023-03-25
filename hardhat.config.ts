@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 
 import { HardhatUserConfig } from 'hardhat/config';
+import * as tenderly from "@tenderly/hardhat-tenderly";
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomicfoundation/hardhat-network-helpers';
@@ -11,6 +12,7 @@ import 'hardhat-abi-exporter';
 import 'hardhat-contract-sizer';
 import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
+import 'hardhat-deploy-tenderly';
 import 'hardhat-interact';
 import '@typechain/hardhat';
 
@@ -19,6 +21,7 @@ import 'tsconfig-paths/register';
 import './tasks';
 
 dotenv.config();
+tenderly.setup();
 
 // TODO Move this
 const mnemonic = 'tattoo clip ankle prefer cruise car motion borrow bread future legal system';
@@ -115,6 +118,10 @@ const config: HardhatUserConfig = {
     },
     etherscan: {
         apiKey: process.env.ETHERSCAN_API_KEY,
+    },
+    tenderly: {
+        project: 'project', // TODO Can't figure out how to rename this
+        username: 'Kai_Jasmine', // TODO Setup Jasmine Org
     }
 };
 

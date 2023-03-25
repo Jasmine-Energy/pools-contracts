@@ -10,7 +10,7 @@ const deployCore: DeployFunction = async function (
     colouredLog.yellow(`deploying core contracts to: ${hre.network.name}`);
 
     // 1. Setup
-    const { ethers, upgrades, deployments, network, getNamedAccounts } = hre;
+    const { ethers, upgrades, deployments, tenderly, network, getNamedAccounts } = hre;
     const { save } = deployments;
     const { owner, bridge } = await getNamedAccounts();
     const ownerSigner = await ethers.getSigner(owner);
@@ -82,6 +82,25 @@ const deployCore: DeployFunction = async function (
         transactionHash: minter.deployTransaction.hash,
         implementation: minterImplementationAddress
     });
+    const contracts = [
+        {
+            name: Contracts.eat,
+            address: eatImplementationAddress,
+            network: network.name
+        },
+        {
+            name: Contracts.oracle,
+            address: oracleImplementationAddress,
+            network: network.name
+        },
+        {
+            name: Contracts.minter,
+            address: minterImplementationAddress,
+            network: network.name
+        }
+    ];
+
+    await tenderly.persistArtifacts(...contracts);
   
     // 6. If on external network, verify contracts
     if (network.tags['public']) {
@@ -105,6 +124,8 @@ const deployCore: DeployFunction = async function (
                 owner
             ],
         });
+
+        await tenderly.verify(...contracts);
     }
 };
 deployCore.tags = ['Core', 'all'];

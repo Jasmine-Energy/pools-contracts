@@ -7,7 +7,7 @@ const deployDependencies: DeployFunction = async function (
 ) {
     colouredLog.yellow(`deploying libraries to: ${hre.network.name}`);
 
-    const { deployments, network, getNamedAccounts } = hre;
+    const { deployments, tenderly, network, getNamedAccounts } = hre;
     const { deploy } = deployments;
     const { owner } = await getNamedAccounts();
 
@@ -29,6 +29,26 @@ const deployDependencies: DeployFunction = async function (
         log: hre.hardhatArguments.verbose,
     });
 
+    const contracts = [
+        {
+            name: Libraries.poolPolicy,
+            address: policyLib.address,
+            network: network.name
+        },
+        {
+            name: Libraries.calldata,
+            address: calldataLib.address,
+            network: network.name
+        },
+        {
+            name: Libraries.arrayUtils,
+            address: arrayUtilsLib.address,
+            network: network.name
+        }
+    ];
+
+    await tenderly.persistArtifacts(...contracts);
+
     colouredLog.blue(`Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address} ArrayUtils Lib to: ${arrayUtilsLib.address}`);
   
     // 4. If on external network, verify contracts
@@ -48,6 +68,8 @@ const deployDependencies: DeployFunction = async function (
             address: arrayUtilsLib,
             constructorArguments: [],
         });
+
+        await tenderly.verify(...contracts);
     }
 };
 deployDependencies.tags = ['Libraries', 'all'];
