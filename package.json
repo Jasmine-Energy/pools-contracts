@@ -9,7 +9,8 @@
   "scripts": {
     "build": "npx hardhat compile",
     "test": "npx hardhat test",
-    "start": "npx hardhat compile && npx hardhat node --network hardhat"
+    "start": "npx hardhat compile && npx hardhat node --network hardhat",
+    "interact": "npx hardhat interact"
   },
   "repository": {
     "type": "git",
@@ -59,6 +60,7 @@
     "hardhat-deploy-tenderly": "^0.2.0",
     "hardhat-gas-reporter": "^1.0.9",
     "hardhat-interact": "^0.2.3",
+    "hardhat-tracer": "^2.1.2",
     "mocha": "^10.2.0",
     "prettier": "^2.8.4",
     "prettier-plugin-solidity": "^1.1.3",

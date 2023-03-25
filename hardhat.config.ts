@@ -14,6 +14,7 @@ import 'hardhat-contract-sizer';
 import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
 import 'hardhat-deploy-tenderly';
+import 'hardhat-tracer';
 import 'hardhat-interact';
 import '@typechain/hardhat';
 
