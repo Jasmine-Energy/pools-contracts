@@ -23,9 +23,15 @@ const deployDependencies: DeployFunction = async function (
         log: hre.hardhatArguments.verbose,
     });
 
-    colouredLog.blue(`Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address}`);
+    // 3. Deploy Calldata Library
+    const arrayUtilsLib = await deploy(Libraries.arrayUtils, {
+        from: owner,
+        log: hre.hardhatArguments.verbose,
+    });
+
+    colouredLog.blue(`Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address} ArrayUtils Lib to: ${arrayUtilsLib.address}`);
   
-    // 3. If on external network, verify contracts
+    // 4. If on external network, verify contracts
     if (network.tags['public']) {
         console.log('Verifyiyng on Etherscan...');
         await hre.run('verify:verify', {
@@ -35,6 +41,11 @@ const deployDependencies: DeployFunction = async function (
 
         await hre.run('verify:verify', {
             address: policyLib,
+            constructorArguments: [],
+        });
+
+        await hre.run('verify:verify', {
+            address: arrayUtilsLib,
             constructorArguments: [],
         });
     }

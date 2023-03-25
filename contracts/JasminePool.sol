@@ -69,6 +69,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     JasmineOracle public immutable oracle;
     JasmineEAT public immutable EAT;
+    address public immutable poolFactory;
 
     string public _name;
     string public _symbol;
@@ -80,15 +81,17 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     // ──────────────────────────────────────────────────────────────────────────────
 
     // TODO: Need to override ERC777 name and symbol methods
-    constructor(address _eat, address _oracle) 
+    constructor(address _eat, address _oracle, address _poolFactory)
         ERC777("Jasmine Liquidity Token Core", "JLT", new address[](0)) {
         require(_eat != address(0), "JasminePool: EAT must be set");
         require(_oracle != address(0), "JasminePool: Oracle must be set");
+        require(_poolFactory != address(0), "JasminePool: Pool factory must be set");
 
         // TODO: Add supports interface checks
 
         oracle = JasmineOracle(_oracle);
         EAT = JasmineEAT(_eat);
+        poolFactory = _poolFactory;
     }
 
     /**
@@ -102,7 +105,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         bytes calldata policyConditions_,
         string calldata name_,
         string calldata symbol_
-    ) external initializer onlyInitializing {
+    ) external initializer onlyInitializing onlyFactory {
         // PoolPolicy.Condition[] memory conditions = abi.decode(policyConditions_, (PoolPolicy.Condition[]));
         // _policy.insert(conditions);
         _name = name_;
@@ -259,7 +262,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         uint256 tokenId,
         uint256 value,
         bytes memory data
-    ) public virtual override nonReentrant OnlyEAT returns (bytes4)  {
+    ) public virtual override nonReentrant onlyEAT returns(bytes4)  {
         // 1. Verify token is eligible for pool
         if (!meetsPolicy(tokenId)) {
             revert Unqualified(tokenId);
@@ -287,7 +290,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         uint256[] memory tokenIds,
         uint256[] memory values,
         bytes memory data
-    ) public virtual override nonReentrant OnlyEAT returns(bytes4) {
+    ) public virtual override nonReentrant onlyEAT returns(bytes4) {
         // 1. Ensure tokens received are EATs
         require(
             tokenIds.length == values.length,
@@ -368,15 +371,20 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
     
+    //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
     /**
      * @dev Enforce msg sender is EAT contract
      */
-    modifier OnlyEAT {
-        require(
-            _msgSender() == address(EAT), 
-            "JasminePool: Sender must be EAT contract"
-        );
+    modifier onlyEAT {
+        require(_msgSender() == address(EAT), "JasminePool: caller must be EAT contract");
+        _;
+    }
 
+    /**
+     * @dev Enforce msg sender is Pool Factory contract
+     */
+    modifier onlyFactory() {
+        require(_msgSender() == poolFactory, "JasminePool: caller must be Pool Factory contract");
         _;
     }
 }

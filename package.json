@@ -9,7 +9,7 @@
   "scripts": {
     "build": "npx hardhat compile",
     "test": "npx hardhat test",
-    "start": "npx hardhat node --network hardhat"
+    "start": "npx hardhat compile && npx hardhat node --network hardhat"
   },
   "repository": {
     "type": "git",

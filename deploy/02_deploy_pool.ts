@@ -7,12 +7,19 @@ const deployPoolImplementation: DeployFunction = async function (
 ) {
     colouredLog.yellow(`deploying dependencies to: ${hre.network.name}`);
 
-    const { deployments, network, getNamedAccounts } = hre;
+    const { ethers, deployments, network, getNamedAccounts } = hre;
     const { deploy, get } = deployments;
     const { owner } = await getNamedAccounts();
+    const ownerSigner = await ethers.getSigner(owner);
+    const ownerNonce = await ownerSigner.getTransactionCount();
+    const poolFactoryFutureAddress = ethers.utils.getContractAddress({
+        from: owner,
+        nonce: ownerNonce + 1,
+    });
 
     // 1. Get deployements
     const policy = await get(Libraries.poolPolicy);
+    const arrayUtils = await get(Libraries.arrayUtils);
     const eat = await get(Contracts.eat);
     const oracle = await get(Contracts.oracle);
 
@@ -21,10 +28,12 @@ const deployPoolImplementation: DeployFunction = async function (
         from: owner,
         args: [
             eat.address,
-            oracle.address
+            oracle.address,
+            poolFactoryFutureAddress
         ],
         libraries: {
-            PoolPolicy: policy.address
+            PoolPolicy: policy.address,
+            ArrayUtils: arrayUtils.address
         },
         log: hre.hardhatArguments.verbose
     });
@@ -36,7 +45,11 @@ const deployPoolImplementation: DeployFunction = async function (
         console.log('Verifyiyng on Etherscan...');
         await hre.run('verify:verify', {
             address: pool,
-            constructorArguments: [],
+            constructorArguments: [
+                eat.address,
+                oracle.address,
+                poolFactoryFutureAddress
+            ],
         });
     }
 };
