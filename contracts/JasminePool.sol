@@ -20,6 +20,7 @@ import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 // Utility Libraries
 import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { ArrayUtils } from "./libraries/ArrayUtils.sol";
 
 // Interfaces
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
@@ -43,8 +44,8 @@ error Prohibited();
  * @notice 
  * @custom:security-contact // TODO: set sec contact
  */
-contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
-
+// contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
+contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
@@ -53,6 +54,7 @@ contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, Reen
     using PoolPolicy for bytes;
 
     using EnumerableSet for EnumerableSet.UintSet;
+    using ArrayUtils for uint256[];
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -126,7 +128,7 @@ contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, Reen
 
     function policyForVersion(
         uint8 metadataVersion
-    ) external view override returns (bytes memory policy) {
+    ) external view returns (bytes memory policy) {
         require(metadataVersion == 1, "JasminePool: No policy for version");
         // TODO: Encode packed conditions
         return abi.encode(1);
@@ -140,32 +142,101 @@ contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, Reen
         address beneficiary,
         uint256 quantity,
         bytes calldata data
-    ) external override nonReentrant returns (bool success) {}
+    ) external nonReentrant returns (bool success) {}
 
     //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
 
     function deposit(
+        uint256 tokenId,
+        uint256 amount
+    ) external nonReentrant returns (bool success, uint256 jltQuantity) {
+        return _deposit(_msgSender(), tokenId, amount);
+    }
+
+    function operatorDeposit(
         address from,
         uint256 tokenId,
-        uint256 quantity
-    ) external override nonReentrant returns (bool success, uint256 jltQuantity) {}
+        uint256 amount
+    ) external nonReentrant returns (bool success, uint256 jltQuantity) {
+        return _deposit(from, tokenId, amount);
+    }
+
+    function _deposit(
+        address from,
+        uint256 tokenId,
+        uint256 amount
+    ) private returns (bool success, uint256 jltQuantity) {
+        // NOTE: JLTs are minted on ERC-1155 receipt. This function merely transfers EATs to contract
+        try EAT.safeTransferFrom(from, address(this), tokenId, amount, "") {
+            return (true, amount);
+        } catch {
+            return (false, 0);
+        }
+    }
 
     function depositBatch(
         address from,
         uint256[] calldata tokenIds,
-        uint256[] calldata quantities
-    ) external override nonReentrant returns (bool success, uint256 jltQuantity) {}
+        uint256[] calldata amounts
+    ) external nonReentrant returns (bool success, uint256 jltQuantity) {
+        try EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "") {
+            return (true, amounts.sum());
+        } catch {
+            return (false, 0);
+        }
+    }
 
 
     //  ──────────────────────────  Withdrawal Functions  ───────────────────────────  \\
 
     function withdraw(
-        address owner,
         address recipient,
-        uint256 quantity,
+        uint256 amount,
         bytes calldata data
-    ) external override nonReentrant returns (bool success) {
+    ) external nonReentrant returns (bool success) {
+        success = _withdraw(_msgSender(), recipient, amount, data);
+    }
+
+    function operatorWithdraw(
+        address sender,
+        address recipient,
+        uint256 amount,
+        bytes calldata data
+    ) external nonReentrant returns (bool success) {
+        // 1. Ensure caller is operator of sender
+        require(
+            isOperatorFor(_msgSender(), sender),
+            "JasminePool: Unauthorized for sender"
+        );
+
+        // 2. Call withdraw
+        success = _withdraw(sender, recipient, amount, data);
+    }
+
+    /**
+     * @notice Internal implementation of withdraw
+     * @dev Burns `amount` of JLTs from `sender` and
+     * transfers EATs to recipient with `data`.
+     */
+    function _withdraw(
+        address sender,
+        address recipient,
+        uint256 amount,
+        bytes memory data
+    ) private returns(bool success) {
+        // 1. Ensure caller has sufficient JLTs
+        require(
+            balanceOf(sender) >= amount,
+            "JasminePool: Insufficient funds"
+        );
+
+        // 2. Burn tokens
+        _burn(sender, amount, "", "");
+
+        // 3. Select token to withdraw
         
+
+        // 4. Transfer EATs
     }
 
     function withdrawSpecific(
@@ -174,7 +245,7 @@ contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, Reen
         uint256[] calldata tokenIds,
         uint256[] calldata quantities,
         bytes calldata data
-    ) external override nonReentrant returns (bool success) {}
+    ) external nonReentrant returns (bool success) {}
 
     // ──────────────────────────────────────────────────────────────────────────────
     // ERC Conformance Implementations
@@ -188,22 +259,16 @@ contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, Reen
         uint256 tokenId,
         uint256 value,
         bytes memory data
-    ) public virtual override nonReentrant returns (bytes4)  {
-        // 1. Ensure tokens received are EATs
-        require(
-            _msgSender() == address(EAT),
-            "JasminePool: Pool only accept Jasmine Energy Attribution Tokens"
-        );
-
-        // 2. Verify token is eligible for pool
+    ) public virtual override nonReentrant OnlyEAT returns (bytes4)  {
+        // 1. Verify token is eligible for pool
         if (!meetsPolicy(tokenId)) {
             revert Unqualified(tokenId);
         }
 
-        // 3. Add token ID to holdings
+        // 2. Add token ID to holdings
         _holdings.add(tokenId);
 
-        // 4. Mint Tokens
+        // 3. Mint Tokens
         _mint(
             from,
             value,
@@ -222,12 +287,8 @@ contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, Reen
         uint256[] memory tokenIds,
         uint256[] memory values,
         bytes memory data
-    ) public virtual override returns (bytes4) {
+    ) public virtual override nonReentrant OnlyEAT returns(bytes4) {
         // 1. Ensure tokens received are EATs
-        require(
-            _msgSender() == address(EAT),
-            "JasminePool: Pool only accept Jasmine Energy Attribution Tokens"
-        );
         require(
             tokenIds.length == values.length,
             "JasminePool: Length of token IDs and values must match"
@@ -307,4 +368,15 @@ contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, Reen
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
     
+    /**
+     * @dev Enforce msg sender is EAT contract
+     */
+    modifier OnlyEAT {
+        require(
+            _msgSender() == address(EAT), 
+            "JasminePool: Sender must be EAT contract"
+        );
+
+        _;
+    }
 }
