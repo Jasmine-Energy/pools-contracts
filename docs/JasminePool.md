@@ -333,7 +333,7 @@ function name() external view returns (string)
 
 
 
-*See {IERC777-name}.*
+*See {IERC777-name}*
 
 
 #### Returns
@@ -345,7 +345,7 @@ function name() external view returns (string)
 ### onERC1155BatchReceived
 
 ```solidity
-function onERC1155BatchReceived(address operator, address from, uint256[] tokenIds, uint256[] values, bytes data) external nonpayable returns (bytes4)
+function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint256[] values, bytes data) external nonpayable returns (bytes4)
 ```
 
 
@@ -356,7 +356,7 @@ function onERC1155BatchReceived(address operator, address from, uint256[] tokenI
 
 | Name | Type | Description |
 |---|---|---|
-| operator | address | undefined |
+| _0 | address | undefined |
 | from | address | undefined |
 | tokenIds | uint256[] | undefined |
 | values | uint256[] | undefined |
@@ -371,7 +371,7 @@ function onERC1155BatchReceived(address operator, address from, uint256[] tokenI
 ### onERC1155Received
 
 ```solidity
-function onERC1155Received(address operator, address from, uint256 tokenId, uint256 value, bytes data) external nonpayable returns (bytes4)
+function onERC1155Received(address, address from, uint256 tokenId, uint256 value, bytes data) external nonpayable returns (bytes4)
 ```
 
 
@@ -382,7 +382,7 @@ function onERC1155Received(address operator, address from, uint256 tokenId, uint
 
 | Name | Type | Description |
 |---|---|---|
-| operator | address | undefined |
+| _0 | address | undefined |
 | from | address | undefined |
 | tokenId | uint256 | undefined |
 | value | uint256 | undefined |
@@ -606,7 +606,7 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 
 
 
-*Returns true if this contract implements the interface defined by `interfaceId`. See the corresponding https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section] to learn more about how these ids are created. This function call must use less than 30 000 gas.*
+*See {IERC165-supportsInterface}*
 
 #### Parameters
 
@@ -628,7 +628,7 @@ function symbol() external view returns (string)
 
 
 
-*See {IERC777-symbol}.*
+*See {IERC777-symbol}*
 
 
 #### Returns
@@ -645,7 +645,7 @@ function tokenURI() external view returns (string)
 
 
 
-
+*See {IERC1046-tokenURI}*
 
 
 #### Returns
@@ -745,7 +745,7 @@ function withdraw(address recipient, uint256 amount, bytes data) external nonpay
 ### withdrawSpecific
 
 ```solidity
-function withdrawSpecific(address sender, address recipient, uint256[] tokenIds, uint256[] amounts, bytes data) external nonpayable returns (bool success)
+function withdrawSpecific(address sender, address recipient, uint256[] tokenIds, uint256[] amounts, bytes data) external nonpayable
 ```
 
 
@@ -761,12 +761,6 @@ function withdrawSpecific(address sender, address recipient, uint256[] tokenIds,
 | tokenIds | uint256[] | undefined |
 | amounts | uint256[] | undefined |
 | data | bytes | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| success | bool | undefined |
 
 
 

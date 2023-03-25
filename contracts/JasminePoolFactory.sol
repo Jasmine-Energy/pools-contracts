@@ -102,7 +102,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         PoolPolicy.DepositPolicy calldata policy, 
         string calldata name, 
         string calldata symbol
-    ) external onlyOwner {
+    ) external onlyOwner returns(address newPool) {
         bytes32 policyHash = keccak256(policy.toBytes());
 
         if (_pools.contains(policyHash)) {
@@ -120,6 +120,8 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         emit PoolCreated(policy.toBytes(), address(poolProxy), name, symbol);
 
         _pools.set(policyHash, bytes32(uint256(uint160(address(poolProxy)))));
+
+        return address(poolProxy);
     }
 
 

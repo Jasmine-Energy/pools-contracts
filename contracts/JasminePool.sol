@@ -147,7 +147,9 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address beneficiary,
         uint256 quantity,
         bytes calldata data
-    ) external nonReentrant onlyOperator(sender) returns (bool success) {}
+    ) external nonReentrant onlyOperator(sender) returns (bool success) {
+        // TODO: Implement me
+    }
 
     //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
 
@@ -213,8 +215,8 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     /**
      * @notice Internal implementation of withdraw
-     * @dev Burns `amount` of JLTs from `sender` and
-     * transfers EATs to recipient with `data`.
+     * 
+     * @dev Burns `amount` of JLTs from `sender` and transfers EATs to recipient with `data`.
      */
     function _withdraw(
         address sender,
@@ -243,7 +245,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         uint256[] calldata tokenIds,
         uint256[] calldata amounts,
         bytes calldata data
-    ) external nonReentrant onlyOperator(sender) returns (bool success) {
+    ) external nonReentrant onlyOperator(sender) {
         // 1. Ensure sender has sufficient JLTs and lengths match
         uint256 amountSum = amounts.sum();
         require(
@@ -272,7 +274,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     //  ──────────────────────  ERC-1155 Receiver Conformance  ──────────────────────  \\
 
     function onERC1155Received(
-        address operator,
+        address,
         address from,
         uint256 tokenId,
         uint256 value,
@@ -300,7 +302,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     }
 
     function onERC1155BatchReceived(
-        address operator,
+        address,
         address from,
         uint256[] memory tokenIds,
         uint256[] memory values,
@@ -337,6 +339,9 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     //  ──────────────────────────  ERC-1046 Conformance  ───────────────────────────  \\
 
+    /**
+     * @dev See {IERC1046-tokenURI}
+     */
     function tokenURI() external view returns (string memory) {
         // TODO Implement
     }
@@ -345,7 +350,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     /**
      * @inheritdoc ERC777
-     * @dev See {IERC777-name}.
+     * @dev See {IERC777-name}
      */
     function name() public view override returns (string memory) {
         return _name;
@@ -353,7 +358,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     /**
      * @inheritdoc ERC777
-     * @dev See {IERC777-symbol}.
+     * @dev See {IERC777-symbol}
      */
     function symbol() public view override returns (string memory) {
         return _symbol;
@@ -372,7 +377,10 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
-    /// @inheritdoc IERC165
+    /**
+     * @inheritdoc IERC165
+     * @dev See {IERC165-supportsInterface}
+     */
     function supportsInterface(
         bytes4 interfaceId
     ) public view override returns (bool) {

@@ -24,7 +24,7 @@ function acceptOwnership() external nonpayable
 ### deployNewPool
 
 ```solidity
-function deployNewPool(PoolPolicy.DepositPolicy policy, string name, string symbol) external nonpayable
+function deployNewPool(PoolPolicy.DepositPolicy policy, string name, string symbol) external nonpayable returns (address newPool)
 ```
 
 
@@ -38,6 +38,12 @@ function deployNewPool(PoolPolicy.DepositPolicy policy, string name, string symb
 | policy | PoolPolicy.DepositPolicy | undefined |
 | name | string | undefined |
 | symbol | string | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| newPool | address | undefined |
 
 ### eligiblePoolsForToken
 
