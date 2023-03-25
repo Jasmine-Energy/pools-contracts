@@ -27,6 +27,8 @@ import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 import { IERC777 } from "@openzeppelin/contracts/interfaces/IERC777.sol";
+import { IERC1046 } from "./interfaces/ERC/IERC1046.sol";
+import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 
 //  ─────────────────────────────────────────────────────────────────────────────
@@ -74,7 +76,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     string public _name;
     string public _symbol;
     // TODO: Should discuss internally before making this assumption
-    uint8 public constant _decimals = 18;
+    uint8 private constant _decimals = 18;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Setup
@@ -360,6 +362,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
+    /// @inheritdoc IERC165
     function supportsInterface(
         bytes4 interfaceId
     ) public view override returns (bool) {
@@ -367,6 +370,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
             interfaceId == type(IERC777).interfaceId ||
             interfaceId == type(IERC1155Receiver).interfaceId ||
             interfaceId == type(IJasminePool).interfaceId ||
+            interfaceId == type(IERC1046).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
