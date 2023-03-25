@@ -141,11 +141,11 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     //  ──────────────────────────  Retirement Functions  ───────────────────────────  \\
 
     function retire(
-        address owner,
+        address sender,
         address beneficiary,
         uint256 quantity,
         bytes calldata data
-    ) external nonReentrant returns (bool success) {}
+    ) external nonReentrant onlyOperator(sender) returns (bool success) {}
 
     //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
 
@@ -160,7 +160,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address from,
         uint256 tokenId,
         uint256 amount
-    ) external nonReentrant returns (bool success, uint256 jltQuantity) {
+    ) external nonReentrant onlyOperator(from) returns (bool success, uint256 jltQuantity) {
         return _deposit(from, tokenId, amount);
     }
 
@@ -181,7 +181,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address from,
         uint256[] calldata tokenIds,
         uint256[] calldata amounts
-    ) external nonReentrant returns (bool success, uint256 jltQuantity) {
+    ) external nonReentrant onlyOperator(from) returns (bool success, uint256 jltQuantity) {
         try EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "") {
             return (true, amounts.sum());
         } catch {
@@ -205,14 +205,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address recipient,
         uint256 amount,
         bytes calldata data
-    ) external nonReentrant returns (bool success) {
-        // 1. Ensure caller is operator of sender
-        require(
-            isOperatorFor(_msgSender(), sender),
-            "JasminePool: Unauthorized for sender"
-        );
-
-        // 2. Call withdraw
+    ) external nonReentrant onlyOperator(sender) returns (bool success) {
         success = _withdraw(sender, recipient, amount, data);
     }
 
@@ -243,12 +236,22 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     }
 
     function withdrawSpecific(
-        address owner,
+        address sender,
         address recipient,
         uint256[] calldata tokenIds,
-        uint256[] calldata quantities,
+        uint256[] calldata amounts,
         bytes calldata data
-    ) external nonReentrant returns (bool success) {}
+    ) external nonReentrant onlyOperator(sender) returns (bool success) {
+        // 1. Ensure sender has sufficient JLTs and lengths match
+        require(
+            balanceOf(sender) >= amounts.sum(),
+            "JasminePool: Insufficient funds"
+        );
+        require(
+            tokenIds.length == amounts.length,
+            "JasminePool: Length of token IDs and amounts must match"
+        );
+    }
 
     // ──────────────────────────────────────────────────────────────────────────────
     // ERC Conformance Implementations
@@ -385,6 +388,17 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      */
     modifier onlyFactory() {
         require(_msgSender() == poolFactory, "JasminePool: caller must be Pool Factory contract");
+        _;
+    }
+
+    /**
+     * @dev Enforce caller is approved for holder's JLTs - or caller is holder
+     */
+    modifier onlyOperator(address holder) {
+        require(
+            _msgSender() == holder || isOperatorFor(_msgSender(), holder),
+            "JasminePool: Unauthorized"
+        );
         _;
     }
 }
