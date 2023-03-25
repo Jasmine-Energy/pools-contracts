@@ -177,7 +177,7 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
     ) external nonReentrant returns (bytes4) {
         // 1. Ensure tokens received are EATs
         require(
-            operator == address(EAT),
+            msg.sender == address(EAT),
             "JasminePool: Pool only accept Jasmine Energy Attribution Tokens"
         );
 
@@ -208,7 +208,7 @@ contract JasminePool is IJasminePool, ERC777, Initializable, ReentrancyGuard {
     ) external nonReentrant returns (bytes4) {
         // 1. Ensure tokens received are EATs
         require(
-            operator == address(EAT),
+            msg.sender == address(EAT),
             "JasminePool: Pool only accept Jasmine Energy Attribution Tokens"
         );
         require(
