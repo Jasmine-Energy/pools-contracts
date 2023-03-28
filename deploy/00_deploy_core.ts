@@ -126,6 +126,8 @@ const deployCore: DeployFunction = async function (
         });
 
         await tenderly.verify(...contracts);
+    } else if (network.tags['tenderly']) {
+        await tenderly.verify(...contracts);
     }
 };
 deployCore.tags = ['Core', 'all'];

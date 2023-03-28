@@ -76,7 +76,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     string public _name;
     string public _symbol;
     // TODO: Should discuss internally before making this assumption
-    uint8 private constant _decimals = 18;
+    uint8 private constant _decimals = 9;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Setup

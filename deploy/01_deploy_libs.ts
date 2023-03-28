@@ -70,6 +70,8 @@ const deployDependencies: DeployFunction = async function (
         });
 
         await tenderly.verify(...contracts);
+    } else if (network.tags['tenderly']) {
+        await tenderly.verify(...contracts);
     }
 };
 deployDependencies.tags = ['Libraries', 'all'];

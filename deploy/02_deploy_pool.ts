@@ -71,6 +71,16 @@ const deployPoolImplementation: DeployFunction = async function (
                 ArrayUtils: arrayUtils.address
             }
         });
+    } else if (network.tags['tenderly']) {
+        await tenderly.verify({
+            name: Contracts.pool,
+            address: pool.address,
+            network: network.name,
+            libraries: {
+                PoolPolicy: policy.address,
+                ArrayUtils: arrayUtils.address
+            }
+        });
     }
 };
 deployPoolImplementation.tags = ['Pool', 'all'];

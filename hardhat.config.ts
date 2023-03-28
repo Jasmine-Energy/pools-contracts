@@ -51,6 +51,11 @@ const config: HardhatUserConfig = {
         localhost: {
             url: 'http://127.0.0.1:8545',
         },
+        tenderly: {
+            accounts,
+            url: 'https://rpc.tenderly.co/fork/20e808f7-4569-4778-933b-87706fac8e39',//`https://rpc.tenderly.co/fork/${process.env.TENDERLY_FORK_ID}`,
+            tags: ['tenderly']
+        },
         mumbai: {
             url: 'https://matic-testnet-archive-rpc.bwarelabs.com',
             chainId: 80001,
@@ -122,8 +127,8 @@ const config: HardhatUserConfig = {
         apiKey: process.env.ETHERSCAN_API_KEY,
     },
     tenderly: {
-        project: 'project', // TODO Can't figure out how to rename this
-        username: 'Kai_Jasmine', // TODO Setup Jasmine Org
+        project: 'reference-pools',
+        username: 'Jasmine',
     }
 };
 

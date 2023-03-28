@@ -98,6 +98,12 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
 
     //  ────────────────────────────  Pool Management  ──────────────────────────────  \\
 
+    /**
+     * 
+     * @param policy TODO
+     * @param name TODO
+     * @param symbol TODO
+     */
     function deployNewPool(
         PoolPolicy.DepositPolicy calldata policy, 
         string calldata name, 

@@ -52,6 +52,15 @@ const deployFactory: DeployFunction = async function (
                 PoolPolicy: policy.address
             }
         });
+    } else if (network.tags['tenderly']) {
+        await tenderly.verify({
+            name: Contracts.factory,
+            address: factory.address,
+            network: network.name,
+            libraries: {
+                PoolPolicy: policy.address
+            }
+        });
     }
 
     // 4. If not prod, create test pool
