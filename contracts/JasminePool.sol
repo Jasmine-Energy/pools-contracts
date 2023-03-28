@@ -48,6 +48,7 @@ error Prohibited();
  */
 // contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
+
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
@@ -73,16 +74,17 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     JasmineEAT public immutable EAT;
     address public immutable poolFactory;
 
-    string public _name;
-    string public _symbol;
-    // TODO: Should discuss internally before making this assumption
+    /// @notice Token Display name - per ERC-777/20
+    string private _name;
+    /// @notice Token Symbol - per ERC-777/20
+    string private _symbol;
+    /// @notice JLT's decimal precision
     uint8 private constant _decimals = 9;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Setup
     // ──────────────────────────────────────────────────────────────────────────────
 
-    // TODO: Need to override ERC777 name and symbol methods
     constructor(address _eat, address _oracle, address _poolFactory)
         ERC777("Jasmine Liquidity Token Core", "JLT", new address[](0)) {
         require(_eat != address(0), "JasminePool: EAT must be set");
@@ -371,16 +373,11 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         uint256 tokenId,
         uint256 value,
         bytes memory data
-    ) public virtual override nonReentrant onlyEAT returns(bytes4)  {
-        // 1. Verify token is eligible for pool
-        if (!meetsPolicy(tokenId)) {
-            revert Unqualified(tokenId);
-        }
-
-        // 2. Add token ID to holdings
+    ) public virtual override nonReentrant onlyEAT checkEligibility(tokenId) returns(bytes4)  {
+        // 1. Add token ID to holdings
         _holdings.add(tokenId);
 
-        // 3. Mint Tokens
+        // 2. Mint Tokens
         _mint(
             from,
             value,
@@ -399,7 +396,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         uint256[] memory tokenIds,
         uint256[] memory values,
         bytes memory data
-    ) public virtual override nonReentrant onlyEAT returns(bytes4) {
+    ) public virtual override nonReentrant onlyEAT checkEligibilities(tokenIds) returns(bytes4) {
         // 1. Ensure tokens received are EATs
         require(
             tokenIds.length == values.length,
@@ -409,9 +406,6 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         // 2. Verify all tokens are eligible for pool, add to holdings and sum total EATs received
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            if (!meetsPolicy(tokenIds[i])) {
-                revert Unqualified(tokenIds[i]);
-            }
             total != values[i];
             _holdings.add(tokenIds[i]);
         }
@@ -532,6 +526,28 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     }
     
     //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
+
+    /**
+     * @dev Enforce token ID meets pool's policy
+     */
+    modifier checkEligibility(uint256 tokenId) {
+        if (!meetsPolicy(tokenId)) {
+            revert Unqualified(tokenId);
+        }
+        _;
+    }
+
+    /**
+     * @dev Enforces all token IDs meet pool's policy
+     */
+    modifier checkEligibilities(uint256[] memory tokenIds) {
+        for (uint i =0; i < tokenIds.length; i++) {
+            if (!meetsPolicy(tokenIds[i])) {
+                revert Unqualified(tokenIds[i]);
+            }
+        }
+        _;
+    }
 
     /**
      * @dev Enforce msg sender is EAT contract

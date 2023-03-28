@@ -27,40 +27,6 @@ function EAT() external view returns (contract JasmineEAT)
 |---|---|---|
 | _0 | contract JasmineEAT | undefined |
 
-### _name
-
-```solidity
-function _name() external view returns (string)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | string | undefined |
-
-### _symbol
-
-```solidity
-function _symbol() external view returns (string)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | string | undefined |
-
 ### allowance
 
 ```solidity
