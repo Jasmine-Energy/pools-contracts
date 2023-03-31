@@ -94,5 +94,39 @@ Emitted when a new Jasmine pool is created
 | name `indexed` | string | Name of the pool |
 | symbol `indexed` | string | Token symbol of the pool |
 
+### PoolImplementationAdded
+
+```solidity
+event PoolImplementationAdded(address indexed poolImplementation, uint256 indexed poolIndex)
+```
+
+Emitted when new pool implementations are supported by factory 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| poolImplementation `indexed` | address | Address of newly supported pool implementation |
+| poolIndex `indexed` | uint256 | Index of new pool in set of pool implementations |
+
+### PoolImplementationRemoved
+
+```solidity
+event PoolImplementationRemoved(address indexed poolImplementation, uint256 indexed poolIndex)
+```
+
+Emitted when a pool implementations is removed 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| poolImplementation `indexed` | address | Address of deleted pool implementation |
+| poolIndex `indexed` | uint256 | Index of deleted pool in set of pool implementations |
+
 
 

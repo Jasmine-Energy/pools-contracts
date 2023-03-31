@@ -21,35 +21,54 @@ function acceptOwnership() external nonpayable
 *The new owner accepts the ownership transfer.*
 
 
-### deployNewPool
+### addPoolImplementation
 
 ```solidity
-function deployNewPool(uint256 version, bytes initData, string name, string symbol) external nonpayable returns (address newPool)
+function addPoolImplementation(address newPoolImplementation) external nonpayable returns (uint256 indexInPools)
 ```
 
 
 
-
+*Used to add a new pool implementation *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| version | uint256 | undefined |
-| initData | bytes | undefined |
-| name | string | undefined |
-| symbol | string | undefined |
+| newPoolImplementation | address | New pool implementation address to support |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| newPool | address | undefined |
+| indexInPools | uint256 | undefined |
 
-### deployNewPool
+### computePoolAddress
 
 ```solidity
-function deployNewPool(PoolPolicy.DepositPolicy policy, string name, string symbol) external nonpayable returns (address newPool)
+function computePoolAddress(bytes32 policyHash) external view returns (address poolAddress)
+```
+
+Utility function to calculate deployed address of a pool from its         policy hash. 
+
+*Requirements:     - Policy hash must exist in existing pools *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| policyHash | bytes32 | Policy hash of pool to compute address of |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| poolAddress | address | Address of deployed pool |
+
+### deployNewBasePool
+
+```solidity
+function deployNewBasePool(PoolPolicy.DepositPolicy policy, string name, string symbol) external nonpayable returns (address newPool)
 ```
 
 
@@ -69,6 +88,32 @@ function deployNewPool(PoolPolicy.DepositPolicy policy, string name, string symb
 | Name | Type | Description |
 |---|---|---|
 | newPool | address | undefined |
+
+### deployNewPool
+
+```solidity
+function deployNewPool(uint256 version, bytes4 initSelector, bytes initData, string name, string symbol) external nonpayable returns (address newPool)
+```
+
+Deploys a new pool from list of pool implementations 
+
+*Requirements:     - Caller must be owner     - Policy must not exist     - Version must be valid pool implementation index *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| version | uint256 | Index of pool implementation to deploy |
+| initSelector | bytes4 | Method selector of initializer |
+| initData | bytes | Initializer data (excluding method selector) |
+| name | string | New pool&#39;s token name |
+| symbol | string | New pool&#39;s token symbol  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| newPool | address | address of newly created pool |
 
 ### eligiblePoolsForToken
 
@@ -148,6 +193,22 @@ function pendingOwner() external view returns (address)
 |---|---|---|
 | _0 | address | undefined |
 
+### removePoolImplementation
+
+```solidity
+function removePoolImplementation(uint256 poolIndex) external nonpayable
+```
+
+
+
+*Used to remove a pool implementation *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| poolIndex | uint256 | Index of pool to remove TODO: Would be nice to have an overloaded version that takes address of pool to remove NOTE: This will break CREATE2 address predictions. Think of means around this |
+
 ### renounceOwnership
 
 ```solidity
@@ -195,18 +256,19 @@ function transferOwnership(address newOwner) external nonpayable
 ### updateImplementationAddress
 
 ```solidity
-function updateImplementationAddress(address newPoolImplementation) external nonpayable
+function updateImplementationAddress(address newPoolImplementation, uint256 poolIndex) external nonpayable
 ```
 
 
 
-*Allows owner to update the address pool proxies point to. *
+*Allows owner to update a pool implementation. *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| newPoolImplementation | address | Address new pool proxies will point to |
+| newPoolImplementation | address | New address to replace |
+| poolIndex | uint256 | Index of pool to replace TODO: Would be nice to have an overloaded version that takes address of pool to update |
 
 
 
@@ -264,6 +326,40 @@ Emitted when a new Jasmine pool is created
 | pool `indexed` | address | undefined |
 | name `indexed` | string | undefined |
 | symbol `indexed` | string | undefined |
+
+### PoolImplementationAdded
+
+```solidity
+event PoolImplementationAdded(address indexed poolImplementation, uint256 indexed poolIndex)
+```
+
+Emitted when new pool implementations are supported by factory 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| poolImplementation `indexed` | address | undefined |
+| poolIndex `indexed` | uint256 | undefined |
+
+### PoolImplementationRemoved
+
+```solidity
+event PoolImplementationRemoved(address indexed poolImplementation, uint256 indexed poolIndex)
+```
+
+Emitted when a pool implementations is removed 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| poolImplementation `indexed` | address | undefined |
+| poolIndex `indexed` | uint256 | undefined |
 
 
 

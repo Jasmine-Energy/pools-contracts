@@ -66,7 +66,7 @@ const deployFactory: DeployFunction = async function (
     // 4. If not prod, create test pool
     if (!network.tags['public']) {
         const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address) as JasminePoolFactory;
-        await factoryContract.deployNewPool({
+        await factoryContract.deployNewBasePool({
             vintagePeriod: [
                 Math.ceil(new Date().valueOf() / 1_000),
                 Math.ceil(new Date().valueOf() + 100_000  / 1_000)
