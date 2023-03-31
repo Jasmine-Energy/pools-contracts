@@ -56,17 +56,14 @@ const deployDependencies: DeployFunction = async function (
         console.log('Verifyiyng on Etherscan...');
         await hre.run('verify:verify', {
             address: calldataLib,
-            constructorArguments: [],
         });
 
         await hre.run('verify:verify', {
             address: policyLib,
-            constructorArguments: [],
         });
 
         await hre.run('verify:verify', {
             address: arrayUtilsLib,
-            constructorArguments: [],
         });
 
         await tenderly.verify(...contracts);

@@ -54,6 +54,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     using EnumerableSet for EnumerableSet.AddressSet;
     using PoolPolicy for PoolPolicy.DepositPolicy;
 
+
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
@@ -73,11 +74,19 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     /// @dev Implementation addresses for pools
     EnumerableSet.AddressSet internal _poolImplementations;
 
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
+     * @notice Deploys Pool Factory with a default pool implementation
+     * 
+     * @dev Requirements:
+     *     - Pool implementation supports IJasminePool and IERC1155Receiver interface
+     *       per {ERC165-supportsInterface} check
+     *     - Pool implementation is not zero address
+     * 
      * @param _poolImplementation Address containing Jasmine Pool implementation
      */
     constructor(address _poolImplementation) Ownable2Step() {
@@ -91,28 +100,37 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     //  User Functionality
     //  ─────────────────────────────────────────────────────────────────────────────
 
-
     //  ───────────────  Jasmine Pool Factory Interface Conformance  ────────────────  \\
 
     /// @notice Returns the total number of pools deployed
-    function totalPools() external view returns(uint256) {
+    function totalPools() external view returns (uint256) {
         return _pools.length();
     }
 
     /**
-     * @notice Used to obtain the address of a pool in the set of pools - if it exists.
+     * @notice Used to obtain the address of a pool in the set of pools - if it exists
+     * 
+     * @dev Throw NoPool() on failure
      * 
      * @param index Index of the deployed pool in set of pools
      * @return pool Address of pool in set
      */
-    function getPoolAtIndex(uint256 index) external view returns(address pool) {
+    function getPoolAtIndex(uint256 index)
+        external view
+        returns (address pool)
+    {
         if (index >= _pools.length()) revert NoPool();
         return computePoolAddress(_pools.at(index));
     }
 
-    function eligiblePoolsForToken(uint256 tokenId) external view returns(address[] memory pools) {
+    // TODO Implement me
+    function eligiblePoolsForToken(uint256)
+        external pure
+        returns (address[] memory)
+    {
         revert("JasminePoolFactory: Unimplemented");
     }
+
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Admin Functionality
@@ -124,7 +142,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      * @notice Deploys a new pool with given deposit policy
      * 
      * @dev Pool is deployed via ERC-1967 proxy to deterministic address derived from
-     *      hash of Deposit Policy.
+     *      hash of Deposit Policy
      * 
      * @dev Requirements:
      *     - Caller must be owner
@@ -140,7 +158,11 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         PoolPolicy.DepositPolicy calldata policy, 
         string calldata name, 
         string calldata symbol
-    ) external onlyOwner returns(address newPool) {
+    )
+        external
+        onlyOwner
+        returns (address newPool)
+    {
         // 1. Encode packed policy and create hash
         bytes memory encodedPolicy = abi.encode(
             policy.vintagePeriod,
@@ -175,6 +197,8 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      *     - Policy must not exist
      *     - Version must be valid pool implementation index
      * 
+     * @dev Throws PoolExists(address pool) on failure
+     * 
      * @param version Index of pool implementation to deploy
      * @param initSelector Method selector of initializer
      * @param initData Initializer data (excluding method selector, name and symbol)
@@ -189,15 +213,16 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         bytes  memory   initData, // QUESTION: Consider renaming. This is more a generic deposit policy than init data as name and symbol are appended
         string calldata name, 
         string calldata symbol
-    ) public onlyOwner returns(address newPool) {
-
+    )
+        public
+        onlyOwner
+        returns (address newPool)
+    {
         // 1. Compute hash of init data
         bytes32 policyHash = keccak256(initData);
 
         // 2. Ensure policy does not exist
-        if (_pools.contains(policyHash)) {
-            revert PoolExists(computePoolAddress(policyHash));
-        }
+        if (_pools.contains(policyHash)) revert PoolExists(computePoolAddress(policyHash));
 
         // 3. Deploy new pool
         ERC1967Proxy poolProxy = new ERC1967Proxy{ salt: policyHash }(
@@ -222,20 +247,22 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
 
     //  ────────────────────────────  Pool Management  ──────────────────────────────  \\
 
-
     /**
-     * @dev Allows owner to update a pool implementation.
+     * @dev Allows owner to update a pool implementation
      * 
-     * @param newPoolImplementation New address to replace
+     * @ param newPoolImplementation New address to replace
      * @param poolIndex Index of pool to replace
      * TODO: Would be nice to have an overloaded version that takes address of pool to update
      */
     function updateImplementationAddress(
-        address newPoolImplementation,
+        address, // newPoolImplementation,
         uint256 poolIndex
-    ) external onlyOwner {
+    )
+        external view
+        onlyOwner
+    {
         removePoolImplementation(poolIndex);
-        addPoolImplementation(newPoolImplementation);
+        // addPoolImplementation(newPoolImplementation); // NOTE: Currently unreachable
     }
 
     /**
@@ -244,8 +271,10 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      * @param newPoolImplementation New pool implementation address to support
      */
     function addPoolImplementation(address newPoolImplementation) 
-        public onlyOwner
-        returns(uint256 indexInPools) {
+        public
+        onlyOwner
+        returns (uint256 indexInPools)
+    {
         _validatePoolImplementation(newPoolImplementation);
 
         require(
@@ -254,27 +283,30 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         );
 
         emit PoolImplementationAdded(newPoolImplementation, _poolImplementations.length() - 1);
+        return _poolImplementations.length() - 1;
     }
 
     /**
      * @dev Used to remove a pool implementation
      * 
-     * @param poolIndex Index of pool to remove
+     * @ param poolIndex Index of pool to remove
      * TODO: Would be nice to have an overloaded version that takes address of pool to remove
      * NOTE: This will break CREATE2 address predictions. Think of means around this
      */
-    function removePoolImplementation(uint256 poolIndex)
-        public onlyOwner {
+    function removePoolImplementation(uint256)
+        public view
+        onlyOwner
+    {
 
         revert("JasminePoolFactory: Currently unsupported");
 
-        address pool = _poolImplementations.at(poolIndex);
-        require(
-            _poolImplementations.remove(pool),
-            "JasminePoolFactory: Failed to remove pool"
-        );
+        // address pool = _poolImplementations.at(poolIndex);
+        // require(
+        //     _poolImplementations.remove(pool),
+        //     "JasminePoolFactory: Failed to remove pool"
+        // );
 
-        emit PoolImplementationRemoved(pool, poolIndex);
+        // emit PoolImplementationRemoved(pool, poolIndex);
     }
 
 
@@ -284,7 +316,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
 
     /**
      * @notice Utility function to calculate deployed address of a pool from its
-     *         policy hash.
+     *         policy hash
      * 
      * @dev Requirements:
      *     - Policy hash must exist in existing pools
@@ -294,9 +326,11 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      */
     function computePoolAddress(bytes32 policyHash)
         public view
-        returns(address poolAddress) {
+        returns (address poolAddress)
+    {
         return _predictDeploymentAddress(policyHash, _poolVersions[policyHash]);
     }
+
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
@@ -307,11 +341,16 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      *      and deployed via CREATE2
      * 
      * @param policyHash Keccak256 hash of pool's deposit policy
+     * 
      * @return poolAddress Predicted address of pool
      */
-    function _predictDeploymentAddress(bytes32 policyHash, uint256 implementationIndex)
+    function _predictDeploymentAddress(
+        bytes32 policyHash,
+        uint256 implementationIndex
+    )
         internal view
-        returns(address poolAddress) {
+        returns (address poolAddress)
+    {
         bytes memory bytecode = type(ERC1967Proxy).creationCode;
         bytes memory proxyByteCode = abi.encodePacked(bytecode, abi.encode(_poolImplementations.at(implementationIndex), ""));
         return Create2.computeAddress(policyHash, keccak256(proxyByteCode));
@@ -319,24 +358,33 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
 
     /**
      * @dev Used to add newly deployed pools to list of pool and record pool implementation
-     *      that was used.
+     *      that was used
      * 
      * @param policyHash Keccak256 hash of pool's deposit policy
      * @param poolImplementationIndex Index of pool implementation that was deployed
      */
-    function _addDeployedPool(bytes32 policyHash, uint256 poolImplementationIndex) internal {
+    function _addDeployedPool(
+        bytes32 policyHash,
+        uint256 poolImplementationIndex
+    )
+        internal
+    {
         _pools.add(policyHash);
         _poolVersions[policyHash] = poolImplementationIndex;
     }
 
     /**
      * @dev Checks if a given address implements JasminePool Interface and IERC1155Receiver, is not
-     *      already in list of pool and is not empty.
+     *      already in list of pool and is not empty
+     * 
+     * @dev Throws PoolExists(address pool) if policyHash exists or reverts with custom error message
+     *      if implementation fails interface checks or is empty
      * 
      * @param poolImplementation Address of pool implementation
      */
     function _validatePoolImplementation(address poolImplementation)
-        internal view {
+        internal view 
+    {
         require(
             poolImplementation != address(0x0),
             "JasminePoolFactory: Pool implementation must be set"

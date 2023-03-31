@@ -18,7 +18,7 @@ library ArrayUtils {
      */
     function sum(
         uint256[] calldata inputs
-    ) external pure returns(uint256 total) {
+    ) external pure returns (uint256 total) {
         for (uint256 i = 0; i < inputs.length; i++) {
             total += inputs[i];
         }
@@ -35,7 +35,7 @@ library ArrayUtils {
     function fill(
         address repeatedAddress,
         uint256 amount
-    ) external pure returns(address[] memory filledArray) {
+    ) external pure returns (address[] memory filledArray) {
         for (uint256 i = 0; i < amount; i++) {
             filledArray[i] = repeatedAddress;
         }

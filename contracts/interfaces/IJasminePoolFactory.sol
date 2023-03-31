@@ -58,9 +58,9 @@ interface IJasminePoolFactory {
     //  Pool Interactions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function totalPools() external view returns(uint256);
+    function totalPools() external view returns (uint256);
 
-    function getPoolAtIndex(uint256 index) external view returns(address pool);
+    function getPoolAtIndex(uint256 index) external view returns (address pool);
 
-    function eligiblePoolsForToken(uint256 tokenId) external view returns(address[] memory pools);
+    function eligiblePoolsForToken(uint256 tokenId) external view returns (address[] memory pools);
 }

@@ -49,7 +49,7 @@ function addPoolImplementation(address newPoolImplementation) external nonpayabl
 function computePoolAddress(bytes32 policyHash) external view returns (address poolAddress)
 ```
 
-Utility function to calculate deployed address of a pool from its         policy hash. 
+Utility function to calculate deployed address of a pool from its         policy hash 
 
 *Requirements:     - Policy hash must exist in existing pools *
 
@@ -97,7 +97,7 @@ function deployNewPool(uint256 version, bytes4 initSelector, bytes initData, str
 
 Deploys a new pool from list of pool implementations 
 
-*initData must omit method selector, name and symbol. These arguments      are encoded automatically as:    ┌──────────┬──────────┬─────────┬─────────┐   │ selector │ initData │ name    │ symbol  │   │ (bytes4) │ (bytes)  │ (bytes) │ (bytes) │   └──────────┴──────────┴─────────┴─────────┘ Requirements:     - Caller must be owner     - Policy must not exist     - Version must be valid pool implementation index *
+*initData must omit method selector, name and symbol. These arguments      are encoded automatically as:    ┌──────────┬──────────┬─────────┬─────────┐   │ selector │ initData │ name    │ symbol  │   │ (bytes4) │ (bytes)  │ (bytes) │ (bytes) │   └──────────┴──────────┴─────────┴─────────┘ Requirements:     - Caller must be owner     - Policy must not exist     - Version must be valid pool implementation index Throws PoolExists(address pool) on failure *
 
 #### Parameters
 
@@ -118,7 +118,7 @@ Deploys a new pool from list of pool implementations
 ### eligiblePoolsForToken
 
 ```solidity
-function eligiblePoolsForToken(uint256 tokenId) external view returns (address[] pools)
+function eligiblePoolsForToken(uint256) external pure returns (address[])
 ```
 
 
@@ -129,13 +129,13 @@ function eligiblePoolsForToken(uint256 tokenId) external view returns (address[]
 
 | Name | Type | Description |
 |---|---|---|
-| tokenId | uint256 | undefined |
+| _0 | uint256 | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| pools | address[] | undefined |
+| _0 | address[] | undefined |
 
 ### getPoolAtIndex
 
@@ -143,9 +143,9 @@ function eligiblePoolsForToken(uint256 tokenId) external view returns (address[]
 function getPoolAtIndex(uint256 index) external view returns (address pool)
 ```
 
-Used to obtain the address of a pool in the set of pools - if it exists. 
+Used to obtain the address of a pool in the set of pools - if it exists 
 
-
+*Throw NoPool() on failure *
 
 #### Parameters
 
@@ -196,18 +196,18 @@ function pendingOwner() external view returns (address)
 ### removePoolImplementation
 
 ```solidity
-function removePoolImplementation(uint256 poolIndex) external nonpayable
+function removePoolImplementation(uint256) external view
 ```
 
 
 
-*Used to remove a pool implementation *
+*Used to remove a pool implementation  param poolIndex Index of pool to remove TODO: Would be nice to have an overloaded version that takes address of pool to remove NOTE: This will break CREATE2 address predictions. Think of means around this*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| poolIndex | uint256 | Index of pool to remove TODO: Would be nice to have an overloaded version that takes address of pool to remove NOTE: This will break CREATE2 address predictions. Think of means around this |
+| _0 | uint256 | undefined |
 
 ### renounceOwnership
 
@@ -256,18 +256,18 @@ function transferOwnership(address newOwner) external nonpayable
 ### updateImplementationAddress
 
 ```solidity
-function updateImplementationAddress(address newPoolImplementation, uint256 poolIndex) external nonpayable
+function updateImplementationAddress(address, uint256 poolIndex) external view
 ```
 
 
 
-*Allows owner to update a pool implementation. *
+*Allows owner to update a pool implementation  param newPoolImplementation New address to replace*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| newPoolImplementation | address | New address to replace |
+| _0 | address | undefined |
 | poolIndex | uint256 | Index of pool to replace TODO: Would be nice to have an overloaded version that takes address of pool to update |
 
 

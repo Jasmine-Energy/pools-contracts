@@ -29,6 +29,6 @@ interface IRetirementService is IERC777Recipient, IERC1155Receiver {
      * @param pool address of pool requesting residual JLTs
      * @return success True if residual JLTs sent, false if ineligible
      */
-    function requestResidualJLT(address pool) external returns(bool success);
+    function requestResidualJLT(address pool) external returns (bool success);
 
 }

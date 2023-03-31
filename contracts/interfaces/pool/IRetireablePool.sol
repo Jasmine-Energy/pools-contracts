@@ -63,6 +63,6 @@ interface IRetireablePool is IEATBackedPool {
         address beneficiary, 
         uint256 quantity, 
         bytes calldata data
-    ) external returns(bool success);
+    ) external returns (bool success);
 
 }

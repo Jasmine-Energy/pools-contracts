@@ -28,7 +28,7 @@ library Calldata {
 
     //  ────────────────────────────────  Encoding  ────────────────────────────────  \\
 
-    function encodeRetirementCalldata(address benificiary, bytes32 memoHash) external view returns(bytes memory data) {
+    function encodeRetirementCalldata(address benificiary, bytes32 memoHash) external view returns (bytes memory data) {
 
     }
 }

@@ -3,10 +3,12 @@
 pragma solidity >=0.8.0;
 
 
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+//  ─────────────────────────────────────────────────────────────────────────────
+//  Imports
+//  ─────────────────────────────────────────────────────────────────────────────
+
 import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
-import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+
 
 /**
  * @title PoolPolicy
@@ -15,10 +17,6 @@ import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableM
  * @custom:security-contact dev@jasmine.energy
  */
 library PoolPolicy {
-
-    using Address for address;
-    using EnumerableSet for EnumerableSet.Bytes32Set;
-    using EnumerableMap for EnumerableMap.Bytes32ToBytes32Map;
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Types
@@ -45,7 +43,7 @@ library PoolPolicy {
     //  ────────────────────────────  Policy Utilities  ─────────────────────────────  \\
 
 
-    function meetsPolicy(DepositPolicy storage policy, JasmineOracle oracle, uint256 tokenId) external view returns(bool isEligible) {
+    function meetsPolicy(DepositPolicy storage policy, JasmineOracle oracle, uint256 tokenId) external view returns (bool isEligible) {
         // 1. If policy's vintage is not empty, check token has vintage
         if (policy.vintagePeriod[0] != 0 &&
             policy.vintagePeriod[1] != 0 &&
@@ -78,14 +76,12 @@ library PoolPolicy {
 
     //  ───────────────────────────  Vintage Utilities  ─────────────────────────────  \\
 
-    function frontHalfOfYear(uint16 year) external pure returns(uint256[2] memory period) {
-
-
+    function frontHalfOfYear(uint16 year) external pure returns (uint256[2] memory period) {
+        // TODO: Implement me
     }
 
-    function backHalfOfYear(uint16 year) external pure returns(uint256[2] memory period) {
-
-        
+    function backHalfOfYear(uint16 year) external pure returns (uint256[2] memory period) {
+        // TODO: Implement me
     }
 
 

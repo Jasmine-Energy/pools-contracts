@@ -107,12 +107,10 @@ const deployCore: DeployFunction = async function (
         console.log('Verifyiyng on Etherscan...');
         await hre.run('verify:verify', {
             address: eatImplementationAddress,
-            constructorArguments: [],
         });
 
         await hre.run('verify:verify', {
             address: oracleImplementationAddress,
-            constructorArguments: [],
         });
 
         await hre.run('verify:verify', {

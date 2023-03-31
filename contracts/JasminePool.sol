@@ -55,7 +55,6 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     // ──────────────────────────────────────────────────────────────────────────────
 
     using PoolPolicy for PoolPolicy.DepositPolicy;
-    using PoolPolicy for bytes;
 
     using EnumerableSet for EnumerableSet.UintSet;
     using ArrayUtils for uint256[];
@@ -106,11 +105,11 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     JasmineEAT public immutable EAT;
     address public immutable poolFactory;
 
-    /// @notice Token Display name - per ERC-777/20
+    /// @notice Token Display name - per ERC-20/777
     string private _name;
-    /// @notice Token Symbol - per ERC-777/20
+    /// @notice Token Symbol - per ERC-20/777
     string private _symbol;
-    /// @notice JLT's decimal precision
+    /// @notice JLT's decimal precision - per ERC-20
     uint8 private constant _decimals = 9;
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -144,51 +143,34 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         bytes calldata policy_,
         string calldata name_,
         string calldata symbol_
-    ) external initializer onlyInitializing onlyFactory {
+    )
+        external
+        initializer onlyInitializing onlyFactory
+    {
         _policy = abi.decode(policy_, (PoolPolicy.DepositPolicy));
         _name = name_;
         _symbol = symbol_;
     }
 
+
     // ──────────────────────────────────────────────────────────────────────────────
     // User Functionality
     // ──────────────────────────────────────────────────────────────────────────────
 
-    // ──────────────────────────────────────────────────────────────────────────────
-    // Jasmine Pool Conformance Implementations
-    // ──────────────────────────────────────────────────────────────────────────────
-
-
-    //  ────────────────────────────  Policy Functions  ─────────────────────────────  \\
-
-    function meetsPolicy(
-        uint256 tokenId
-    ) public view returns (bool isEligible) {
-        isEligible = _isLegitimateToken(tokenId) && _policy.meetsPolicy(oracle, tokenId);
-    }
-
-    function policyForVersion(
-        uint8 metadataVersion
-    ) external view returns (bytes memory policy) {
-        require(metadataVersion == 1, "JasminePool: No policy for version");
-        return abi.encode(
-            _policy.vintagePeriod,
-            _policy.techType,
-            _policy.registry,
-            _policy.certification,
-            _policy.endorsement
-        );
-    }
-
-
     //  ──────────────────────────  Retirement Functions  ───────────────────────────  \\
 
+    // @inheritdoc {IRetireablePool}
+    // TODO: Once pool conforms to IJasminePool again, add above line to natspec
     function retire(
         address sender,
         address beneficiary,
         uint256 quantity,
         bytes calldata data
-    ) external nonReentrant onlyOperator(sender) returns (bool success) {
+    )
+        external
+        nonReentrant onlyOperator(sender)
+        returns (bool success)
+    {
         // TODO: Implement me
     }
 
@@ -209,7 +191,11 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     function deposit(
         uint256 tokenId,
         uint256 amount
-    ) external nonReentrant checkEligibility(tokenId) returns (bool success, uint256 jltQuantity) {
+    )
+        external
+        nonReentrant checkEligibility(tokenId)
+        returns (bool success, uint256 jltQuantity)
+    {
         return _deposit(_msgSender(), tokenId, amount);
     }
 
@@ -231,7 +217,11 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address from,
         uint256 tokenId,
         uint256 amount
-    ) external nonReentrant onlyOperator(from) checkEligibility(tokenId) returns (bool success, uint256 jltQuantity) {
+    )
+        external
+        nonReentrant onlyOperator(from) checkEligibility(tokenId)
+        returns (bool success, uint256 jltQuantity)
+    {
         return _deposit(from, tokenId, amount);
     }
 
@@ -250,7 +240,15 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address from,
         uint256[] calldata tokenIds,
         uint256[] calldata amounts
-    ) external nonReentrant onlyOperator(from) checkEligibilities(tokenIds) returns (bool success, uint256 jltQuantity) {
+    )
+        external
+        nonReentrant onlyOperator(from) checkEligibilities(tokenIds)
+        returns (
+            bool success,
+            uint256 jltQuantity
+        )
+    {
+        // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
         try EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "") {
             return (true, amounts.sum());
         } catch {
@@ -259,6 +257,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     }
 
     /**
+     * @dev Utility function to deposit EATs to pool
      * 
      * @param from Address from which EATs will be transfered
      * @param tokenId ID of EAT to deposit into pool
@@ -270,8 +269,14 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address from,
         uint256 tokenId,
         uint256 amount
-    ) private returns (bool success, uint256 jltQuantity) {
-        // NOTE: JLTs are minted on ERC-1155 receipt. This function merely transfers EATs to contract
+    )
+        private
+        returns (
+            bool success,
+            uint256 jltQuantity
+        )
+    {
+        // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
         try EAT.safeTransferFrom(from, address(this), tokenId, amount, "") {
             return (true, amount);
         } catch {
@@ -299,7 +304,11 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address recipient,
         uint256 amount,
         bytes calldata data
-    ) external nonReentrant returns (bool success) {
+    )
+        external
+        nonReentrant
+        returns (bool success)
+    {
         success = _withdraw(_msgSender(), recipient, amount, data);
     }
 
@@ -322,7 +331,11 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address recipient,
         uint256 amount,
         bytes calldata data
-    ) external nonReentrant onlyOperator(sender) returns (bool success) {
+    )
+        external
+        nonReentrant onlyOperator(sender)
+        returns (bool success)
+    {
         success = _withdraw(sender, recipient, amount, data);
     }
 
@@ -349,7 +362,10 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         uint256[] calldata tokenIds,
         uint256[] calldata amounts,
         bytes calldata data
-    ) external nonReentrant onlyOperator(sender) {
+    ) 
+        external
+        nonReentrant onlyOperator(sender)
+    {
         // 1. Ensure sender has sufficient JLTs and lengths match
         uint256 amountSum = amounts.sum();
         require(
@@ -381,7 +397,10 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address recipient,
         uint256 amount,
         bytes memory data // TODO: this should prob specify WHO is receiving data (burn or EAT transfer)
-    ) private returns(bool success) {
+    )
+        private
+        returns (bool success)
+    {
         // 1. Ensure caller has sufficient JLTs
         require(
             balanceOf(sender) >= amount,
@@ -411,23 +430,90 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
             }
         }
 
-        // 4. Transfer EATs
+        // 4. Transfer EATs and return success
         _sendBatchEAT(recipient, tokenIds, amounts, data);
+        return true;
     }
+
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Jasmine Pool Conformance Implementations
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    //  ────────────────────────────  Policy Functions  ─────────────────────────────  \\
+
+    // @inheritdoc {IQualifiedPool}
+    // TODO: Once pool conforms to IJasminePool again, add above line to natspec
+    function meetsPolicy(uint256 tokenId)
+        public view
+        returns (bool isEligible)
+    {
+        isEligible = _isLegitimateToken(tokenId) && _policy.meetsPolicy(oracle, tokenId);
+    }
+
+    // @inheritdoc {IQualifiedPool}
+    // TODO: Once pool conforms to IJasminePool again, add above line to natspec
+    function policyForVersion(uint8 metadataVersion)
+        external view
+        returns (bytes memory policy)
+    {
+        require(metadataVersion == 1, "JasminePool: No policy for version");
+        return abi.encode(
+            _policy.vintagePeriod,
+            _policy.techType,
+            _policy.registry,
+            _policy.certification,
+            _policy.endorsement
+        );
+    }
+
 
     // ──────────────────────────────────────────────────────────────────────────────
     // ERC Conformance Implementations
     // ──────────────────────────────────────────────────────────────────────────────
 
+    //  ──────────────────────────  ERC-20/777 Overrides  ───────────────────────────  \\
+
+    /**
+     * @inheritdoc ERC777
+     * @dev See {IERC777-name}
+     */
+    function name() public view override returns (string memory) {
+        return _name;
+    }
+
+    /**
+     * @inheritdoc ERC777
+     * @dev See {IERC777-symbol}
+     */
+    function symbol() public view override returns (string memory) {
+        return _symbol;
+    }
+
+    /**
+     * @notice All Jasmine Pools have 9 decimal points
+     * 
+     * @inheritdoc ERC777
+     * @dev See {ERC20-decimals}.
+     */
+    function decimals() public pure override returns (uint8) {
+        return _decimals;
+    }
+
     //  ──────────────────────  ERC-1155 Receiver Conformance  ──────────────────────  \\
 
+    /// @inheritdoc IERC1155Receiver
     function onERC1155Received(
         address,
         address from,
         uint256 tokenId,
         uint256 value,
-        bytes memory data
-    ) public virtual override nonReentrant onlyEAT checkEligibility(tokenId) returns(bytes4)  {
+        bytes memory 
+    )
+        public virtual override
+        nonReentrant onlyEAT checkEligibility(tokenId)
+        returns (bytes4)
+    {
         // 1. Add token ID to holdings
         _holdings.add(tokenId);
 
@@ -444,13 +530,18 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         return this.onERC1155Received.selector;
     }
 
+    /// @inheritdoc IERC1155Receiver
     function onERC1155BatchReceived(
         address,
         address from,
         uint256[] memory tokenIds,
         uint256[] memory values,
-        bytes memory data
-    ) public virtual override nonReentrant onlyEAT checkEligibilities(tokenIds) returns(bytes4) {
+        bytes memory 
+    )
+        public virtual override
+        nonReentrant onlyEAT checkEligibilities(tokenIds)
+        returns (bytes4)
+    {
         // 1. Ensure tokens received are EATs
         require(
             tokenIds.length == values.length,
@@ -486,35 +577,6 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         // TODO Implement in base64 data url
     }
 
-    //  ────────────────────────────  ERC-777 Overrides  ────────────────────────────  \\
-
-    /**
-     * @inheritdoc ERC777
-     * @dev See {IERC777-name}
-     */
-    function name() public view override returns (string memory) {
-        return _name;
-    }
-
-    /**
-     * @inheritdoc ERC777
-     * @dev See {IERC777-symbol}
-     */
-    function symbol() public view override returns (string memory) {
-        return _symbol;
-    }
-
-    /**
-     * @inheritdoc ERC777
-     * @dev See {ERC20-decimals}.
-     *
-     * Always returns 18, as per the
-     * [ERC777 EIP](https://eips.ethereum.org/EIPS/eip-777#backward-compatibility).
-     */
-    function decimals() public pure override returns (uint8) {
-        return _decimals;
-    }
-
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
     /**
@@ -532,6 +594,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
             super.supportsInterface(interfaceId);
     }
 
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -542,7 +605,10 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @param tokenId EAT token ID to check
      * @return isLegit Boolean if token passed legitimacy check
      */
-    function _isLegitimateToken(uint256 tokenId) internal view returns(bool isLegit) {
+    function _isLegitimateToken(uint256 tokenId)
+        internal view
+        returns (bool isLegit)
+    {
         return EAT.exists(tokenId) && !EAT.frozen(tokenId);
     }
 
@@ -550,13 +616,20 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     /**
      * @dev Internal method for sending EAT out of contract and updating holdings
+     * 
+     * @param to Address to receive EAT
+     * @param tokenId EAT token ID to send
+     * @param amount Number of EAT to send
+     * @param data Calldata to forward to `to` during ERC-1155 `safeTransferFrom`
+     * 
+     * @return success Whether send operation was successful
      */
     function _sendEAT(
         address to,
         uint256 tokenId,
         uint256 amount,
         bytes calldata data
-    ) private returns(bool success) {
+    ) private returns (bool success) {
         try EAT.safeTransferFrom(address(this), to, tokenId, amount, data) {
             if (EAT.balanceOf(address(this), tokenId) == 0) _holdings.remove(tokenId);
             emit Withdraw(address(this), to, amount);
@@ -568,13 +641,20 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     /**
      * @dev Internal method for sending batch of EATs out of contract and updating holdings
+     * 
+     * @param to Address to receive EAT
+     * @param tokenIds EAT token IDs to send
+     * @param amounts Number of EATs to send
+     * @param data Calldata to forward to `to` during ERC-1155 `safeTransferFrom`
+     * 
+     * @return success Whether send operation was successful
      */
     function _sendBatchEAT(
         address to,
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         bytes memory data
-    ) private returns(bool success) {
+    ) private returns (bool success) {
         try EAT.safeBatchTransferFrom(address(this), to, tokenIds, amounts, data) {
             uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
             for (uint256 i = 0; i < balances.length; i++) {
@@ -605,10 +685,24 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         _;
     }
 
+    /**
+     * @dev Utility function to enforce an EAT's eligibility
+     * 
+     * @dev Throws Unqualified(uint256 tokenId) on failure
+     * 
+     * @param tokenId EAT token ID to check eligibility
+     */
     function _enforceEligibility(uint256 tokenId) private view {
         if (!meetsPolicy(tokenId)) revert Unqualified(tokenId);
     }
 
+    /**
+     * @dev Utility function to enforce eligibility of many EATs
+     * 
+     * @dev Throws Unqualified(uint256 tokenId) on failure
+     * 
+     * @param tokenIds EAT token IDs to check eligibility
+     */
     function _enforceEligibility(uint256[] memory tokenIds) private view {
         for (uint i = 0; i < tokenIds.length; i++) {
             _enforceEligibility(tokenIds[i]);
@@ -617,6 +711,8 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     /**
      * @dev Enforce msg sender is EAT contract
+     * 
+     * @dev Throws Prohibited() on failure
      */
     modifier onlyEAT {
         if (_msgSender() != address(EAT)) revert Prohibited();
@@ -625,6 +721,8 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     /**
      * @dev Enforce msg sender is Pool Factory contract
+     * 
+     * @dev Throws Prohibited() on failure
      */
     modifier onlyFactory() {
         if (_msgSender() != poolFactory) revert Prohibited();
@@ -633,6 +731,8 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 
     /**
      * @dev Enforce caller is approved for holder's JLTs - or caller is holder
+     * 
+     * @dev Throws Prohibited() on failure
      */
     modifier onlyOperator(address holder) {
         if (_msgSender() != holder || !isOperatorFor(_msgSender(), holder)) revert Prohibited();

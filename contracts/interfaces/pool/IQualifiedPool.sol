@@ -11,6 +11,6 @@ pragma solidity >=0.8.0;
  * @custom:security-contact dev@jasmine.energy
  */
 interface IQualifiedPool {
-    function meetsPolicy(uint256 tokenId) external view returns(bool isEligible);
-	function policyForVersion(uint8 metadataVersion) external view returns(bytes memory policy);
+    function meetsPolicy(uint256 tokenId) external view returns (bool isEligible);
+	function policyForVersion(uint8 metadataVersion) external view returns (bytes memory policy);
 }

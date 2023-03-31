@@ -67,7 +67,7 @@ interface IEATBackedPool {
         address from, 
         uint256 tokenId, 
         uint256 quantity
-    ) external returns(bool success, uint256 jltQuantity);
+    ) external returns (bool success, uint256 jltQuantity);
 
     /**
      * @notice Used to deposit numerous EATs of different IDs
@@ -90,7 +90,7 @@ interface IEATBackedPool {
         address from, 
         uint256[] calldata tokenIds, 
         uint256[] calldata quantities
-    ) external returns(bool success, uint256 jltQuantity);
+    ) external returns (bool success, uint256 jltQuantity);
 
 
     /**
@@ -119,7 +119,7 @@ interface IEATBackedPool {
         address recipient, 
         uint256 quantity, 
         bytes calldata data
-    ) external returns(bool success);
+    ) external returns (bool success);
 
     /**
      * @notice Withdraw specific EATs from pool by burning the sum of 'quantities' in JLTs from 'owner'.
@@ -147,6 +147,6 @@ interface IEATBackedPool {
         uint256[] calldata tokenIds, 
         uint256[] calldata quantities, 
         bytes calldata data
-    ) external returns(bool success);
+    ) external returns (bool success);
 
 }
