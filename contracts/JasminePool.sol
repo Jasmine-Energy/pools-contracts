@@ -483,7 +483,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @dev See {IERC1046-tokenURI}
      */
     function tokenURI() external view returns (string memory) {
-        // TODO Implement
+        // TODO Implement in base64 data url
     }
 
     //  ────────────────────────────  ERC-777 Overrides  ────────────────────────────  \\

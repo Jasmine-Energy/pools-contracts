@@ -24,6 +24,7 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
 import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 
 //  ─────────────────────────────────────────────────────────────────────────────
@@ -49,6 +50,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     // ──────────────────────────────────────────────────────────────────────────────
 
     using EnumerableSet for EnumerableSet.Bytes32Set;
+    using EnumerableSet for EnumerableSet.AddressSet;
     using PoolPolicy for PoolPolicy.DepositPolicy;
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -61,8 +63,8 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      */
     EnumerableSet.Bytes32Set private _pools;
 
-    /// @dev Implementation address for pools
-    address public poolImplementation;
+    /// @dev Implementation addresses for pools
+    EnumerableSet.AddressSet internal poolImplementations;
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
@@ -80,7 +82,8 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
             IERC165(_poolImplementation).supportsInterface(type(IJasminePool).interfaceId),
             "JasminePoolFactory: Pool does not conform to Jasmine Pool Interface"
         );
-        poolImplementation = _poolImplementation;
+
+        poolImplementations.add(_poolImplementation);
     }
 
 
@@ -105,7 +108,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     function getPoolAtIndex(uint256 index) external view returns(address pool) {
         if (index >= _pools.length()) revert NoPool();
         require(index < _pools.length(), "JasminePoolFactory: Pool does not exist");
-        return _predictDeploymentAddress(_pools.at(index));
+        return _predictDeploymentAddress(_pools.at(index), 0);
     }
 
     function eligiblePoolsForToken(uint256 tokenId) external view returns(address[] memory pools) {
@@ -151,17 +154,17 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
 
         // 2. Ensure policy does not exist
         if (_pools.contains(policyHash)) {
-            revert PoolExists(_predictDeploymentAddress(policyHash));
+            revert PoolExists(_predictDeploymentAddress(policyHash, 0));
         }
 
         // 3. Deploy new pool
         ERC1967Proxy poolProxy = new ERC1967Proxy{ salt: policyHash }(
-            poolImplementation, ""
+            poolImplementations.at(0), ""
         );
 
         // 4. Ensure new pool matches expected
         require(
-            _predictDeploymentAddress(policyHash) == address(poolProxy),
+            _predictDeploymentAddress(policyHash, 0) == address(poolProxy),
             "JasminePoolFactory: Deployment failed. Pool address does not match expected"
         );
 
@@ -169,6 +172,40 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         IJasminePool(address(poolProxy)).initialize(encodedPolicy, name, symbol);
 
         emit PoolCreated(encodedPolicy, address(poolProxy), name, symbol);
+
+        _pools.add(policyHash);
+
+        return address(poolProxy);
+    }
+
+    function deployNewPool(
+        uint256 version,
+        bytes calldata initData, 
+        string calldata name, 
+        string calldata symbol
+    ) external onlyOwner returns(address newPool) {
+        bytes32 policyHash = keccak256(initData);
+
+        // 2. Ensure policy does not exist
+        if (_pools.contains(policyHash)) {
+            revert PoolExists(_predictDeploymentAddress(policyHash, version));
+        }
+
+        // 3. Deploy new pool
+        ERC1967Proxy poolProxy = new ERC1967Proxy{ salt: policyHash }(
+            poolImplementations.at(version), ""
+        );
+
+        // 4. Ensure new pool matches expected
+        require(
+            _predictDeploymentAddress(policyHash, 0) == address(poolProxy),
+            "JasminePoolFactory: Deployment failed. Pool address does not match expected"
+        );
+
+        // 5. Initialize pool, add to pools, emit creation event and return new pool
+        Address.functionCall(address(poolProxy), initData);
+
+        emit PoolCreated(initData, address(poolProxy), name, symbol);
 
         _pools.add(policyHash);
 
@@ -184,9 +221,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     function updateImplementationAddress(
         address newPoolImplementation
     ) external onlyOwner {
-        poolImplementation = newPoolImplementation;
-
-        // TODO: Should prob update existing proxy implementations
+        poolImplementations.add(newPoolImplementation);
     }
 
 
@@ -201,11 +236,11 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      * @param policyHash Keccak256 hash of pool's deposit policy
      * @return Predicted address of pool
      */
-    function _predictDeploymentAddress(bytes32 policyHash)
+    function _predictDeploymentAddress(bytes32 policyHash, uint256 implementationIndex)
         internal view
         returns(address) {
         bytes memory bytecode = type(ERC1967Proxy).creationCode;
-        bytes memory proxyByteCode = abi.encodePacked(bytecode, abi.encode(poolImplementation, ""));
+        bytes memory proxyByteCode = abi.encodePacked(bytecode, abi.encode(poolImplementations.at(implementationIndex), ""));
         return Create2.computeAddress(policyHash, keccak256(proxyByteCode));
     }
 

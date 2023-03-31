@@ -24,6 +24,31 @@ function acceptOwnership() external nonpayable
 ### deployNewPool
 
 ```solidity
+function deployNewPool(uint256 version, bytes initData, string name, string symbol) external nonpayable returns (address newPool)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| version | uint256 | undefined |
+| initData | bytes | undefined |
+| name | string | undefined |
+| symbol | string | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| newPool | address | undefined |
+
+### deployNewPool
+
+```solidity
 function deployNewPool(PoolPolicy.DepositPolicy policy, string name, string symbol) external nonpayable returns (address newPool)
 ```
 
@@ -115,23 +140,6 @@ function pendingOwner() external view returns (address)
 
 
 *Returns the address of the pending owner.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-### poolImplementation
-
-```solidity
-function poolImplementation() external view returns (address)
-```
-
-
-
-*Implementation address for pools*
 
 
 #### Returns
