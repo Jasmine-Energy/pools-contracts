@@ -787,6 +787,24 @@ event Burned(address indexed operator, address indexed from, uint256 amount, byt
 | data  | bytes | undefined |
 | operatorData  | bytes | undefined |
 
+### Deposit
+
+```solidity
+event Deposit(address indexed operator, address indexed owner, uint256 quantity)
+```
+
+
+
+*Emitted whenever EATs are deposited to the contract *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| operator `indexed` | address | Initiator of the deposit |
+| owner `indexed` | address | Token holder depositting to contract |
+| quantity  | uint256 | Number of EATs deposited. Note: JLTs issued are 1-1 with EATs |
+
 ### Initialized
 
 ```solidity
@@ -878,6 +896,24 @@ event Transfer(address indexed from, address indexed to, uint256 value)
 | from `indexed` | address | undefined |
 | to `indexed` | address | undefined |
 | value  | uint256 | undefined |
+
+### Withdraw
+
+```solidity
+event Withdraw(address indexed sender, address indexed receiver, uint256 quantity)
+```
+
+
+
+*Emitted whenever EATs are withdrawn from the contract *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender `indexed` | address | Initiator of the deposit |
+| receiver `indexed` | address | Token holder depositting to contract |
+| quantity  | uint256 | Number of EATs withdrawn. |
 
 
 

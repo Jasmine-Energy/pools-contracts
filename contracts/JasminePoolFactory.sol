@@ -73,11 +73,11 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      */
     constructor(address _poolImplementation) Ownable2Step() {
         require(
-            poolImplementation != address(0x0),
+            _poolImplementation != address(0x0),
             "JasminePoolFactory: Pool implementation must be set"
         );
         require(
-            IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId),
+            IERC165(_poolImplementation).supportsInterface(type(IJasminePool).interfaceId),
             "JasminePoolFactory: Pool does not conform to Jasmine Pool Interface"
         );
         poolImplementation = _poolImplementation;

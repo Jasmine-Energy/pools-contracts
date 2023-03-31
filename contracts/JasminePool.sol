@@ -61,6 +61,38 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     using ArrayUtils for uint256[];
 
     // ──────────────────────────────────────────────────────────────────────────────
+    // Events
+    // ──────────────────────────────────────────────────────────────────────────────
+    
+    // TODO These are define in IEATBackedPool, importing here for now
+
+    /**
+     * @dev Emitted whenever EATs are deposited to the contract
+     * 
+     * @param operator Initiator of the deposit
+     * @param owner Token holder depositting to contract
+     * @param quantity Number of EATs deposited. Note: JLTs issued are 1-1 with EATs
+     */
+    event Deposit(
+        address indexed operator,
+        address indexed owner,
+        uint256 quantity
+    );
+
+    /**
+     * @dev Emitted whenever EATs are withdrawn from the contract
+     * 
+     * @param sender Initiator of the deposit
+     * @param receiver Token holder depositting to contract
+     * @param quantity Number of EATs withdrawn.
+     */
+    event Withdraw(
+        address indexed sender,
+        address indexed receiver,
+        uint256 quantity
+    );
+
+    // ──────────────────────────────────────────────────────────────────────────────
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
 
@@ -139,8 +171,13 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         uint8 metadataVersion
     ) external view returns (bytes memory policy) {
         require(metadataVersion == 1, "JasminePool: No policy for version");
-        // TODO: Encode packed conditions
-        return abi.encode(1);
+        return abi.encode(
+            _policy.vintagePeriod,
+            _policy.techType,
+            _policy.registry,
+            _policy.certification,
+            _policy.endorsement
+        );
     }
 
 
@@ -343,7 +380,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address sender,
         address recipient,
         uint256 amount,
-        bytes memory data
+        bytes memory data // TODO: this should prob specify WHO is receiving data (burn or EAT transfer)
     ) private returns(bool success) {
         // 1. Ensure caller has sufficient JLTs
         require(
@@ -354,10 +391,28 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         // 2. Burn Tokens
         _burn(sender, amount, "", "");
 
-        // 3. Select token to withdraw
-        
+        // 3. Select tokens to withdraw
+        uint256 sum = 0;
+        uint256[] memory tokenIds;
+        uint256[] memory amounts;
+        while (sum != amount) {
+            uint256 tokenId = _holdings.at(0);
+            uint256 balance = EAT.balanceOf(address(this), tokenId);
+
+            tokenIds[tokenIds.length] = tokenId;
+            if (sum + balance <= amount) {
+                amounts[amounts.length] = balance;
+                sum += balance;
+                _holdings.remove(0);
+                continue;
+            } else {
+                amounts[amounts.length] = amount - sum;
+                break;
+            }
+        }
 
         // 4. Transfer EATs
+        _sendBatchEAT(recipient, tokenIds, amounts, data);
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -503,9 +558,8 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         bytes calldata data
     ) private returns(bool success) {
         try EAT.safeTransferFrom(address(this), to, tokenId, amount, data) {
-            if (EAT.balanceOf(address(this), tokenId) == 0) {
-                _holdings.remove(tokenId);
-            }
+            if (EAT.balanceOf(address(this), tokenId) == 0) _holdings.remove(tokenId);
+            emit Withdraw(address(this), to, amount);
             return true;
         } catch {
             return false;
@@ -517,17 +571,16 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      */
     function _sendBatchEAT(
         address to,
-        uint256[] calldata tokenIds,
-        uint256[] calldata amounts,
-        bytes calldata data
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        bytes memory data
     ) private returns(bool success) {
         try EAT.safeBatchTransferFrom(address(this), to, tokenIds, amounts, data) {
             uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
             for (uint256 i = 0; i < balances.length; i++) {
-                if (balances[i] == 0) {
-                    _holdings.remove(tokenIds[i]);
-                }
+                if (balances[i] == 0) _holdings.remove(tokenIds[i]);
             }
+            emit Withdraw(address(this), to, amounts.sum());
             return true;
         } catch {
             return false;
