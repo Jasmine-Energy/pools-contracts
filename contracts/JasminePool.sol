@@ -531,9 +531,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @dev Enforce token ID meets pool's policy
      */
     modifier checkEligibility(uint256 tokenId) {
-        if (!meetsPolicy(tokenId)) {
-            revert Unqualified(tokenId);
-        }
+        _enforceEligibility(tokenId);
         _;
     }
 
@@ -541,12 +539,20 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @dev Enforces all token IDs meet pool's policy
      */
     modifier checkEligibilities(uint256[] memory tokenIds) {
-        for (uint i =0; i < tokenIds.length; i++) {
-            if (!meetsPolicy(tokenIds[i])) {
-                revert Unqualified(tokenIds[i]);
-            }
-        }
+        _enforceEligibility(tokenIds);
         _;
+    }
+
+    function _enforceEligibility(uint256 tokenId) private view {
+        if (!meetsPolicy(tokenId)) {
+            revert Unqualified(tokenId);
+        }
+    }
+
+    function _enforceEligibility(uint256[] memory tokenIds) private view {
+        for (uint i = 0; i < tokenIds.length; i++) {
+            _enforceEligibility(tokenIds[i]);
+        }
     }
 
     /**
