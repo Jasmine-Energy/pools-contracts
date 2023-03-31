@@ -153,7 +153,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         return deployNewPool(
             0,
             IJasminePool.initialize.selector,
-            abi.encode(encodedPolicy, name, symbol),
+            encodedPolicy,
             name,
             symbol
         );
@@ -162,6 +162,14 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     /**
      * @notice Deploys a new pool from list of pool implementations
      * 
+     * @dev initData must omit method selector, name and symbol. These arguments
+     *      are encoded automatically as:
+     * 
+     *   ┌──────────┬──────────┬─────────┬─────────┐
+     *   │ selector │ initData │ name    │ symbol  │
+     *   │ (bytes4) │ (bytes)  │ (bytes) │ (bytes) │
+     *   └──────────┴──────────┴─────────┴─────────┘
+     * 
      * @dev Requirements:
      *     - Caller must be owner
      *     - Policy must not exist
@@ -169,7 +177,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      * 
      * @param version Index of pool implementation to deploy
      * @param initSelector Method selector of initializer
-     * @param initData Initializer data (excluding method selector)
+     * @param initData Initializer data (excluding method selector, name and symbol)
      * @param name New pool's token name
      * @param symbol New pool's token symbol
      * 
@@ -177,20 +185,18 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      */
     function deployNewPool(
         uint256 version,
-        bytes4 initSelector,
-        bytes  memory initData, 
-        // TODO: name and symbol should be decoded out of initData
+        bytes4  initSelector,
+        bytes  memory   initData, 
         string calldata name, 
         string calldata symbol
     ) public onlyOwner returns(address newPool) {
 
         // 1. Compute hash of init data
-        // TODO: policyHash should omit name and symbol in init data. Need to decode
         bytes32 policyHash = keccak256(initData);
 
         // 2. Ensure policy does not exist
         if (_pools.contains(policyHash)) {
-            revert PoolExists(_predictDeploymentAddress(policyHash, version));
+            revert PoolExists(computePoolAddress(policyHash));
         }
 
         // 3. Deploy new pool
@@ -205,7 +211,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         );
 
         // 5. Initialize pool, add to pools, emit creation event and return new pool
-        Address.functionCall(address(poolProxy), abi.encodePacked(initSelector, initData));
+        Address.functionCall(address(poolProxy), abi.encodePacked(initSelector, abi.encode(initData, name, symbol)));
 
         emit PoolCreated(initData, address(poolProxy), name, symbol);
 

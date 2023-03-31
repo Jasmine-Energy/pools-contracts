@@ -97,7 +97,7 @@ function deployNewPool(uint256 version, bytes4 initSelector, bytes initData, str
 
 Deploys a new pool from list of pool implementations 
 
-*Requirements:     - Caller must be owner     - Policy must not exist     - Version must be valid pool implementation index *
+*initData must omit method selector, name and symbol. These arguments      are encoded automatically as:    ┌──────────┬──────────┬─────────┬─────────┐   │ selector │ initData │ name    │ symbol  │   │ (bytes4) │ (bytes)  │ (bytes) │ (bytes) │   └──────────┴──────────┴─────────┴─────────┘ Requirements:     - Caller must be owner     - Policy must not exist     - Version must be valid pool implementation index *
 
 #### Parameters
 
@@ -105,7 +105,7 @@ Deploys a new pool from list of pool implementations
 |---|---|---|
 | version | uint256 | Index of pool implementation to deploy |
 | initSelector | bytes4 | Method selector of initializer |
-| initData | bytes | Initializer data (excluding method selector) |
+| initData | bytes | Initializer data (excluding method selector, name and symbol) |
 | name | string | New pool&#39;s token name |
 | symbol | string | New pool&#39;s token symbol  |
 
