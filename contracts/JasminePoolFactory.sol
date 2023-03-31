@@ -186,7 +186,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     function deployNewPool(
         uint256 version,
         bytes4  initSelector,
-        bytes  memory   initData, 
+        bytes  memory   initData, // QUESTION: Consider renaming. This is more a generic deposit policy than init data as name and symbol are appended
         string calldata name, 
         string calldata symbol
     ) public onlyOwner returns(address newPool) {
