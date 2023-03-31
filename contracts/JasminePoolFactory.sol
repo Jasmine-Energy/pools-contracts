@@ -24,7 +24,6 @@ import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
-import "hardhat/console.sol";
 
 //  ─────────────────────────────────────────────────────────────────────────────
 //  Custom Errors
@@ -90,7 +89,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      */
     function getPoolAtIndex(uint256 index) external view returns(address pool) {
         require(index < _pools.length(), "JasminePoolFactory: Pool does not exist");
-        return address(0x0); //_predictDeploymentAddress(_pools.at(index));
+        return _predictDeploymentAddress(_pools.at(index));
     }
 
     function eligiblePoolsForToken(uint256 tokenId) external view returns(address[] memory pools) {
@@ -114,6 +113,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         string calldata name, 
         string calldata symbol
     ) external onlyOwner returns(address newPool) {
+        // 1. Encode packed policy and create hash
         bytes memory encodedPolicy = abi.encode(
             policy.vintagePeriod,
             policy.techType,
@@ -123,33 +123,24 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         );
         bytes32 policyHash = keccak256(encodedPolicy);
 
+        // 2. Ensure policy does not exist
         if (_pools.contains(policyHash)) {
             revert PoolExists();
         }
 
+        // 3. Deploy new pool
         ERC1967Proxy poolProxy = new ERC1967Proxy{ salt: policyHash }(
-            poolImplementation,
-            abi.encodeCall(
-                IJasminePool.initialize,
-                (encodedPolicy, name, symbol)
-            )
+            poolImplementation, ""
         );
-        console.log(_predictDeploymentAddress(
-            policyHash,
-            abi.encodeCall(
-                IJasminePool.initialize,
-                (encodedPolicy, name, symbol)
-            )));
-        console.log(address(poolProxy));
 
+        // 4. Ensure new pool matches expected
         require(
-            _predictDeploymentAddress(policyHash,
-            abi.encodeCall(
-                IJasminePool.initialize,
-                (encodedPolicy, name, symbol)
-            )) == address(poolProxy),
+            _predictDeploymentAddress(policyHash) == address(poolProxy),
             "JasminePoolFactory: Deployment failed. Pool address does not match expected"
         );
+
+        // 5. Initialize pool, add to pools, emit creation event and return new pool
+        IJasminePool(address(poolProxy)).initialize(encodedPolicy, name, symbol);
 
         emit PoolCreated(encodedPolicy, address(poolProxy), name, symbol);
 
@@ -184,17 +175,12 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      * @param policyHash Keccak256 hash of pool's deposit policy
      * @return Predicted address of pool
      */
-    function _predictDeploymentAddress(bytes32 policyHash, bytes memory initData)
+    function _predictDeploymentAddress(bytes32 policyHash)
         internal view
         returns(address) {
         bytes memory bytecode = type(ERC1967Proxy).creationCode;
-        bytes memory proxyByteCode = abi.encodePacked(bytecode, abi.encode(poolImplementation, initData));
-        return address(uint160(uint(keccak256(
-            abi.encodePacked(
-                bytes1(0xff), address(this), policyHash, keccak256(proxyByteCode)
-            )
-        ))));
-        // return Create2.computeAddress(policyHash, keccak256(type(ERC1967Proxy).creationCode));
+        bytes memory proxyByteCode = abi.encodePacked(bytecode, abi.encode(poolImplementation, ""));
+        return Create2.computeAddress(policyHash, keccak256(proxyByteCode));
     }
 
 }
