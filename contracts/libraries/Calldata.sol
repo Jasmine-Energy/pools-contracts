@@ -7,6 +7,7 @@ pragma solidity ^0.8.18;
  * @title Calldata
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Utility library encoding and decoding calldata between contracts
+ * @custom:security-contact dev@jasmine.energy
  */
 library Calldata {
 

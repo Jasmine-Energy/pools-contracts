@@ -10,6 +10,7 @@ pragma solidity >=0.8.0;
  *         deposits and permit withdrawals of EATs.
  * @dev Due to linearization issues, ERC-20 and ERC-1155 Receiver are not enforced
  *      conformances - but likely should be.
+ * @custom:security-contact dev@jasmine.energy
  */
 interface IEATBackedPool {
 

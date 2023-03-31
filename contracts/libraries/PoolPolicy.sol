@@ -12,6 +12,7 @@ import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableM
  * @title PoolPolicy
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Utility library for Pool Policy types
+ * @custom:security-contact dev@jasmine.energy
  */
 library PoolPolicy {
 

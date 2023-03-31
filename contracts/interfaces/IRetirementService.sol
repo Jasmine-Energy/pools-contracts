@@ -11,6 +11,7 @@ import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Rec
  * @title Retirement Service Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice 
+ * @custom:security-contact dev@jasmine.energy
  */
 interface IRetirementService is IERC777Recipient, IERC1155Receiver {
 

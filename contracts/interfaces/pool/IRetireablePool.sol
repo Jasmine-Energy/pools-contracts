@@ -11,6 +11,7 @@ import { IEATBackedPool } from "./IEATBackedPool.sol";
  * @title Retireable Pool Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Extends pools with retirement functionality and events.
+ * @custom:security-contact dev@jasmine.energy
  */
 interface IRetireablePool is IEATBackedPool {
 

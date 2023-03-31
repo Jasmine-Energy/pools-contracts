@@ -8,6 +8,7 @@ pragma solidity >=0.8.0;
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Interface for any pool that has a deposit policy
  * which constrains deposits.
+ * @custom:security-contact dev@jasmine.energy
  */
 interface IQualifiedPool {
     function meetsPolicy(uint256 tokenId) external view returns(bool isEligible);

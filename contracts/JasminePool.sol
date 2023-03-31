@@ -45,7 +45,7 @@ error Prohibited();
  * @title Jasmine Reference Pool
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice 
- * @custom:security-contact // TODO: set sec contact
+ * @custom:security-contact dev@jasmine.energy
  */
 // contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
 contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {

@@ -6,6 +6,7 @@ pragma solidity >=0.8.0;
  * @title Retirement Recipient Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice 
+ * @custom:security-contact dev@jasmine.energy
  */
 interface IRetirementRecipient {
     /**

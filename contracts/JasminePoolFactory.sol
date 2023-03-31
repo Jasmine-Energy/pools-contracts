@@ -42,7 +42,7 @@ error PoolExists(address pool);
  * @title Jasmine Pool Factory
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice 
- * @custom:security-contact // TODO: set sec contact
+ * @custom:security-contact dev@jasmine.energy
  */
 contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
 
