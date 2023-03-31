@@ -53,7 +53,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
 
-    using PoolPolicy for PoolPolicy.Policy;
+    using PoolPolicy for PoolPolicy.DepositPolicy;
     using PoolPolicy for bytes;
 
     using EnumerableSet for EnumerableSet.UintSet;
@@ -64,8 +64,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     // ──────────────────────────────────────────────────────────────────────────────
 
     /// @dev Policy to deposit into pool
-    // NOTE: Should be Constant but...
-    PoolPolicy.Policy internal _policy;
+    PoolPolicy.DepositPolicy internal _policy;
 
     /// @dev Convenience mapping to record EATs held by a given pool
     EnumerableSet.UintSet internal _holdings;
@@ -104,17 +103,16 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @dev Requirements:
      *     - Caller must be factory
      *
-     * @param policyConditions_ Deposit Policy Conditions
+     * @param policy_ Deposit Policy Conditions
      * @param name_ JLT token name
      * @param symbol_ JLT token symbol
      */
     function initialize(
-        bytes calldata policyConditions_,
+        bytes calldata policy_,
         string calldata name_,
         string calldata symbol_
     ) external initializer onlyInitializing onlyFactory {
-        // PoolPolicy.Condition[] memory conditions = abi.decode(policyConditions_, (PoolPolicy.Condition[]));
-        // _policy.insert(conditions);
+        _policy = abi.decode(policy_, (PoolPolicy.DepositPolicy));
         _name = name_;
         _symbol = symbol_;
     }
@@ -133,7 +131,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     function meetsPolicy(
         uint256 tokenId
     ) public view returns (bool isEligible) {
-        isEligible = _policy.meetsPolicy(tokenId);
+        isEligible = _isLegitimateToken(tokenId) && _policy.meetsPolicy(oracle, tokenId);
     }
 
     function policyForVersion(
@@ -173,7 +171,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     function deposit(
         uint256 tokenId,
         uint256 amount
-    ) external nonReentrant returns (bool success, uint256 jltQuantity) {
+    ) external nonReentrant checkEligibility(tokenId) returns (bool success, uint256 jltQuantity) {
         return _deposit(_msgSender(), tokenId, amount);
     }
 
@@ -195,7 +193,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address from,
         uint256 tokenId,
         uint256 amount
-    ) external nonReentrant onlyOperator(from) returns (bool success, uint256 jltQuantity) {
+    ) external nonReentrant onlyOperator(from) checkEligibility(tokenId) returns (bool success, uint256 jltQuantity) {
         return _deposit(from, tokenId, amount);
     }
 
@@ -214,7 +212,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         address from,
         uint256[] calldata tokenIds,
         uint256[] calldata amounts
-    ) external nonReentrant onlyOperator(from) returns (bool success, uint256 jltQuantity) {
+    ) external nonReentrant onlyOperator(from) checkEligibilities(tokenIds) returns (bool success, uint256 jltQuantity) {
         try EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "") {
             return (true, amounts.sum());
         } catch {
@@ -481,6 +479,16 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @dev Used to check a token exists and is not frozen
+     * 
+     * @param tokenId EAT token ID to check
+     * @return isLegit Boolean if token passed legitimacy check
+     */
+    function _isLegitimateToken(uint256 tokenId) internal view returns(bool isLegit) {
+        return EAT.exists(tokenId) && !EAT.frozen(tokenId);
+    }
 
     //  ─────────────────────────  EAT Transfer Utilities  ──────────────────────────  \\
 

@@ -71,10 +71,10 @@ const deployFactory: DeployFunction = async function (
                 Math.ceil(new Date().valueOf() / 1_000),
                 Math.ceil(new Date().valueOf() + 100_000  / 1_000)
             ],
-            techTypes: [],
-            registries: [],
-            certificationTypes: [],
-            endorsements: []
+            techType: 0,
+            registry: 0,
+            certification: 0,
+            endorsement: 0
         }, 'Any Tech \'23', 'a23JLT');
     }
 };

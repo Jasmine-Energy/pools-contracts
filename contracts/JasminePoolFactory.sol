@@ -109,7 +109,14 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         string calldata name, 
         string calldata symbol
     ) external onlyOwner returns(address newPool) {
-        bytes32 policyHash = keccak256(policy.toBytes());
+        bytes memory encodedPolicy = abi.encode(
+            policy.vintagePeriod,
+            policy.techType,
+            policy.registry,
+            policy.certification,
+            policy.endorsement
+        );
+        bytes32 policyHash = keccak256(encodedPolicy);
 
         if (_pools.contains(policyHash)) {
             revert PoolExists();
@@ -119,11 +126,11 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
             poolImplementation,
             abi.encodeCall(
                 IJasminePool.initialize,
-                (policy.toBytes(), name, symbol)
+                (encodedPolicy, name, symbol)
             )
         );
 
-        emit PoolCreated(policy.toBytes(), address(poolProxy), name, symbol);
+        emit PoolCreated(encodedPolicy, address(poolProxy), name, symbol);
 
         _pools.set(policyHash, bytes32(uint256(uint160(address(poolProxy)))));
 

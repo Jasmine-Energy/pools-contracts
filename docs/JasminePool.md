@@ -231,7 +231,7 @@ function granularity() external view returns (uint256)
 ### initialize
 
 ```solidity
-function initialize(bytes policyConditions_, string name_, string symbol_) external nonpayable
+function initialize(bytes policy_, string name_, string symbol_) external nonpayable
 ```
 
 
@@ -242,7 +242,7 @@ function initialize(bytes policyConditions_, string name_, string symbol_) exter
 
 | Name | Type | Description |
 |---|---|---|
-| policyConditions_ | bytes | Deposit Policy Conditions |
+| policy_ | bytes | Deposit Policy Conditions |
 | name_ | string | JLT token name |
 | symbol_ | string | JLT token symbol |
 

@@ -4,6 +4,7 @@ pragma solidity >=0.8.0;
 
 
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
@@ -22,32 +23,6 @@ library PoolPolicy {
     //  Types
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    // TODO: Overhaul to use partially applied calls. See [gist.](https://gist.github.com/KaiCode2/55f9ce7dbe6461e068f11e7f36d22211)
-
-    struct Policy {
-        EnumerableSet.Bytes32Set _keys;
-        mapping(bytes32 => Condition) _values;
-    }
-
-    struct Condition {
-        address verifier;
-        bytes4 selector;
-        EvalOperation eval;
-        bytes verificationCalldata;
-    }
-
-    /**
-     * @dev Eval operation is used to validate the 
-     */
-    enum EvalOperation {
-        oneOf,  // At least one of the verification calls must pass
-        noneOf, // All of the verification calls must fail
-        allOf   // All of the verification calls must pass
-    }
-
-
-
-
     /**
      * @title Deposit Policy
      * @notice A deposit policy is a pool's constraints on what EATs may be depositted. 
@@ -55,52 +30,10 @@ library PoolPolicy {
      */
     struct DepositPolicy {
         uint256[2] vintagePeriod;
-        uint256[]  techTypes;
-        uint256[]  registries;
-        uint256[]  certificationTypes;
-        uint256[]  endorsements;
-    }
-
-
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Type Casting Functions
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * @dev Converts a policy to bytes
-     * 
-     * @param policy Input policy to convert to bytes
-     */
-    function toBytes(
-        PoolPolicy.DepositPolicy calldata policy
-    ) external pure returns(bytes memory) {
-        return abi.encode(
-            policy.vintagePeriod,
-            policy.techTypes,
-            policy.registries,
-            policy.certificationTypes,
-            policy.endorsements
-        );
-    }
-
-    /**
-     * @dev Converts bytes to Deposit Policy
-     * 
-     * @param _encodedPolicy Byte encode policy to decode
-     */
-    function toDepositPolicy(
-        bytes calldata _encodedPolicy
-    ) external pure returns(DepositPolicy memory) {
-        uint256[2] memory vintagePeriod;
-        uint256[]  memory techTypes;
-        uint256[]  memory registries;
-        uint256[]  memory certificationTypes;
-        uint256[]  memory endorsements;
-        (vintagePeriod, techTypes, registries, certificationTypes, endorsements) = abi.decode(_encodedPolicy, (uint256[2], uint256[], uint256[], uint256[], uint256[]));
-
-        return DepositPolicy(
-            vintagePeriod, techTypes, registries, certificationTypes, endorsements
-        );
+        uint32 techType;
+        uint32 registry;
+        uint32 certification;
+        uint32 endorsement;
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -110,45 +43,36 @@ library PoolPolicy {
 
     //  ────────────────────────────  Policy Utilities  ─────────────────────────────  \\
 
-    function meetsPolicy(Policy storage policy, uint256 token) external view returns(bool isEligible) {
-        // 1. Iterate over all conditions in policy
-        for (uint i = 0; i < policy._keys.length(); i++) {
-            (,Condition memory condition) = at(policy, i);
-            
+
+    function meetsPolicy(DepositPolicy storage policy, JasmineOracle oracle, uint256 tokenId) external view returns(bool isEligible) {
+        // 1. If policy's vintage is not empty, check token has vintage
+        if (policy.vintagePeriod[0] != 0 &&
+            policy.vintagePeriod[1] != 0 &&
+            !oracle.hasVintage(tokenId, policy.vintagePeriod[0], policy.vintagePeriod[1])) {
+            return false;
         }
-        return true;
-    }
-
-    function at(Policy storage policy, uint256 index) public view returns(bytes32, Condition memory) {
-        bytes32 key = policy._keys.at(index);
-        return (key, policy._values[key]);
-    }
-
-    /**
-     * @dev Inserts conditions to policy
-     * 
-     * @param policy Policy to insert condition into
-     * @param conditions New conditions to add to policy
-     */
-    function insert(Policy storage policy, Condition[] calldata conditions) external returns(bool) {
-        for (uint i = 0; i < conditions.length; i++) {
-            if (!insert(policy, conditions[i])) {
-                return false;
-            }
+        // 2. If techType is not empty, check token has tech type
+        if (policy.techType != 0 &&
+            !oracle.hasFuel(tokenId, policy.techType)) {
+            return false;
         }
+        // 3. If registry is not empty, check token has registry
+        if (policy.registry != 0 &&
+            !oracle.hasRegistry(tokenId, policy.registry)) {
+            return false;
+        }
+        // 4. If certification is not empty, check token has certification
+        if (policy.certification != 0 &&
+            !oracle.hasCertificateType(tokenId, policy.certification)) {
+            return false;
+        }
+        // 5. If endorsement is not empty, check token has endorsement
+        if (policy.endorsement != 0 &&
+            !oracle.hasEndorsement(tokenId, policy.endorsement)) {
+            return false;
+        }
+        // 6. If above checks pass, token meets policy
         return true;
-    }
-
-    /**
-     * @dev Inserts a condition to policy
-     * 
-     * @param policy Policy to insert condition into
-     * @param condition New condition to add to policy
-     */
-    function insert(Policy storage policy, Condition calldata condition) public returns(bool) {
-        bytes32 key = keccak256(abi.encodePacked(condition.verifier, condition.selector));
-        policy._values[key] = condition;
-        return policy._keys.add(key);
     }
 
     //  ───────────────────────────  Vintage Utilities  ─────────────────────────────  \\
@@ -166,17 +90,5 @@ library PoolPolicy {
 
     //  ───────────────────────────────  Comparision  ───────────────────────────────  \\
 
-    /**
-     * @dev Checks if comparativePolicy is a subset of basePolicy. To be true,
-     * all inputs to comparativePolicy must hold tru for basePolicy.
-     * 
-     * @param basePolicy Policy to base comparision against
-     * @param comparativePolicy Policy to be evaluated as subset of basePolicy
-     */
-    function isSubset(
-        DepositPolicy calldata basePolicy, 
-        DepositPolicy calldata comparativePolicy
-    ) external returns(bool) {
 
-    }
 }
