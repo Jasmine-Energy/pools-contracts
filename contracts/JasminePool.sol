@@ -13,7 +13,6 @@ import { ERC1155Holder } from "@openzeppelin/contracts/token/ERC1155/utils/ERC11
 import { ERC777 } from "@openzeppelin/contracts/token/ERC777/ERC777.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-// TODO Oracle interface in core contracts need to be updated
 import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 
@@ -35,7 +34,9 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
 //  Custom Errors
 //  ─────────────────────────────────────────────────────────────────────────────
 
+/// @dev Emitted if a token does not meet pool's deposit policy
 error Unqualified(uint256 tokenId);
+/// @dev Emitted for unauthorized actions
 error Prohibited();
 
 
@@ -552,9 +553,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
     }
 
     function _enforceEligibility(uint256 tokenId) private view {
-        if (!meetsPolicy(tokenId)) {
-            revert Unqualified(tokenId);
-        }
+        if (!meetsPolicy(tokenId)) revert Unqualified(tokenId);
     }
 
     function _enforceEligibility(uint256[] memory tokenIds) private view {
@@ -567,7 +566,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @dev Enforce msg sender is EAT contract
      */
     modifier onlyEAT {
-        require(_msgSender() == address(EAT), "JasminePool: caller must be EAT contract");
+        if (_msgSender() != address(EAT)) revert Prohibited();
         _;
     }
 
@@ -575,7 +574,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @dev Enforce msg sender is Pool Factory contract
      */
     modifier onlyFactory() {
-        require(_msgSender() == poolFactory, "JasminePool: caller must be Pool Factory contract");
+        if (_msgSender() != poolFactory) revert Prohibited();
         _;
     }
 
@@ -583,10 +582,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @dev Enforce caller is approved for holder's JLTs - or caller is holder
      */
     modifier onlyOperator(address holder) {
-        require(
-            _msgSender() == holder || isOperatorFor(_msgSender(), holder),
-            "JasminePool: Unauthorized"
-        );
+        if (_msgSender() != holder || !isOperatorFor(_msgSender(), holder)) revert Prohibited();
         _;
     }
 }

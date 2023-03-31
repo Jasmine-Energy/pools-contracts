@@ -883,6 +883,17 @@ event Transfer(address indexed from, address indexed to, uint256 value)
 
 ## Errors
 
+### Prohibited
+
+```solidity
+error Prohibited()
+```
+
+
+
+*Emitted for unauthorized actions*
+
+
 ### Unqualified
 
 ```solidity
@@ -891,7 +902,7 @@ error Unqualified(uint256 tokenId)
 
 
 
-
+*Emitted if a token does not meet pool&#39;s deposit policy*
 
 #### Parameters
 

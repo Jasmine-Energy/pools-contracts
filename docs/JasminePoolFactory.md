@@ -87,7 +87,7 @@ Used to obtain the address of a pool in the set of pools - if it exists.
 
 | Name | Type | Description |
 |---|---|---|
-| pool | address | undefined |
+| pool | address | Address of pool in set |
 
 ### owner
 
@@ -261,15 +261,31 @@ Emitted when a new Jasmine pool is created
 
 ## Errors
 
-### PoolExists
+### NoPool
 
 ```solidity
-error PoolExists()
+error NoPool()
 ```
 
 
 
+*Emitted if no pool(s) meet query*
 
 
+### PoolExists
+
+```solidity
+error PoolExists(address pool)
+```
+
+
+
+*Emitted if a pool exists with given policy*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| pool | address | undefined |
 
 

@@ -18,6 +18,7 @@ import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
+import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 // Utility Libraries
 import { PoolPolicy } from "./libraries/PoolPolicy.sol";
@@ -29,8 +30,10 @@ import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 //  Custom Errors
 //  ─────────────────────────────────────────────────────────────────────────────
 
-error NoPools();
-error PoolExists();
+/// @dev Emitted if no pool(s) meet query
+error NoPool();
+/// @dev Emitted if a pool exists with given policy
+error PoolExists(address pool);
 
 
 /**
@@ -65,7 +68,18 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     //  Setup
     //  ─────────────────────────────────────────────────────────────────────────────
 
+    /**
+     * @param _poolImplementation Address containing Jasmine Pool implementation
+     */
     constructor(address _poolImplementation) Ownable2Step() {
+        require(
+            poolImplementation != address(0x0),
+            "JasminePoolFactory: Pool implementation must be set"
+        );
+        require(
+            IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId),
+            "JasminePoolFactory: Pool does not conform to Jasmine Pool Interface"
+        );
         poolImplementation = _poolImplementation;
     }
 
@@ -86,8 +100,10 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      * @notice Used to obtain the address of a pool in the set of pools - if it exists.
      * 
      * @param index Index of the deployed pool in set of pools
+     * @return pool Address of pool in set
      */
     function getPoolAtIndex(uint256 index) external view returns(address pool) {
+        if (index >= _pools.length()) revert NoPool();
         require(index < _pools.length(), "JasminePoolFactory: Pool does not exist");
         return _predictDeploymentAddress(_pools.at(index));
     }
@@ -103,10 +119,20 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     //  ────────────────────────────  Pool Management  ──────────────────────────────  \\
 
     /**
+     * @notice Deploys a new pool with given deposit policy
      * 
-     * @param policy TODO
-     * @param name TODO
-     * @param symbol TODO
+     * @dev Pool is deployed via ERC-1967 proxy to deterministic address derived from
+     *      hash of Deposit Policy.
+     * 
+     * @dev Requirements:
+     *     - Caller must be owner
+     *     - Policy must not exist
+     * 
+     * @param policy Deposit Policy for new pool
+     * @param name Token name of new pool (per ERC-20)
+     * @param symbol Token symbol of new pool (per ERC-20)
+     * 
+     * @return newPool Address of newly created pool
      */
     function deployNewPool(
         PoolPolicy.DepositPolicy calldata policy, 
@@ -125,7 +151,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
 
         // 2. Ensure policy does not exist
         if (_pools.contains(policyHash)) {
-            revert PoolExists();
+            revert PoolExists(_predictDeploymentAddress(policyHash));
         }
 
         // 3. Deploy new pool
