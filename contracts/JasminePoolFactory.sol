@@ -21,9 +21,10 @@ import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
 
 // Utility Libraries
 import { PoolPolicy } from "./libraries/PoolPolicy.sol";
-import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
+import "hardhat/console.sol";
 
 //  ─────────────────────────────────────────────────────────────────────────────
 //  Custom Errors
@@ -45,18 +46,18 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
 
-    // TODO: Move to library and create type for Bytes32 to Address
-    using EnumerableMap for EnumerableMap.Bytes32ToBytes32Map;
-
+    using EnumerableSet for EnumerableSet.Bytes32Set;
     using PoolPolicy for PoolPolicy.DepositPolicy;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
 
-    /// @dev Maps policy hash to pool address
-    // Note: Can probably remove since pool addresses are deterministic through CREATE2
-    EnumerableMap.Bytes32ToBytes32Map private _pools;
+    /**
+     * @dev List of pool deposit policy hashes. As pools are deployed via create2,
+     *      address of a pool from the hash can be computed as needed.
+     */
+    EnumerableSet.Bytes32Set private _pools;
 
     /// @dev Implementation address for pools
     address public poolImplementation;
@@ -77,15 +78,19 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
 
     //  ───────────────  Jasmine Pool Factory Interface Conformance  ────────────────  \\
 
-
+    /// @notice Returns the total number of pools deployed
     function totalPools() external view returns(uint256) {
         return _pools.length();
     }
 
+    /**
+     * @notice Used to obtain the address of a pool in the set of pools - if it exists.
+     * 
+     * @param index Index of the deployed pool in set of pools
+     */
     function getPoolAtIndex(uint256 index) external view returns(address pool) {
         require(index < _pools.length(), "JasminePoolFactory: Pool does not exist");
-        (, bytes32 value) = _pools.at(index);
-        return address(uint160(uint256(value)));
+        return address(0x0); //_predictDeploymentAddress(_pools.at(index));
     }
 
     function eligiblePoolsForToken(uint256 tokenId) external view returns(address[] memory pools) {
@@ -129,10 +134,26 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
                 (encodedPolicy, name, symbol)
             )
         );
+        console.log(_predictDeploymentAddress(
+            policyHash,
+            abi.encodeCall(
+                IJasminePool.initialize,
+                (encodedPolicy, name, symbol)
+            )));
+        console.log(address(poolProxy));
+
+        require(
+            _predictDeploymentAddress(policyHash,
+            abi.encodeCall(
+                IJasminePool.initialize,
+                (encodedPolicy, name, symbol)
+            )) == address(poolProxy),
+            "JasminePoolFactory: Deployment failed. Pool address does not match expected"
+        );
 
         emit PoolCreated(encodedPolicy, address(poolProxy), name, symbol);
 
-        _pools.set(policyHash, bytes32(uint256(uint160(address(poolProxy)))));
+        _pools.add(policyHash);
 
         return address(poolProxy);
     }
@@ -155,5 +176,25 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @dev Determines the address of a newly deployed proxy, salted with the policy
+     *      and deployed via CREATE2
+     * 
+     * @param policyHash Keccak256 hash of pool's deposit policy
+     * @return Predicted address of pool
+     */
+    function _predictDeploymentAddress(bytes32 policyHash, bytes memory initData)
+        internal view
+        returns(address) {
+        bytes memory bytecode = type(ERC1967Proxy).creationCode;
+        bytes memory proxyByteCode = abi.encodePacked(bytecode, abi.encode(poolImplementation, initData));
+        return address(uint160(uint(keccak256(
+            abi.encodePacked(
+                bytes1(0xff), address(this), policyHash, keccak256(proxyByteCode)
+            )
+        ))));
+        // return Create2.computeAddress(policyHash, keccak256(type(ERC1967Proxy).creationCode));
+    }
 
 }

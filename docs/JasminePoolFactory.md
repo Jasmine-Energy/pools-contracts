@@ -73,7 +73,7 @@ function eligiblePoolsForToken(uint256 tokenId) external view returns (address[]
 function getPoolAtIndex(uint256 index) external view returns (address pool)
 ```
 
-
+Used to obtain the address of a pool in the set of pools - if it exists. 
 
 
 
@@ -81,7 +81,7 @@ function getPoolAtIndex(uint256 index) external view returns (address pool)
 
 | Name | Type | Description |
 |---|---|---|
-| index | uint256 | undefined |
+| index | uint256 | Index of the deployed pool in set of pools |
 
 #### Returns
 
@@ -157,7 +157,7 @@ function renounceOwnership() external nonpayable
 function totalPools() external view returns (uint256)
 ```
 
-
+Returns the total number of pools deployed
 
 
 
