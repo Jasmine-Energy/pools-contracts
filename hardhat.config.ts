@@ -35,6 +35,7 @@ const accounts = {
     passphrase: '',
 };
 
+// TODO: exclude openzeppelin from dodoc generation
 const config: HardhatUserConfig = {
     defaultNetwork: 'localhost',
     networks: {
