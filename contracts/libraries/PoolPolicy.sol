@@ -3,10 +3,18 @@
 pragma solidity >=0.8.0;
 
 
+//  ─────────────────────────────────────────────────────────────────────────────
+//  Imports
+//  ─────────────────────────────────────────────────────────────────────────────
+
+import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
+
+
 /**
  * @title PoolPolicy
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Utility library for Pool Policy types
+ * @custom:security-contact dev@jasmine.energy
  */
 library PoolPolicy {
 
@@ -21,52 +29,10 @@ library PoolPolicy {
      */
     struct DepositPolicy {
         uint256[2] vintagePeriod;
-        uint256[]  techTypes;
-        uint256[]  registries;
-        uint256[]  certificationTypes;
-        uint256[]  endorsements;
-    }
-
-
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Type Casting Functions
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * @dev Converts a policy to bytes
-     * 
-     * @param policy Input policy to convert to bytes
-     */
-    function toBytes(
-        PoolPolicy.DepositPolicy calldata policy
-    ) external pure returns(bytes memory) {
-        return abi.encode(
-            policy.vintagePeriod,
-            policy.techTypes,
-            policy.registries,
-            policy.certificationTypes,
-            policy.endorsements
-        );
-    }
-
-    /**
-     * @dev Converts bytes to Deposit Policy
-     * 
-     * @param _encodedPolicy Byte encode policy to decode
-     */
-    function toDepositPolicy(
-        bytes calldata _encodedPolicy
-    ) external pure returns(DepositPolicy memory) {
-        uint256[2] memory vintagePeriod;
-        uint256[]  memory techTypes;
-        uint256[]  memory registries;
-        uint256[]  memory certificationTypes;
-        uint256[]  memory endorsements;
-        (vintagePeriod, techTypes, registries, certificationTypes, endorsements) = abi.decode(_encodedPolicy, (uint256[2], uint256[], uint256[], uint256[], uint256[]));
-
-        return DepositPolicy(
-            vintagePeriod, techTypes, registries, certificationTypes, endorsements
-        );
+        uint32 techType;
+        uint32 registry;
+        uint32 certification;
+        uint32 endorsement;
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -74,32 +40,52 @@ library PoolPolicy {
     //  ─────────────────────────────────────────────────────────────────────────────
 
 
-    //  ───────────────────────────  Vintage Utilities  ─────────────────────────────  \\
-
-    function frontHalfOfYear(uint16 year) external pure returns(uint256[2] memory period) {
+    //  ────────────────────────────  Policy Utilities  ─────────────────────────────  \\
 
 
+    function meetsPolicy(DepositPolicy storage policy, JasmineOracle oracle, uint256 tokenId) external view returns (bool isEligible) {
+        // 1. If policy's vintage is not empty, check token has vintage
+        if (policy.vintagePeriod[0] != 0 &&
+            policy.vintagePeriod[1] != 0 &&
+            !oracle.hasVintage(tokenId, policy.vintagePeriod[0], policy.vintagePeriod[1])) {
+            return false;
+        }
+        // 2. If techType is not empty, check token has tech type
+        if (policy.techType != 0 &&
+            !oracle.hasFuel(tokenId, policy.techType)) {
+            return false;
+        }
+        // 3. If registry is not empty, check token has registry
+        if (policy.registry != 0 &&
+            !oracle.hasRegistry(tokenId, policy.registry)) {
+            return false;
+        }
+        // 4. If certification is not empty, check token has certification
+        if (policy.certification != 0 &&
+            !oracle.hasCertificateType(tokenId, policy.certification)) {
+            return false;
+        }
+        // 5. If endorsement is not empty, check token has endorsement
+        if (policy.endorsement != 0 &&
+            !oracle.hasEndorsement(tokenId, policy.endorsement)) {
+            return false;
+        }
+        // 6. If above checks pass, token meets policy
+        return true;
     }
 
-    function backHalfOfYear(uint16 year) external pure returns(uint256[2] memory period) {
+    //  ───────────────────────────  Vintage Utilities  ─────────────────────────────  \\
 
-        
+    function frontHalfOfYear(uint16 year) external pure returns (uint256[2] memory period) {
+        // TODO: Implement me
+    }
+
+    function backHalfOfYear(uint16 year) external pure returns (uint256[2] memory period) {
+        // TODO: Implement me
     }
 
 
     //  ───────────────────────────────  Comparision  ───────────────────────────────  \\
 
-    /**
-     * @dev Checks if comparativePolicy is a subset of basePolicy. To be true,
-     * all inputs to comparativePolicy must hold tru for basePolicy.
-     * 
-     * @param basePolicy Policy to base comparision against
-     * @param comparativePolicy Policy to be evaluated as subset of basePolicy
-     */
-    function isSubset(
-        DepositPolicy calldata basePolicy, 
-        DepositPolicy calldata comparativePolicy
-    ) external returns(bool) {
 
-    }
 }

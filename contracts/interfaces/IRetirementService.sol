@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity ^0.8.18;
+pragma solidity >=0.8.0;
 
 
 import { IERC777Recipient } from "@openzeppelin/contracts/interfaces/IERC777Recipient.sol";
@@ -11,6 +11,7 @@ import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Rec
  * @title Retirement Service Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice 
+ * @custom:security-contact dev@jasmine.energy
  */
 interface IRetirementService is IERC777Recipient, IERC1155Receiver {
 
@@ -28,6 +29,6 @@ interface IRetirementService is IERC777Recipient, IERC1155Receiver {
      * @param pool address of pool requesting residual JLTs
      * @return success True if residual JLTs sent, false if ineligible
      */
-    function requestResidualJLT(address pool) external returns(bool success);
+    function requestResidualJLT(address pool) external returns (bool success);
 
 }

@@ -8,6 +8,7 @@ import { PoolPolicy } from "../libraries/PoolPolicy.sol";
  * @title Jasmine Pool Factory Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice 
+ * @custom:security-contact dev@jasmine.energy
  */
 interface IJasminePoolFactory {
 
@@ -30,14 +31,36 @@ interface IJasminePoolFactory {
         string  indexed symbol
     );
 
+    /**
+     * @notice Emitted when new pool implementations are supported by factory
+     * 
+     * @param poolImplementation Address of newly supported pool implementation
+     * @param poolIndex Index of new pool in set of pool implementations
+     */
+    event PoolImplementationAdded(
+        address indexed poolImplementation,
+        uint256 indexed poolIndex
+    );
+
+    /**
+     * @notice Emitted when a pool implementations is removed
+     * 
+     * @param poolImplementation Address of deleted pool implementation
+     * @param poolIndex Index of deleted pool in set of pool implementations
+     */
+    event PoolImplementationRemoved(
+        address indexed poolImplementation,
+        uint256 indexed poolIndex
+    );
+
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Pool Interactions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function totalPools() external view returns(uint256);
+    function totalPools() external view returns (uint256);
 
-    function getPoolAtIndex(uint256 index) external view returns(address pool);
+    function getPoolAtIndex(uint256 index) external view returns (address pool);
 
-    function eligiblePoolsForToken(uint256 tokenId) external view returns(address[] memory pools);
+    function eligiblePoolsForToken(uint256 tokenId) external view returns (address[] memory pools);
 }

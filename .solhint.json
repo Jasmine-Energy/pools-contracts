@@ -1,0 +1,16 @@
+{
+  "extends": "solhint:recommended",
+  "rules": {
+    "compiler-version": ["error", "^0.8.0"],
+    "quotes": ["warn", "double"],
+    "visibility-modifier-order": "warn",
+    "contract-name-camelcase": "warn",
+    "ordering": "warn",
+    "imports-on-top": "warn",
+    "avoid-tx-origin": "warn",
+    "func-visibility": ["error", { "ignoreConstructors": true }],
+    "avoid-throw": "error",
+    "reason-string": ["warn", { "maxLength": 32 }],
+    "no-global-import": "warn"
+  }
+}

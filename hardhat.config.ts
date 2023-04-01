@@ -1,102 +1,135 @@
-import * as dotenv from "dotenv";
+import * as dotenv from 'dotenv';
 
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
-import "@nomicfoundation/hardhat-chai-matchers"
-import "@nomicfoundation/hardhat-network-helpers";
-import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-etherscan";
-import "@openzeppelin/hardhat-upgrades";
-import "hardhat-abi-exporter";
-import "hardhat-contract-sizer"
-import "hardhat-deploy";
-import "hardhat-deploy-ethers";
-import "hardhat-interact";
-import "@typechain/hardhat";
+import { HardhatUserConfig } from 'hardhat/config';
+import * as tenderly from "@tenderly/hardhat-tenderly";
+import '@nomicfoundation/hardhat-toolbox';
+import '@nomicfoundation/hardhat-chai-matchers';
+import '@nomicfoundation/hardhat-network-helpers';
+import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-etherscan';
+import '@openzeppelin/hardhat-upgrades';
+import '@primitivefi/hardhat-dodoc';
+import 'hardhat-abi-exporter';
+import 'hardhat-contract-sizer';
+import 'hardhat-deploy';
+import 'hardhat-deploy-ethers';
+import 'hardhat-deploy-tenderly';
+import 'hardhat-tracer';
+import 'hardhat-interact';
+import '@typechain/hardhat';
 
-import "tsconfig-paths/register";
+import 'tsconfig-paths/register';
 
-import "./tasks";
+import './tasks';
 
 dotenv.config();
+tenderly.setup();
 
 // TODO Move this
-const mnemonic = "tattoo clip ankle prefer cruise car motion borrow bread future legal system";
+const mnemonic = 'tattoo clip ankle prefer cruise car motion borrow bread future legal system';
 const accounts = {
-  mnemonic: mnemonic,
-  path: "m/44'/60'/0'/0",
-  initialIndex: 0,
-  count: 10,
-  passphrase: "",
+    mnemonic: mnemonic,
+    path: 'm/44\'/60\'/0\'/0',
+    initialIndex: 0,
+    count: 10,
+    passphrase: '',
 };
 
 const config: HardhatUserConfig = {
-  defaultNetwork: "hardhat",
-  networks: {
-    hardhat: {
-      chainId: 31337,
-      loggingEnabled: true,
-      accounts,
-      forking: {
-        url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      },
-      saveDeployments: true,
-      tags: ["local"],
-    },
-    mumbai: {
-      url: "https://matic-testnet-archive-rpc.bwarelabs.com",
-      chainId: 80001,
-      saveDeployments: true,
-      tags: ["testnet", "public"],
-    },
-    polygon: {
-      url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      chainId: 137,
-      saveDeployments: true,
-      tags: ["production", "public"],
-    }
-  },
-  namedAccounts: {
-    owner: {
-      default: 0
-    }
-  },
-  solidity: {
-    compilers: [
-      {
-        version: "0.8.19",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 250,
-          },
+    defaultNetwork: 'localhost',
+    networks: {
+        hardhat: {
+            chainId: 31337,
+            loggingEnabled: true,
+            accounts,
+            forking: {
+                url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+            },
+            saveDeployments: true,
+            tags: ['local'],
         },
-      },
-      {
-        version: "0.8.17",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 250,
-          },
+        localhost: {
+            url: 'http://127.0.0.1:8545',
         },
-      },
-    ],
-  },
-  paths: {
-    deployments: "deployments",
-  },
-  abiExporter: {
-    path: "./abi",
-    runOnCompile: true,
-    pretty: true,
-  },
-  typechain: {
-    outDir: "./typechain",
-  },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
-  }
+        tenderly: {
+            accounts,
+            url: 'https://rpc.tenderly.co/fork/20e808f7-4569-4778-933b-87706fac8e39',//`https://rpc.tenderly.co/fork/${process.env.TENDERLY_FORK_ID}`,
+            tags: ['tenderly']
+        },
+        mumbai: {
+            url: 'https://matic-testnet-archive-rpc.bwarelabs.com',
+            chainId: 80001,
+            saveDeployments: true,
+            tags: ['testnet', 'public'],
+        },
+        polygon: {
+            url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+            chainId: 137,
+            saveDeployments: true,
+            tags: ['production', 'public'],
+        }
+    },
+    namedAccounts: {
+        owner: {
+            default: 0
+        },
+        bridge: {
+            default: 1,
+            // TODO: Set to correct address on Polygon and mumbai
+        },
+        eat: {
+            'polygon': '0xba3aa8083f8978257aaafb19ed698a623197a7c1',
+            'mumbai': '0xae205e00c7dcb5292388bd8962e79582a5ae14d0'
+        },
+        minter: {
+            'polygon': '0x5e71fa178f3b8ca0fc4736b8a85a1b669c042dde',
+            'mumbai': '0xe9c135b9fb2942982e3df5b89a03e51d8ee6cb74'
+        },
+        oracle: {
+            'polygon': '0x954f12ab1e40fbd7c28f2ab5285d3c74ba6faf6f',
+            'mumbai': '0x3f3f61a613504166302c5ee3546b0e85c0a61934'
+        }
+    },
+    solidity: {
+        compilers: [
+            {
+                version: '0.8.19',
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 250,
+                    },
+                },
+            },
+            {
+                version: '0.8.17',
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 250,
+                    },
+                },
+            },
+        ],
+    },
+    paths: {
+        deployments: 'deployments',
+    },
+    abiExporter: {
+        path: './abi',
+        runOnCompile: true,
+        pretty: true,
+    },
+    typechain: {
+        outDir: './typechain',
+    },
+    etherscan: {
+        apiKey: process.env.ETHERSCAN_API_KEY,
+    },
+    tenderly: {
+        project: 'reference-pools',
+        username: 'Jasmine',
+    }
 };
 
 export default config;

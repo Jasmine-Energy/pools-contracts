@@ -8,9 +8,11 @@
   "author": "Kai Aldag <kai.aldag@jasmine.energy>",
   "scripts": {
     "build": "npx hardhat compile",
-    "hardhat": "npx hardhat",
     "test": "npx hardhat test",
-    "start": "npx hardhat node"
+    "start": "npx hardhat compile && npx hardhat node --network hardhat",
+    "lint": "solhint 'contracts/**/*.sol'",
+    "lint:fix": "solhint 'contracts/**/*.sol' --fix",
+    "interact": "npx hardhat interact"
   },
   "repository": {
     "type": "git",
@@ -26,7 +28,10 @@
     "url": "https://github.com/Jasmine-Energy/v1-pools-contracts/issues"
   },
   "dependencies": {
-    "@jasmine-energy/contracts": "^1.0.0"
+    "@jasmine-energy/contracts": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.56.0",
+    "@typescript-eslint/parser": "^5.56.0",
+    "eslint": "^8.36.0"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
@@ -39,6 +44,8 @@
     "@openzeppelin/contracts": "^4.8.2",
     "@openzeppelin/contracts-upgradeable": "^4.8.2",
     "@openzeppelin/hardhat-upgrades": "^1.22.1",
+    "@primitivefi/hardhat-dodoc": "^0.2.3",
+    "@tenderly/hardhat-tenderly": "^1.6.1",
     "@typechain/ethers-v5": "^10.2.0",
     "@typechain/hardhat": "^6.1.5",
     "@types/chai": "^4.3.4",
@@ -52,12 +59,15 @@
     "hardhat-contract-sizer": "^2.8.0",
     "hardhat-deploy": "^0.11.22",
     "hardhat-deploy-ethers": "^0.3.0-beta.13",
+    "hardhat-deploy-tenderly": "^0.2.0",
     "hardhat-gas-reporter": "^1.0.9",
     "hardhat-interact": "^0.2.3",
+    "hardhat-tracer": "^2.1.2",
     "mocha": "^10.2.0",
-    "prettier": "^2.8.4",
+    "prettier": "^2.8.7",
     "prettier-plugin-solidity": "^1.1.3",
-    "solhint": "^3.4.0",
+    "solhint": "^3.4.1",
+    "solhint-plugin-prettier": "^0.0.5",
     "solidity-coverage": "^0.8.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.2",

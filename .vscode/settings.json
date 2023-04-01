@@ -1,3 +1,8 @@
 {
-    "solidity.packageDefaultDependenciesDirectory": "./node_modules"
+    "solidity.packageDefaultDependenciesDirectory": "./node_modules",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
+    "eslint.validate": ["javascript", "typescript"],
+    "eslint.format.enable": true
 }

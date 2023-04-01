@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity ^0.8.18;
+pragma solidity >=0.8.0;
 
 /**
  * @title Retirement Recipient Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice 
+ * @custom:security-contact dev@jasmine.energy
  */
 interface IRetirementRecipient {
     /**
