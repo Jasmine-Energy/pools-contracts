@@ -11,6 +11,7 @@ import { IJasminePool } from "./interfaces/IJasminePool.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC1155Holder } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import { ERC777 } from "@openzeppelin/contracts/token/ERC777/ERC777.sol";
+import { ERC1046 } from "./implementations/ERC1046.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
@@ -48,7 +49,7 @@ error Prohibited();
  * @custom:security-contact dev@jasmine.energy
  */
 // contract JasminePool is IJasminePool, ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
-contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
+contract JasminePool is ERC777, ERC1046, ERC1155Holder, Initializable, ReentrancyGuard {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
@@ -478,7 +479,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @inheritdoc ERC777
      * @dev See {IERC777-name}
      */
-    function name() public view override returns (string memory) {
+    function name() public view override(ERC777, IERC20Metadata) returns (string memory) {
         return _name;
     }
 
@@ -486,7 +487,7 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @inheritdoc ERC777
      * @dev See {IERC777-symbol}
      */
-    function symbol() public view override returns (string memory) {
+    function symbol() public view override(ERC777, IERC20Metadata) returns (string memory) {
         return _symbol;
     }
 
@@ -496,8 +497,16 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
      * @inheritdoc ERC777
      * @dev See {ERC20-decimals}.
      */
-    function decimals() public pure override returns (uint8) {
+    function decimals() public pure override(ERC777, IERC20Metadata) returns (uint8) {
         return _decimals;
+    }
+
+    function balanceOf(address account) public view override(ERC777, IERC20) returns (uint256) {
+        return super.balanceOf(account);
+    }
+
+    function totalSupply() public view override(ERC777, IERC20) returns (uint256) {
+        return super.totalSupply();
     }
 
     //  ──────────────────────  ERC-1155 Receiver Conformance  ──────────────────────  \\
@@ -566,15 +575,6 @@ contract JasminePool is ERC777, ERC1155Holder, Initializable, ReentrancyGuard {
         // TODO: Call data
 
         return this.onERC1155BatchReceived.selector;
-    }
-
-    //  ──────────────────────────  ERC-1046 Conformance  ───────────────────────────  \\
-
-    /**
-     * @dev See {IERC1046-tokenURI}
-     */
-    function tokenURI() external view returns (string memory) {
-        // TODO Implement in base64 data url
     }
 
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\

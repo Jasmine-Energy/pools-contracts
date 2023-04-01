@@ -27,6 +27,45 @@ function EAT() external view returns (contract JasmineEAT)
 |---|---|---|
 | _0 | contract JasmineEAT | undefined |
 
+### _encodeArray
+
+```solidity
+function _encodeArray(string[] list) external pure returns (string)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| list | string[] | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | string | undefined |
+
+### _encodeEntries
+
+```solidity
+function _encodeEntries() external view returns (string)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | string | undefined |
+
 ### allowance
 
 ```solidity
@@ -92,18 +131,18 @@ function authorizeOperator(address operator) external nonpayable
 ### balanceOf
 
 ```solidity
-function balanceOf(address tokenHolder) external view returns (uint256)
+function balanceOf(address account) external view returns (uint256)
 ```
 
 
 
-*Returns the amount of tokens owned by an account (`tokenHolder`).*
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| tokenHolder | address | undefined |
+| account | address | undefined |
 
 #### Returns
 
@@ -609,9 +648,9 @@ function symbol() external view returns (string)
 function tokenURI() external view returns (string)
 ```
 
+Gets an ERC-721-like token URI
 
-
-*See {IERC1046-tokenURI}*
+*The resolved data MUST be in JSON format and           support ERC-1046&#39;s ERC-20 Token Metadata Schema*
 
 
 #### Returns
@@ -628,7 +667,7 @@ function totalSupply() external view returns (uint256)
 
 
 
-*See {IERC777-totalSupply}.*
+
 
 
 #### Returns
