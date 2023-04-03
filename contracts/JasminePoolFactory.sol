@@ -26,16 +26,7 @@ import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-
-
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Custom Errors
-//  ─────────────────────────────────────────────────────────────────────────────
-
-/// @dev Emitted if no pool(s) meet query
-error NoPool();
-/// @dev Emitted if a pool exists with given policy
-error PoolExists(address pool);
+import { JasmineErrors } from "./utilities/JasmineErrors.sol";
 
 
 /**
@@ -119,7 +110,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         external view
         returns (address pool)
     {
-        if (index >= _pools.length()) revert NoPool();
+        if (index >= _pools.length()) revert JasmineErrors.NoPool();
         return computePoolAddress(_pools.at(index));
     }
 
@@ -222,7 +213,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         bytes32 policyHash = keccak256(initData);
 
         // 2. Ensure policy does not exist
-        if (_pools.contains(policyHash)) revert PoolExists(computePoolAddress(policyHash));
+        if (_pools.contains(policyHash)) revert JasmineErrors.PoolExists(computePoolAddress(policyHash));
 
         // 3. Deploy new pool
         ERC1967Proxy poolProxy = new ERC1967Proxy{ salt: policyHash }(
@@ -377,8 +368,8 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      * @dev Checks if a given address implements JasminePool Interface and IERC1155Receiver, is not
      *      already in list of pool and is not empty
      * 
-     * @dev Throws PoolExists(address pool) if policyHash exists or reverts with custom error message
-     *      if implementation fails interface checks or is empty
+     * @dev Throws PoolExists(address pool) if policyHash exists or throws InvalidConformance(bytes4 interfaceId)
+     *      if implementation fails interface checks or errors if address is empty
      * 
      * @param poolImplementation Address of pool implementation
      */
@@ -389,15 +380,14 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
             poolImplementation != address(0x0),
             "JasminePoolFactory: Pool implementation must be set"
         );
-        require(
-            IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId),
-            "JasminePoolFactory: Pool does not conform to Jasmine Pool Interface"
-        );
-        require(
-            IERC165(poolImplementation).supportsInterface(type(IERC1155Receiver).interfaceId),
-            "JasminePoolFactory: Pool does not conform to IERC1155Receiver"
-        );
 
-        if (_poolImplementations.contains(poolImplementation)) revert PoolExists(poolImplementation);
+        if (!IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId))
+            revert JasmineErrors.InvalidConformance(type(IJasminePool).interfaceId);
+        
+        if (!IERC165(poolImplementation).supportsInterface(type(IERC1155Receiver).interfaceId))
+            revert JasmineErrors.InvalidConformance(type(IERC1155Receiver).interfaceId);
+
+        if (_poolImplementations.contains(poolImplementation)) 
+            revert JasmineErrors.PoolExists(poolImplementation);
     }
 }

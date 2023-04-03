@@ -21,6 +21,7 @@ import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { ArrayUtils } from "./libraries/ArrayUtils.sol";
+import { JasmineErrors } from "./utilities/JasmineErrors.sol";
 
 // Interfaces
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
@@ -29,16 +30,6 @@ import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Rec
 import { IERC777 } from "@openzeppelin/contracts/interfaces/IERC777.sol";
 import { IERC1046 } from "./interfaces/ERC/IERC1046.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-
-
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Custom Errors
-//  ─────────────────────────────────────────────────────────────────────────────
-
-/// @dev Emitted if a token does not meet pool's deposit policy
-error Unqualified(uint256 tokenId);
-/// @dev Emitted for unauthorized actions
-error Prohibited();
 
 
 /**
@@ -693,7 +684,7 @@ contract JasminePool is ERC777, ERC1046, ERC1155Holder, Initializable, Reentranc
      * @param tokenId EAT token ID to check eligibility
      */
     function _enforceEligibility(uint256 tokenId) private view {
-        if (!meetsPolicy(tokenId)) revert Unqualified(tokenId);
+        if (!meetsPolicy(tokenId)) revert JasmineErrors.Unqualified(tokenId);
     }
 
     /**
@@ -715,7 +706,7 @@ contract JasminePool is ERC777, ERC1046, ERC1155Holder, Initializable, Reentranc
      * @dev Throws Prohibited() on failure
      */
     modifier onlyEAT {
-        if (_msgSender() != address(EAT)) revert Prohibited();
+        if (_msgSender() != address(EAT)) revert JasmineErrors.Prohibited();
         _;
     }
 
@@ -725,7 +716,7 @@ contract JasminePool is ERC777, ERC1046, ERC1155Holder, Initializable, Reentranc
      * @dev Throws Prohibited() on failure
      */
     modifier onlyFactory() {
-        if (_msgSender() != poolFactory) revert Prohibited();
+        if (_msgSender() != poolFactory) revert JasmineErrors.Prohibited();
         _;
     }
 
@@ -735,7 +726,7 @@ contract JasminePool is ERC777, ERC1046, ERC1155Holder, Initializable, Reentranc
      * @dev Throws Prohibited() on failure
      */
     modifier onlyOperator(address holder) {
-        if (_msgSender() != holder || !isOperatorFor(_msgSender(), holder)) revert Prohibited();
+        if (_msgSender() != holder || !isOperatorFor(_msgSender(), holder)) revert JasmineErrors.Prohibited();
         _;
     }
 }
