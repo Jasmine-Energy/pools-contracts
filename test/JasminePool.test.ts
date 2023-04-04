@@ -6,21 +6,29 @@ import {
     JasminePool, JasminePoolFactory, 
     JasmineEAT, JasmineOracle, JasmineMinter
 } from "@/typechain";
-import { deployPoolImplementation, deployCoreFixture, deployLibrariesFixture } from "./shared/fixtures";
+import { deployPoolImplementation, deployCoreFixture } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
-import { mintEat } from "./shared/utilities";
+import { createSolarPolicy, createWindPolicy, makeMintFunction, mintFunctionType } from "./shared/utilities";
+import { CertificateEndorsement, CertificateRegistry, EnergyCertificateType, FuelType } from "@/types/energy-certificate.types";
 
 
 describe(Contracts.pool, function () {
     let owner: SignerWithAddress;
     let bridge: SignerWithAddress;
     let accounts: SignerWithAddress[];
+
+    let eat: JasmineEAT;
+    let oracle: JasmineOracle;
+    let minter: JasmineMinter;
+
+    let mintEat: mintFunctionType;
     
     let poolFactory: JasminePoolFactory;
     let poolImplementation: JasminePool;
-    var pool: JasminePool;
+    let solarPool: JasminePool;
+    let windPool: JasminePool;
 
     before(async function() {
         await disableLogging();
@@ -32,30 +40,54 @@ describe(Contracts.pool, function () {
         bridge = await ethers.getSigner(namedAccounts.bridge);
         accounts = await ethers.getSigners();
 
+        const coreContract = await loadFixture(deployCoreFixture);
+        eat = coreContract.eat;
+        minter = coreContract.minter;
+        oracle = coreContract.oracle;
+
+        mintEat = makeMintFunction(minter);
+
         poolImplementation = (await loadFixture(deployPoolImplementation)).poolImplementation;
 
         const PoolFactory = await ethers.getContractFactory(Contracts.factory);
         // NOTE: This errors when no deployment folder's been created
         // TODO: Fix above requirement of having deploy
         poolFactory = (await PoolFactory.deploy(poolImplementation.address)) as JasminePoolFactory;
+
+        await poolFactory.deployNewBasePool(createSolarPolicy(), 'Solar Tech', 'sJLT');
+        const solarPoolAddress = await poolFactory.getPoolAtIndex(0);
+        solarPool = poolImplementation.attach(solarPoolAddress);
+
+        await poolFactory.deployNewBasePool(createWindPolicy(), 'Wind Tech', 'wJLT');
+        const windPoolAddress = await poolFactory.getPoolAtIndex(1);
+        windPool = poolImplementation.attach(windPoolAddress);
     });
 
-    beforeEach(async function () {
-        // TODO: Create new pool from factory
-        // poolFactory.deployNewPool();
-    });
 
     describe("Setup", async function () {
-        it("Should revert if initialize is called by non factory", async function() {
-            await expect(poolImplementation.connect(owner).initialize([], "Pool Name", "JLT")).to.be.revertedWithCustomError(
-                poolImplementation, "Prohibited"
-            );
-        });
+        describe("Initializer", async function () {
+            it("Should revert if initialize is called by non factory", async function() {
+                await expect(poolImplementation.connect(owner).initialize([], "Pool Name", "JLT")).to.be.revertedWithCustomError(
+                    poolImplementation, "Prohibited"
+                );
+            });
 
-        it("Should have constants set", async function() {
-            expect(await poolImplementation.decimals()).to.be.eq(9);
-            expect(await poolImplementation.name()).to.be.empty;
-            expect(await poolImplementation.symbol()).to.be.empty;
+            it("Should revert if initialize is called more than once", async function() {
+                await expect(solarPool.initialize([], "New Name", "JLT2.0")).to.be.revertedWith(
+                    "Initializable: contract is already initialized"
+                );
+            });
+        });
+        describe("State", async function () {
+            it("Should have constants set", async function() {
+                expect(await poolImplementation.decimals()).to.be.eq(9);
+                expect(await poolImplementation.name()).to.be.empty;
+                expect(await poolImplementation.symbol()).to.be.empty;
+
+                expect(await poolImplementation.EAT()).to.be.eq(eat.address);
+                expect(await poolImplementation.oracle()).to.be.eq(oracle.address);
+                expect(await poolImplementation.poolFactory()).to.be.eq(poolFactory.address);
+            });
         });
     });
 
@@ -64,9 +96,27 @@ describe(Contracts.pool, function () {
     });
 
     describe("Deposit", async function () {
+        var ownerTokens = {
+            solarToken: { id: BigInt(0), amount: BigInt(0)},
+            windToken: { id: BigInt(0), amount: BigInt(0)},
+        }
+        var userTokens = {
+            solarToken: { id: BigInt(0), amount: BigInt(0)},
+            windToken: { id: BigInt(0), amount: BigInt(0)},
+        }
+
+        beforeEach(async function () {
+            ownerTokens.solarToken = await mintEat(owner.address, 5, FuelType.SOLAR);
+            ownerTokens.windToken  = await mintEat(owner.address, 5, FuelType.WIND);
+
+            userTokens.solarToken = await mintEat(accounts[1].address, 5, FuelType.SOLAR);
+            userTokens.windToken  = await mintEat(accounts[1].address, 5, FuelType.WIND);
+        });
+
+
         describe("#deposit", async function () {
             it("Should allow deposit of eligible tokens", async function() {
-                await mintEat(owner.address);
+                
             });
     
             it("Should reject ineligible tokens", async function() {
@@ -81,6 +131,18 @@ describe(Contracts.pool, function () {
 
         describe("#onERC1155Received", async function () {
             it("Should allow deposit of eligible tokens", async function() {
+                expect(
+                    await eat.safeTransferFrom(
+                        owner.address,
+                        windPool.address,
+                        ownerTokens.windToken.id,
+                        ownerTokens.windToken.amount,
+                        []
+                    )).to.be.ok
+                    .and.to.emit(poolImplementation, "Deposit").withArgs(owner.address, owner.address, ownerTokens.windToken.amount);
+
+                expect(await windPool.balanceOf(owner.address)).to.be.eq(ownerTokens.windToken.amount);
+                expect(await eat.balanceOf(owner.address, ownerTokens.windToken.id)).to.be.eq(0);
             });
     
             it("Should reject ineligible tokens", async function() {

@@ -94,7 +94,8 @@ describe(Contracts.factory, function () {
             // Check Pool creation was ok and emitted PoolCreated
             expect(await poolFactory.deployNewBasePool(newPolicy, 'Solar Tech \'23', 'a23JLT'))
                 .to.be.ok
-                .and.to.emit(poolFactory, "PoolCreated"); // TODO: add .withArgs() to ensure correct emission
+                .and.to.emit(poolFactory, "PoolCreated") // TODO: add .withArgs() to ensure correct emission
+                .and.to.emit(poolFactory, "Initialized").withArgs(1);
 
             // Check total pools increased to 1
             expect(await poolFactory.totalPools()).to.be.eq(1);
