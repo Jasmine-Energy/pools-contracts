@@ -9,6 +9,7 @@ import {
 import { deployCoreFixture, deployLibrariesFixture } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { disableLogging } from "@/utils/hardhat_utils";
 
 
 describe(Contracts.pool, function () {
@@ -17,7 +18,12 @@ describe(Contracts.pool, function () {
     let accounts: SignerWithAddress[];
     
     let poolFactory: JasminePoolFactory;
+    let poolImplementation: JasminePool;
     var pool: JasminePool;
+
+    before(async function() {
+        await disableLogging();
+    });
 
     before(async function() {
         const { eat, oracle } = await loadFixture(deployCoreFixture);
@@ -39,10 +45,10 @@ describe(Contracts.pool, function () {
                 ArrayUtils: arrayUtilsLibAddress
             }
         });
-        
-        pool = await Pool.deploy(eat.address, oracle.address, poolFactoryFutureAddress) as JasminePool;
+        poolImplementation = (await Pool.deploy(eat.address, oracle.address, poolFactoryFutureAddress)) as JasminePool;
+
         const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-        poolFactory = await PoolFactory.deploy(pool.address) as JasminePoolFactory;
+        poolFactory = (await PoolFactory.deploy(poolImplementation.address)) as JasminePoolFactory;
     });
 
     beforeEach(async function () {
@@ -52,15 +58,15 @@ describe(Contracts.pool, function () {
 
     describe("Setup", async function () {
         it("Should revert if initialize is called by non factory", async function() {
-            await expect(pool.connect(owner).initialize([], "Pool Name", "JLT")).to.be.revertedWithCustomError(
-                pool, "Prohibited"
+            await expect(poolImplementation.connect(owner).initialize([], "Pool Name", "JLT")).to.be.revertedWithCustomError(
+                poolImplementation, "Prohibited"
             );
         });
 
         it("Should have constants set", async function() {
-            expect(await pool.decimals()).to.be.eq(9);
-            expect(await pool.name()).to.be.empty;
-            expect(await pool.symbol()).to.be.empty;
+            expect(await poolImplementation.decimals()).to.be.eq(9);
+            expect(await poolImplementation.name()).to.be.empty;
+            expect(await poolImplementation.symbol()).to.be.empty;
         });
     });
 
