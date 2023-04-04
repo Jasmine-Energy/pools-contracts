@@ -32,8 +32,6 @@ jobs:
           node-version: '18.x'
       - run: npm install --legacy-peer-deps
         shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
       - name: Compile Contracts
         run: npm run build
       - name: Run Hardhat Tests
