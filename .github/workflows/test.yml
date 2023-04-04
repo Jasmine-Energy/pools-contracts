@@ -1,16 +1,19 @@
 name: test
 on:
   push:
-    branches: 
+    branches:
       - main
       - dev
+      - dev/*
+      - refactor-pools
   pull_request:
     branches:
       - main
       - dev
+      - dev/*
   workflow_dispatch:
 jobs:
-  tests:
+  test:
     runs-on: ubuntu-latest
 
     steps:
