@@ -170,7 +170,6 @@ abstract contract JasmineBasePool is
     )
         external virtual
         nonReentrant onlyOperator(sender)
-        returns (bool success)
     {
         // TODO: Implement me
     }
@@ -186,7 +185,7 @@ abstract contract JasmineBasePool is
      * 
      * @param tokenId ID of EAT to deposit into pool
      * @param amount Number of EATs to deposit
-     * @return success Whether deposit was successful
+     * 
      * @return jltQuantity Number of JLTs issued
      */
     function deposit(
@@ -195,7 +194,7 @@ abstract contract JasmineBasePool is
     )
         external virtual
         nonReentrant checkEligibility(tokenId)
-        returns (bool success, uint256 jltQuantity)
+        returns (uint256 jltQuantity)
     {
         return _deposit(_msgSender(), tokenId, amount);
     }
@@ -211,7 +210,7 @@ abstract contract JasmineBasePool is
      * @param from Address from which EATs will be transfered
      * @param tokenId ID of EAT to deposit into pool
      * @param amount Number of EATs to deposit
-     * @return success Whether deposit was successful
+     * 
      * @return jltQuantity Number of JLTs issued
      */
     function operatorDeposit(
@@ -221,7 +220,7 @@ abstract contract JasmineBasePool is
     )
         external virtual
         nonReentrant onlyOperator(from) checkEligibility(tokenId)
-        returns (bool success, uint256 jltQuantity)
+        returns (uint256 jltQuantity)
     {
         return _deposit(from, tokenId, amount);
     }
@@ -234,7 +233,7 @@ abstract contract JasmineBasePool is
      * @param from Address from which EATs will be transfered
      * @param tokenIds IDs of EAT to deposit into pool
      * @param amounts Number of EATs to deposit
-     * @return success Whether deposit was successful
+     * 
      * @return jltQuantity Number of JLTs issued
      */
     function depositBatch(
@@ -244,26 +243,35 @@ abstract contract JasmineBasePool is
     )
         external virtual
         nonReentrant onlyOperator(from) checkEligibilities(tokenIds)
-        returns (
-            bool success,
-            uint256 jltQuantity
-        )
+        returns (uint256 jltQuantity)
     {
         // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
         try EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "") {
-            return (true, amounts.sum());
+            return amounts.sum();
+        } catch Error(string memory reason) {
+            // TODO Attempt to determine other failure reasons
+            if (tokenIds.length != amounts.length) {
+                revert ERC1155Errors.ERC1155InvalidArrayLength(
+                    tokenIds.length,
+                    amounts.length
+                );
+            } else {
+                revert(reason);
+            }
         } catch {
-            return (false, 0);
+            revert("JasmineBasePool: Deposit failed");
         }
     }
 
     /**
      * @dev Utility function to deposit EATs to pool
      * 
+     * @dev Throw ERC1155InsufficientApproval if pool is not an approved operator
+     * 
      * @param from Address from which EATs will be transfered
      * @param tokenId ID of EAT to deposit into pool
      * @param amount Number of EATs to deposit
-     * @return success Whether deposit was successful
+     * 
      * @return jltQuantity Number of JLTs issued
      */
     function _deposit(
@@ -271,17 +279,28 @@ abstract contract JasmineBasePool is
         uint256 tokenId,
         uint256 amount
     )
-        private
-        returns (
-            bool success,
-            uint256 jltQuantity
-        )
+        internal virtual
+        returns (uint256 jltQuantity)
     {
         // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
         try EAT.safeTransferFrom(from, address(this), tokenId, amount, "") {
-            return (true, amount);
+            return amount;
+        } catch Error(string memory reason) {
+            // If failed, attempt to determine cause, else return reason string
+            if (!EAT.isApprovedForAll(from, address(this))) {
+                revert ERC1155Errors.ERC1155InsufficientApproval(address(this), tokenId);
+            } else if (EAT.balanceOf(from, tokenId) < amount) {
+                revert ERC1155Errors.ERC1155InsufficientBalance(
+                    from,
+                    EAT.balanceOf(from, tokenId),
+                    amount,
+                    tokenId
+                );
+            } else {
+                revert(reason);
+            }
         } catch {
-            return (false, 0);
+            revert("JasmineBasePool: Deposit failed");
         }
     }
 
@@ -308,7 +327,10 @@ abstract contract JasmineBasePool is
     )
         external virtual
         nonReentrant
-        returns (bool success)
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
     {
         return _withdraw(_msgSender(), recipient, amount, data);
     }
@@ -335,7 +357,10 @@ abstract contract JasmineBasePool is
     )
         external virtual
         nonReentrant onlyOperator(sender)
-        returns (bool success)
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
     {
         return _withdraw(sender, recipient, amount, data);
     }
@@ -385,10 +410,7 @@ abstract contract JasmineBasePool is
         _burn(sender, amountSum, "", "");
 
         // 3. Transfer Select Tokens
-        require(
-            _sendBatchEAT(recipient, tokenIds, amounts, data),
-            "JasminePool: Transfer failed"
-        );
+        _sendBatchEAT(recipient, tokenIds, amounts, data);
     }
 
     /**
@@ -406,7 +428,10 @@ abstract contract JasmineBasePool is
         bytes memory data // TODO: this should prob specify WHO is receiving data (burn or EAT transfer)
     )
         internal virtual
-        returns (bool success)
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
     {
         // 1. Ensure caller has sufficient JLTs
         if (balanceOf(sender) < amount) {
@@ -418,8 +443,8 @@ abstract contract JasmineBasePool is
 
         // 3. Select tokens to withdraw
         uint256 sum = 0;
-        uint256[] memory tokenIds;
-        uint256[] memory amounts;
+        tokenIds = new uint256[](1);
+        amounts  = new uint256[](1);
         while (sum != amount) {
             uint256 tokenId = _holdings.at(0);
             uint256 balance = EAT.balanceOf(address(this), tokenId);
@@ -438,7 +463,8 @@ abstract contract JasmineBasePool is
 
         // 4. Transfer EATs and return success
         _sendBatchEAT(recipient, tokenIds, amounts, data);
-        return true;
+
+        return (tokenIds, amounts);
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -615,21 +641,30 @@ abstract contract JasmineBasePool is
      * @param tokenId EAT token ID to send
      * @param amount Number of EAT to send
      * @param data Calldata to forward to `to` during ERC-1155 `safeTransferFrom`
-     * 
-     * @return success Whether send operation was successful
      */
     function _sendEAT(
         address to,
         uint256 tokenId,
         uint256 amount,
         bytes calldata data
-    ) internal returns (bool success) {
+    ) internal {
         try EAT.safeTransferFrom(address(this), to, tokenId, amount, data) {
             if (EAT.balanceOf(address(this), tokenId) == 0) _holdings.remove(tokenId);
             emit Withdraw(address(this), to, amount);
-            return true;
+        } catch Error(string memory reason) {
+            // If failed, attempt to determine cause, else return reason string
+            if (EAT.balanceOf(address(this), tokenId) < amount) {
+                revert ERC1155Errors.ERC1155InsufficientBalance(
+                    address(this),
+                    EAT.balanceOf(address(this), tokenId),
+                    amount,
+                    tokenId
+                );
+            } else {
+                revert(reason);
+            }
         } catch {
-            return false;
+            revert("JasmineBasePool: Send failed");
         }
     }
 
@@ -640,24 +675,24 @@ abstract contract JasmineBasePool is
      * @param tokenIds EAT token IDs to send
      * @param amounts Number of EATs to send
      * @param data Calldata to forward to `to` during ERC-1155 `safeTransferFrom`
-     * 
-     * @return success Whether send operation was successful
      */
     function _sendBatchEAT(
         address to,
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         bytes memory data
-    ) internal returns (bool success) {
+    ) internal {
         try EAT.safeBatchTransferFrom(address(this), to, tokenIds, amounts, data) {
             uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
             for (uint256 i = 0; i < balances.length; i++) {
                 if (balances[i] == 0) _holdings.remove(tokenIds[i]);
             }
             emit Withdraw(address(this), to, amounts.sum());
-            return true;
+        } catch Error(string memory reason) {
+            // TODO: Attempt to determine reason
+            revert(reason);
         } catch {
-            return false;
+            revert("JasmineBasePool: Send failed");
         }
     }
 

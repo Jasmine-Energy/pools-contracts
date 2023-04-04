@@ -204,7 +204,7 @@ function defaultOperators() external view returns (address[])
 ### deposit
 
 ```solidity
-function deposit(uint256 tokenId, uint256 amount) external nonpayable returns (bool success, uint256 jltQuantity)
+function deposit(uint256 tokenId, uint256 amount) external nonpayable returns (uint256 jltQuantity)
 ```
 
 Used to deposit EATs into the pool. 
@@ -216,19 +216,18 @@ Used to deposit EATs into the pool.
 | Name | Type | Description |
 |---|---|---|
 | tokenId | uint256 | ID of EAT to deposit into pool |
-| amount | uint256 | Number of EATs to deposit |
+| amount | uint256 | Number of EATs to deposit  |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| success | bool | Whether deposit was successful |
 | jltQuantity | uint256 | Number of JLTs issued |
 
 ### depositBatch
 
 ```solidity
-function depositBatch(address from, uint256[] tokenIds, uint256[] amounts) external nonpayable returns (bool success, uint256 jltQuantity)
+function depositBatch(address from, uint256[] tokenIds, uint256[] amounts) external nonpayable returns (uint256 jltQuantity)
 ```
 
  
@@ -241,13 +240,12 @@ function depositBatch(address from, uint256[] tokenIds, uint256[] amounts) exter
 |---|---|---|
 | from | address | Address from which EATs will be transfered |
 | tokenIds | uint256[] | IDs of EAT to deposit into pool |
-| amounts | uint256[] | Number of EATs to deposit |
+| amounts | uint256[] | Number of EATs to deposit  |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| success | bool | Whether deposit was successful |
 | jltQuantity | uint256 | Number of JLTs issued |
 
 ### granularity
@@ -403,7 +401,7 @@ function operatorBurn(address account, uint256 amount, bytes data, bytes operato
 ### operatorDeposit
 
 ```solidity
-function operatorDeposit(address from, uint256 tokenId, uint256 amount) external nonpayable returns (bool success, uint256 jltQuantity)
+function operatorDeposit(address from, uint256 tokenId, uint256 amount) external nonpayable returns (uint256 jltQuantity)
 ```
 
 Used to deposit EATs on behalf of another address into the pool. 
@@ -416,13 +414,12 @@ Used to deposit EATs on behalf of another address into the pool.
 |---|---|---|
 | from | address | Address from which EATs will be transfered |
 | tokenId | uint256 | ID of EAT to deposit into pool |
-| amount | uint256 | Number of EATs to deposit |
+| amount | uint256 | Number of EATs to deposit  |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| success | bool | Whether deposit was successful |
 | jltQuantity | uint256 | Number of JLTs issued |
 
 ### operatorSend
@@ -448,7 +445,7 @@ function operatorSend(address sender, address recipient, uint256 amount, bytes d
 ### operatorWithdraw
 
 ```solidity
-function operatorWithdraw(address sender, address recipient, uint256 amount, bytes data) external nonpayable returns (bool success)
+function operatorWithdraw(address sender, address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
 Used to convert JLTs from sender into EATs which are sent         to recipient. 
@@ -468,7 +465,8 @@ Used to convert JLTs from sender into EATs which are sent         to recipient.
 
 | Name | Type | Description |
 |---|---|---|
-| success | bool | undefined |
+| tokenIds | uint256[] | undefined |
+| amounts | uint256[] | undefined |
 
 ### policyForVersion
 
@@ -512,7 +510,7 @@ function poolFactory() external view returns (address)
 ### retire
 
 ```solidity
-function retire(address sender, address beneficiary, uint256 quantity, bytes data) external nonpayable returns (bool success)
+function retire(address sender, address beneficiary, uint256 quantity, bytes data) external nonpayable
 ```
 
 
@@ -527,12 +525,6 @@ function retire(address sender, address beneficiary, uint256 quantity, bytes dat
 | beneficiary | address | undefined |
 | quantity | uint256 | undefined |
 | data | bytes | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| success | bool | undefined |
 
 ### revokeOperator
 
@@ -691,7 +683,7 @@ function transferFrom(address holder, address recipient, uint256 amount) externa
 ### withdraw
 
 ```solidity
-function withdraw(address recipient, uint256 amount, bytes data) external nonpayable returns (bool success)
+function withdraw(address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
 Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         from an alternate address - that the caller&#39;s approved for -          defer to operatorWithdraw. 
@@ -710,7 +702,8 @@ Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         
 
 | Name | Type | Description |
 |---|---|---|
-| success | bool | undefined |
+| tokenIds | uint256[] | undefined |
+| amounts | uint256[] | undefined |
 
 ### withdrawSpecific
 
@@ -922,6 +915,42 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 
 
 ## Errors
+
+### ERC1155InsufficientApproval
+
+```solidity
+error ERC1155InsufficientApproval(address operator, uint256 tokenId)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| operator | address | undefined |
+| tokenId | uint256 | undefined |
+
+### ERC1155InsufficientBalance
+
+```solidity
+error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender | address | undefined |
+| balance | uint256 | undefined |
+| needed | uint256 | undefined |
+| tokenId | uint256 | undefined |
 
 ### ERC1155InvalidArrayLength
 
