@@ -29,7 +29,7 @@ jobs:
       - run: npm install --legacy-peer-deps
         shell: bash
         env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Compile Contracts
         run: npm run build
       - name: Run Lint
