@@ -6,6 +6,7 @@ on:
       - dev
       - dev/*
       - refactor-pools
+      - fixing-github-actions 
   pull_request:
     branches:
       - main
