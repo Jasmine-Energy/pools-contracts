@@ -35,6 +35,8 @@ describe(Contracts.pool, function () {
         poolImplementation = (await loadFixture(deployPoolImplementation)).poolImplementation;
 
         const PoolFactory = await ethers.getContractFactory(Contracts.factory);
+        // NOTE: This errors when no deployment folder's been created
+        // TODO: Fix above requirement of having deploy
         poolFactory = (await PoolFactory.deploy(poolImplementation.address)) as JasminePoolFactory;
     });
 

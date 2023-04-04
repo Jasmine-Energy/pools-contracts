@@ -124,6 +124,10 @@ const config: HardhatUserConfig = {
     typechain: {
         outDir: './typechain',
     },
+    dodoc: {
+        exclude: ['elin', 'energy'],
+        // freshOutput: false // NOTE: Found this fixes annoying iCloud overrides
+    },
     etherscan: {
         apiKey: process.env.ETHERSCAN_API_KEY,
     },
