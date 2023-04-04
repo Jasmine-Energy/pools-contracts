@@ -834,15 +834,15 @@ event Deposit(address indexed operator, address indexed owner, uint256 quantity)
 
 
 
-*Emitted whenever EATs are deposited to the contract *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator `indexed` | address | Initiator of the deposit |
-| owner `indexed` | address | Token holder depositting to contract |
-| quantity  | uint256 | Number of EATs deposited. Note: JLTs issued are 1-1 with EATs |
+| operator `indexed` | address | undefined |
+| owner `indexed` | address | undefined |
+| quantity  | uint256 | undefined |
 
 ### Initialized
 
@@ -944,19 +944,54 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 
 
 
-*Emitted whenever EATs are withdrawn from the contract *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| sender `indexed` | address | Initiator of the deposit |
-| receiver `indexed` | address | Token holder depositting to contract |
-| quantity  | uint256 | Number of EATs withdrawn. |
+| sender `indexed` | address | undefined |
+| receiver `indexed` | address | undefined |
+| quantity  | uint256 | undefined |
 
 
 
 ## Errors
+
+### ERC1155InvalidArrayLength
+
+```solidity
+error ERC1155InvalidArrayLength(uint256 idsLength, uint256 valuesLength)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| idsLength | uint256 | undefined |
+| valuesLength | uint256 | undefined |
+
+### ERC20InsufficientBalance
+
+```solidity
+error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender | address | undefined |
+| balance | uint256 | undefined |
+| needed | uint256 | undefined |
 
 ### Prohibited
 

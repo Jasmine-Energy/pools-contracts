@@ -24,7 +24,11 @@ import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 import { PoolPolicy } from "../libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { ArrayUtils } from "../libraries/ArrayUtils.sol";
-import { JasmineErrors } from "../utilities/JasmineErrors.sol";
+import { 
+    JasmineErrors,
+    ERC20Errors,
+    ERC1155Errors
+} from "../utilities/JasmineErrors.sol";
 
 // Interfaces
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
@@ -40,10 +44,8 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Jasmine's Base Pool contract which other pools extend as needed
  * @custom:security-contact dev@jasmine.energy
- * 
- * QUESTION: Make abstract?
  */
-contract JasmineBasePool is
+abstract contract JasmineBasePool is
     ERC777,
     ERC1046,
     ERC1155Holder,
@@ -136,10 +138,7 @@ contract JasmineBasePool is
     }
 
     /**
-     * @dev Initializer function for proxy deployments to call.
-     * 
-     * @dev Requirements:
-     *     - Caller must be factory
+     * @dev Initializer function to set name and symbol
      *
      * @param name_ JLT token name
      * @param symbol_ JLT token symbol
@@ -148,8 +147,8 @@ contract JasmineBasePool is
         string calldata name_,
         string calldata symbol_
     )
-        public
-        initializer onlyInitializing onlyFactory
+        internal
+        onlyInitializing
     {
         _name = name_;
         _symbol = symbol_;
@@ -169,7 +168,7 @@ contract JasmineBasePool is
         uint256 quantity,
         bytes calldata data
     )
-        external
+        external virtual
         nonReentrant onlyOperator(sender)
         returns (bool success)
     {
@@ -194,7 +193,7 @@ contract JasmineBasePool is
         uint256 tokenId,
         uint256 amount
     )
-        external
+        external virtual
         nonReentrant checkEligibility(tokenId)
         returns (bool success, uint256 jltQuantity)
     {
@@ -220,7 +219,7 @@ contract JasmineBasePool is
         uint256 tokenId,
         uint256 amount
     )
-        external
+        external virtual
         nonReentrant onlyOperator(from) checkEligibility(tokenId)
         returns (bool success, uint256 jltQuantity)
     {
@@ -243,7 +242,7 @@ contract JasmineBasePool is
         uint256[] calldata tokenIds,
         uint256[] calldata amounts
     )
-        external
+        external virtual
         nonReentrant onlyOperator(from) checkEligibilities(tokenIds)
         returns (
             bool success,
@@ -307,11 +306,11 @@ contract JasmineBasePool is
         uint256 amount,
         bytes calldata data
     )
-        external
+        external virtual
         nonReentrant
         returns (bool success)
     {
-        success = _withdraw(_msgSender(), recipient, amount, data);
+        return _withdraw(_msgSender(), recipient, amount, data);
     }
 
     /**
@@ -334,11 +333,11 @@ contract JasmineBasePool is
         uint256 amount,
         bytes calldata data
     )
-        external
+        external virtual
         nonReentrant onlyOperator(sender)
         returns (bool success)
     {
-        success = _withdraw(sender, recipient, amount, data);
+        return _withdraw(sender, recipient, amount, data);
     }
 
     /**
@@ -365,19 +364,22 @@ contract JasmineBasePool is
         uint256[] calldata amounts,
         bytes calldata data
     ) 
-        external
+        external virtual
         nonReentrant onlyOperator(sender)
     {
         // 1. Ensure sender has sufficient JLTs and lengths match
         uint256 amountSum = amounts.sum();
-        require(
-            balanceOf(sender) >= amountSum,
-            "JasminePool: Insufficient funds"
-        );
-        require(
-            tokenIds.length == amounts.length,
-            "JasminePool: Length of token IDs and amounts must match"
-        );
+        if (balanceOf(sender) < amountSum)
+            revert ERC20Errors.ERC20InsufficientBalance(
+                sender,
+                balanceOf(sender),
+                amountSum
+            );
+        if (tokenIds.length != amounts.length)
+            revert ERC1155Errors.ERC1155InvalidArrayLength(
+                tokenIds.length,
+                amounts.length
+            );
 
         // 2. Burn Tokens
         _burn(sender, amountSum, "", "");
@@ -393,6 +395,9 @@ contract JasmineBasePool is
      * @notice Internal implementation of withdraw
      * 
      * @dev Burns `amount` of JLTs from `sender` and transfers EATs to recipient with `data`.
+     * 
+     * @dev Throws ERC20InsufficientBalance if sender does not have sufficient JLTs
+     * 
      */
     function _withdraw(
         address sender,
@@ -400,14 +405,13 @@ contract JasmineBasePool is
         uint256 amount,
         bytes memory data // TODO: this should prob specify WHO is receiving data (burn or EAT transfer)
     )
-        private
+        internal virtual
         returns (bool success)
     {
         // 1. Ensure caller has sufficient JLTs
-        require(
-            balanceOf(sender) >= amount,
-            "JasminePool: Insufficient funds"
-        );
+        if (balanceOf(sender) < amount) {
+            revert ERC20Errors.ERC20InsufficientBalance(sender, balanceOf(sender), amount);
+        }
 
         // 2. Burn Tokens
         _burn(sender, amount, "", "");
@@ -446,7 +450,7 @@ contract JasmineBasePool is
     // @inheritdoc {IQualifiedPool}
     // TODO: Once pool conforms to IJasminePool again, add above line to natspec
     function meetsPolicy(uint256 tokenId)
-        public view
+        public view virtual
         returns (bool isEligible)
     {
         isEligible = _isLegitimateToken(tokenId);
@@ -455,7 +459,7 @@ contract JasmineBasePool is
     // @inheritdoc {IQualifiedPool}
     // TODO: Once pool conforms to IJasminePool again, add above line to natspec
     function policyForVersion(uint8 metadataVersion)
-        external view
+        external view virtual
         returns (bytes memory policy)
     {
         require(metadataVersion == 1, "JasminePool: No policy for version");
@@ -481,27 +485,31 @@ contract JasmineBasePool is
         return super.totalSupply();
     }
 
-    function name()
-        public
-        view
-        override(ERC777, IERC20Metadata)
-        returns (string memory)
-    {}
+    /**
+     * @inheritdoc ERC777
+     * @dev See {IERC777-name}
+     */
+    function name() public view override(ERC777, IERC20Metadata) returns (string memory) {
+        return _name;
+    }
 
-    function symbol()
-        public
-        view
-        override(ERC777, IERC20Metadata)
-        returns (string memory)
-    {}
+    /**
+     * @inheritdoc ERC777
+     * @dev See {IERC777-symbol}
+     */
+    function symbol() public view override(ERC777, IERC20Metadata) returns (string memory) {
+        return _symbol;
+    }
 
-    function decimals()
-        public
-        pure
-        virtual
-        override(ERC777, IERC20Metadata)
-        returns (uint8)
-    {}
+    /**
+     * @notice All Jasmine Pools have 9 decimal points
+     * 
+     * @inheritdoc ERC777
+     * @dev See {ERC20-decimals}.
+     */
+    function decimals() public pure override(ERC777, IERC20Metadata) returns (uint8) {
+        return _decimals;
+    }
 
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
@@ -568,10 +576,11 @@ contract JasmineBasePool is
         returns (bytes4)
     {
         // 1. Ensure tokens received are EATs
-        require(
-            tokenIds.length == values.length,
-            "JasminePool: Length of token IDs and values must match"
-        );
+        if (tokenIds.length != values.length)
+            revert ERC1155Errors.ERC1155InvalidArrayLength(
+                tokenIds.length,
+                values.length
+            );
 
         // 2. Verify all tokens are eligible for pool, add to holdings and sum total EATs received
         uint256 total;

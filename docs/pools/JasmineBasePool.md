@@ -173,9 +173,9 @@ function burn(uint256 amount, bytes data) external nonpayable
 function decimals() external pure returns (uint8)
 ```
 
+All Jasmine Pools have 9 decimal points 
 
-
-
+*See {ERC20-decimals}.*
 
 
 #### Returns
@@ -267,23 +267,6 @@ function granularity() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
-### initialize
-
-```solidity
-function initialize(string name_, string symbol_) external nonpayable
-```
-
-
-
-*Initializer function for proxy deployments to call. Requirements:     - Caller must be factory*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| name_ | string | JLT token name |
-| symbol_ | string | JLT token symbol |
-
 ### isOperatorFor
 
 ```solidity
@@ -337,7 +320,7 @@ function name() external view returns (string)
 
 
 
-
+*See {IERC777-name}*
 
 
 #### Returns
@@ -615,7 +598,7 @@ function symbol() external view returns (string)
 
 
 
-
+*See {IERC777-symbol}*
 
 
 #### Returns
@@ -939,6 +922,41 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 
 
 ## Errors
+
+### ERC1155InvalidArrayLength
+
+```solidity
+error ERC1155InvalidArrayLength(uint256 idsLength, uint256 valuesLength)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| idsLength | uint256 | undefined |
+| valuesLength | uint256 | undefined |
+
+### ERC20InsufficientBalance
+
+```solidity
+error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender | address | undefined |
+| balance | uint256 | undefined |
+| needed | uint256 | undefined |
 
 ### Prohibited
 
