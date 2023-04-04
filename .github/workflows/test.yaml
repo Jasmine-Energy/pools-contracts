@@ -1,0 +1,28 @@
+name: test
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install packages
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      - run: npm install --legacy-peer-deps
+        shell: bash
+      - name: Compile Contracts
+        run: npm run build
+      - name: Run Hardhat Tests
+        run: npm run test
