@@ -503,10 +503,18 @@ abstract contract JasmineBasePool is
     // Overrides
     // ──────────────────────────────────────────────────────────────────────────────
 
+    /**
+     * @inheritdoc ERC777
+     * @dev See {IERC777-balanceOf}
+     */
     function balanceOf(address account) public view override(ERC777, IERC20) returns (uint256) {
         return super.balanceOf(account);
     }
 
+    /**
+     * @inheritdoc ERC777
+     * @dev See {IERC777-totalSupply}
+     */
     function totalSupply() public view override(ERC777, IERC20) returns (uint256) {
         return super.totalSupply();
     }

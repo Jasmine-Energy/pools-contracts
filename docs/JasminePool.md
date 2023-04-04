@@ -136,7 +136,7 @@ function balanceOf(address account) external view returns (uint256)
 
 
 
-
+*See {IERC777-balanceOf}*
 
 #### Parameters
 
@@ -659,7 +659,7 @@ function totalSupply() external view returns (uint256)
 
 
 
-
+*See {IERC777-totalSupply}*
 
 
 #### Returns

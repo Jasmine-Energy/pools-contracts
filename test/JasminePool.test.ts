@@ -6,10 +6,11 @@ import {
     JasminePool, JasminePoolFactory, 
     JasmineEAT, JasmineOracle, JasmineMinter
 } from "@/typechain";
-import { deployCoreFixture, deployLibrariesFixture } from "./shared/fixtures";
+import { deployPoolImplementation, deployCoreFixture, deployLibrariesFixture } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
+import { mintEat } from "./shared/utilities";
 
 
 describe(Contracts.pool, function () {
@@ -26,26 +27,12 @@ describe(Contracts.pool, function () {
     });
 
     before(async function() {
-        const { eat, oracle } = await loadFixture(deployCoreFixture);
-        const { policyLibAddress, arrayUtilsLibAddress } = await loadFixture(deployLibrariesFixture);
         const namedAccounts = await getNamedAccounts();
         owner = await ethers.getSigner(namedAccounts.owner);
         bridge = await ethers.getSigner(namedAccounts.bridge);
         accounts = await ethers.getSigners();
 
-        const ownerNonce = await owner.getTransactionCount();
-        const poolFactoryFutureAddress = ethers.utils.getContractAddress({
-            from: owner.address,
-            nonce: ownerNonce + 1,
-        });
-
-        const Pool = await ethers.getContractFactory(Contracts.pool, {
-            libraries: {
-                PoolPolicy: policyLibAddress,
-                ArrayUtils: arrayUtilsLibAddress
-            }
-        });
-        poolImplementation = (await Pool.deploy(eat.address, oracle.address, poolFactoryFutureAddress)) as JasminePool;
+        poolImplementation = (await loadFixture(deployPoolImplementation)).poolImplementation;
 
         const PoolFactory = await ethers.getContractFactory(Contracts.factory);
         poolFactory = (await PoolFactory.deploy(poolImplementation.address)) as JasminePoolFactory;
@@ -71,9 +58,35 @@ describe(Contracts.pool, function () {
     });
 
     describe("Access Control", async function () {
+        // TODO
     });
 
     describe("Deposit", async function () {
+        describe("#deposit", async function () {
+            it("Should allow deposit of eligible tokens", async function() {
+                await mintEat(owner.address);
+            });
+    
+            it("Should reject ineligible tokens", async function() {
+            });
+        });
+
+        describe("#operatorDeposit", async function () {
+        });
+
+        describe("#depositBatch", async function () {
+        });
+
+        describe("#onERC1155Received", async function () {
+            it("Should allow deposit of eligible tokens", async function() {
+            });
+    
+            it("Should reject ineligible tokens", async function() {
+            });
+        });
+
+        describe("#onERC1155BatchReceived", async function () {
+        });
     });
 
     describe("Withdraw", async function () {
