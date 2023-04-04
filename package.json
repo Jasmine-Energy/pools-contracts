@@ -8,7 +8,7 @@
   "author": "Kai Aldag <kai.aldag@jasmine.energy>",
   "scripts": {
     "build": "npx hardhat compile",
-    "test": "npx hardhat test",
+    "test": "npx hardhat test --network hardhat",
     "start": "npx hardhat compile && npx hardhat node --network hardhat",
     "clean": "npx hardhat clean",
     "lint": "solhint 'contracts/**/*.sol'",
