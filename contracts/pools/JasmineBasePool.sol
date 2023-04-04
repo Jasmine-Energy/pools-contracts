@@ -25,10 +25,10 @@ import { PoolPolicy } from "../libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { ArrayUtils } from "../libraries/ArrayUtils.sol";
 import { 
-    JasmineErrors,
     ERC20Errors,
     ERC1155Errors
-} from "../utilities/JasmineErrors.sol";
+} from "../interfaces/ERC/IERC6093.sol";
+import { JasmineErrors } from "../interfaces/errors/JasmineErrors.sol";
 
 // Interfaces
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";

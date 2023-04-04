@@ -16,7 +16,7 @@ import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
 // Utility Libraries
 import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import { JasmineErrors } from "./utilities/JasmineErrors.sol";
+import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 
 /**

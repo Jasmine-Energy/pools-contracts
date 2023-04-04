@@ -26,7 +26,7 @@ import { PoolPolicy } from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { JasmineErrors } from "./utilities/JasmineErrors.sol";
+import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 
 /**

@@ -10,11 +10,14 @@ This repository contains the smart contracts for Jasmine's Reference Pools. Refe
 
 ## Contracts Overview
 
+### Full Documentation
+For full documentation about the contracts, [view docs](./docs/).
+
 ## Local Development
 This repository uses [Hardhat](https://hardhat.org/) as its IDE.
 
 ### Installation
 To install dependencies, run `npm install --legacy-peer-deps`.
 
-## License
-The license for Jasmine Reference Pools is the Business Source License 1.1 (`BUSL-1.1`), see [LICENSE](./LICENSE).
+## Licenses
+Jasmine Reference Pool contracts are licensed under the Business Source License 1.1 (`BUSL-1.1`), see [LICENSE](./LICENSE). However, all contract interfaces, located in [`/contracts/interfaces`](./contracts/interfaces), are MIT licensed, see [MIT license](./contracts/interfaces/LICENSE).
