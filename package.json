@@ -10,6 +10,7 @@
     "build": "npx hardhat compile",
     "test": "npx hardhat test",
     "start": "npx hardhat compile && npx hardhat node --network hardhat",
+    "clean": "npx hardhat clean",
     "lint": "solhint 'contracts/**/*.sol'",
     "lint:fix": "solhint 'contracts/**/*.sol' --fix",
     "interact": "npx hardhat interact"
