@@ -12,5 +12,7 @@
         "skipLibCheck": true,
         "strict": true,
         "target": "es2021"
-    }
+    },
+    "include": ["./scripts", "./deploy", "./test", "./tasks", "./utils", "./types", "./typechain-types"],
+    "files": ["./hardhat.config.ts"]
 }

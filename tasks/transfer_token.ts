@@ -2,7 +2,6 @@
 import { task } from 'hardhat/config';
 import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
 import { colouredLog, Contracts } from '@/utils';
-import { IERC1155Upgradeable__factory } from '@/typechain';
 
 
 task('transfer', 'Transfers an EAT')
@@ -15,10 +14,18 @@ task('transfer', 'Transfers an EAT')
     .setAction(
         async (
             taskArgs: TaskArguments,
-            { ethers, deployments, getNamedAccounts, }: HardhatRuntimeEnvironment
+            { ethers, deployments, getNamedAccounts, run }: HardhatRuntimeEnvironment
         ): Promise<void> => {
+
+            // 1. Check if typechain exists. If not, compile and explicitly generate typings
+            if (!tryRequire('@/typechain')) {
+                await run('compile');
+                await run('typechain');
+            }
+            // @ts-ignore
+            const { IERC1155Upgradeable__factory } = await import('@/typechain');
             
-            // 1. Load required accounts, contracts and info
+            // 2. Load required accounts, contracts and info
             const { eat } = await getNamedAccounts();
             const sender = taskArgs.sender ?
                 await ethers.getSigner(taskArgs.sender) : 
@@ -30,7 +37,7 @@ task('transfer', 'Transfers an EAT')
             const quantity = BigInt(taskArgs.quantity);
             const contract = IERC1155Upgradeable__factory.connect(contractAddress, sender);
 
-            // 2. Verify ownership of token
+            // 3. Verify ownership of token
             const tokenBalance = await contract.balanceOf(sender.address, tokenId);
             if (tokenBalance.lt(quantity)) {
                 colouredLog.red(
@@ -39,7 +46,7 @@ task('transfer', 'Transfers an EAT')
                 return;
             }
 
-            // 3. Initiate transfer
+            // 4. Initiate transfer
             const sendTx = await contract.safeTransferFrom(
                 sender.address,
                 recipient,
@@ -54,3 +61,13 @@ task('transfer', 'Transfers an EAT')
             );
         }
     );
+
+function tryRequire(id: string) {
+  try {
+    require(id);
+    return true;
+  } catch (e: any) {
+    // do nothing
+  }
+  return false;
+}
