@@ -25,14 +25,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Authenticate with private NPM package
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.ACTIONS_TOKEN }}" > ~/.npmrc
+        run: |
+          echo "@jasmine:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.ACTIONS_TOKEN }}" >> .npmrc
       - name: Install packages
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
       - run: npm install --legacy-peer-deps
         shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.ACTIONS_TOKEN }}
       - name: Compile Contracts
         run: npm run build
       - name: Run Hardhat Tests
         run: npm run test
+
