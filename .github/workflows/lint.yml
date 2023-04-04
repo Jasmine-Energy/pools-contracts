@@ -9,20 +9,27 @@ on:
       - main
       - dev
   workflow_dispatch:
+permissions:
+  contents: read
+  packages: read
 jobs:
   lint:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v3
-      - name: Sent Env Var
-        run: export NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+      - name: Authenticate with private NPM package
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - name: Install packages
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
       - run: npm install --legacy-peer-deps
         shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
       - name: Compile Contracts
         run: npm run build
       - name: Run Lint
