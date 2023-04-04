@@ -18,7 +18,7 @@ permissions:
   packages: read
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, factory]
     permissions:
       contents: read
       packages: read
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Authenticate with private NPM package
         run: |
-          echo "@jasmine:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "@https://npm.pkg.github.com" >> .npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.ACTIONS_TOKEN }}" >> .npmrc
       - name: Install packages
         uses: actions/setup-node@v3
