@@ -114,8 +114,6 @@ contract JasminePool is ERC777, ERC1046, ERC1155Holder, Initializable, Reentranc
         require(_oracle != address(0), "JasminePool: Oracle must be set");
         require(_poolFactory != address(0), "JasminePool: Pool factory must be set");
 
-        // TODO: Add supports interface checks
-
         oracle = JasmineOracle(_oracle);
         EAT = JasmineEAT(_eat);
         poolFactory = _poolFactory;
