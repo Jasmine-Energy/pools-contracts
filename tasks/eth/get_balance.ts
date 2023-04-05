@@ -8,5 +8,5 @@ task('balance', 'Prints an account\'s balance')
         const account: string = utils.getAddress(taskArgs.account);
         const balance: BigNumber = await ethers.getDefaultProvider().getBalance(account);
 
-        console.log(`${utils.formatEther(balance)} ETH`);
+        console.log(`${utils.formatEther(balance)}${ethers.constants.EtherSymbol}`);
     });

@@ -58,7 +58,7 @@ const config: HardhatUserConfig = {
             tags: ['tenderly']
         },
         mumbai: {
-            url: 'https://matic-testnet-archive-rpc.bwarelabs.com',
+            url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
             chainId: 80001,
             saveDeployments: true,
             tags: ['testnet', 'public'],

@@ -24,33 +24,36 @@ const deployCore: DeployFunction = async function (
 
     // 2. Deploy EAT Contract
     const EAT = await ethers.getContractFactory(Contracts.eat);
-    const eat = await upgrades.deployProxy(EAT, [
+    const eatArgs = [
         tokenURI,               // initialURI
         futureMinterAddress,    // initialMinter
         owner,                  // initialOwner
-    ], {
+    ];
+    const eat = await upgrades.deployProxy(EAT, eatArgs, {
         kind: 'uups',
     });
     await eat.deployed();
 
     // 3. Deploy Oracle Contract
     const Oracle = await ethers.getContractFactory(Contracts.oracle);
-    const oracle = await upgrades.deployProxy(Oracle, [
+    const oracleArgs = [
         futureMinterAddress,    // initialMinter
         owner,                  // initialOwner
-    ], {
+    ];
+    const oracle = await upgrades.deployProxy(Oracle, oracleArgs, {
         kind: 'uups',
     });
     await oracle.deployed();
 
     // 4. Deploy Minter Contract
     const Minter = await ethers.getContractFactory(Contracts.minter);
-    const minter = await upgrades.deployProxy(Minter, [
+    const minterArgs = [
         Contracts.minter, 
         '1', 
         bridge,
         owner
-    ],
+    ];
+    const minter = await upgrades.deployProxy(Minter, minterArgs,
     {
         unsafeAllow: ['constructor', 'state-variable-immutable'],
         constructorArgs: [eat.address, oracle.address],
@@ -68,18 +71,21 @@ const deployCore: DeployFunction = async function (
         abi: <string[]>EAT.interface.format(FormatTypes.full),
         address: eat.address,
         transactionHash: eat.deployTransaction.hash,
+        args: eatArgs,
         implementation: eatImplementationAddress
     });
     await save(Contracts.oracle, {
         abi: <string[]>Oracle.interface.format(FormatTypes.full),
         address: oracle.address,
         transactionHash: oracle.deployTransaction.hash,
+        args: oracleArgs,
         implementation: oracleImplementationAddress
     });
     await save(Contracts.minter, {
         abi: <string[]>Minter.interface.format(FormatTypes.full),
         address: minter.address,
         transactionHash: minter.deployTransaction.hash,
+        args: minterArgs,
         implementation: minterImplementationAddress
     });
     const contracts = [

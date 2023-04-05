@@ -106,6 +106,7 @@ describe(Contracts.factory, function () {
         });
 
         it("Should correcly predict the new pool's address from policy", async function() {
+            // TODO: Predict client side via ethers.utils.getCreate2Address
             const newPolicy = {
                 vintagePeriod: [
                     Math.ceil(new Date().valueOf() / 1_000),
