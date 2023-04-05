@@ -35,6 +35,7 @@ const accounts = {
     passphrase: '',
 };
 
+// TODO: exclude openzeppelin from dodoc generation
 const config: HardhatUserConfig = {
     defaultNetwork: 'localhost',
     networks: {
@@ -53,7 +54,7 @@ const config: HardhatUserConfig = {
         },
         tenderly: {
             accounts,
-            url: 'https://rpc.tenderly.co/fork/20e808f7-4569-4778-933b-87706fac8e39',//`https://rpc.tenderly.co/fork/${process.env.TENDERLY_FORK_ID}`,
+            url: 'https://rpc.tenderly.co/fork/20e808f7-4569-4778-933b-87706fac8e39',
             tags: ['tenderly']
         },
         mumbai: {
@@ -122,6 +123,10 @@ const config: HardhatUserConfig = {
     },
     typechain: {
         outDir: './typechain',
+    },
+    dodoc: {
+        exclude: ['elin', 'energy'],
+        // freshOutput: false // NOTE: Found this fixes annoying iCloud overrides
     },
     etherscan: {
         apiKey: process.env.ETHERSCAN_API_KEY,

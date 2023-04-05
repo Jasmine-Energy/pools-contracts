@@ -365,6 +365,22 @@ Emitted when a pool implementations is removed
 
 ## Errors
 
+### InvalidConformance
+
+```solidity
+error InvalidConformance(bytes4 interfaceId)
+```
+
+
+
+*Emitted for failed supportsInterface check - per ERC-165*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| interfaceId | bytes4 | undefined |
+
 ### NoPool
 
 ```solidity

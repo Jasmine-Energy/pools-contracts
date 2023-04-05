@@ -16,10 +16,10 @@ library Calldata {
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /// @dev Calldata prefix for retirement operations
-    bytes32 constant RETIREMENT_OP = keccak256("RETIRE");
+    bytes32 public constant RETIREMENT_OP = keccak256("RETIRE");
 
     /// @dev Calldata prefix for bridge-off operations
-    bytes32 constant BRIDGE_OFF_OP = keccak256("BRIDGE OFF");
+    bytes32 public constant BRIDGE_OFF_OP = keccak256("BRIDGE OFF");
     
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Utility Functions
@@ -28,7 +28,7 @@ library Calldata {
 
     //  ────────────────────────────────  Encoding  ────────────────────────────────  \\
 
-    function encodeRetirementCalldata(address benificiary, bytes32 memoHash) external view returns (bytes memory data) {
-
+    function encodeRetirementCalldata(address, bytes32) external pure returns (bytes memory) {
+        revert("Calldata: Unimplemented");
     }
 }

@@ -1,4 +1,7 @@
 
+// NOTE This is uint32 max reserved value defined in PoolPolicy.sol
+const AnyField = 4_294_967_295;
+
 const Contracts = {
     // Pool Contracts
     pool: 'JasminePool',
@@ -17,5 +20,6 @@ const Libraries = {
 };
 
 export {
+    AnyField,
     Contracts, Libraries
 };

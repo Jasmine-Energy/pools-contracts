@@ -8,7 +8,8 @@
   "author": "Kai Aldag <kai.aldag@jasmine.energy>",
   "scripts": {
     "build": "npx hardhat compile",
-    "test": "npx hardhat test",
+    "test": "npx hardhat test --network hardhat",
+    "test:trace": "npx hardhat test --network hardhat --trace-error --gascost",
     "start": "npx hardhat compile && npx hardhat node --network hardhat",
     "clean": "npx hardhat clean",
     "lint": "solhint 'contracts/**/*.sol'",
@@ -29,7 +30,7 @@
     "url": "https://github.com/Jasmine-Energy/v1-pools-contracts/issues"
   },
   "dependencies": {
-    "@jasmine-energy/contracts": "^1.0.0",
+    "@jasmine-energy/contracts": "^1.0.1",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",
     "eslint": "^8.36.0"
@@ -39,7 +40,7 @@
     "@ethersproject/providers": "^5.7.2",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
-    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "@nomiclabs/hardhat-ethers": "^2.2.2",
     "@nomiclabs/hardhat-etherscan": "^3.1.7",
     "@openzeppelin/contracts": "^4.8.2",
@@ -53,6 +54,7 @@
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.15.3",
     "chai": "^4.3.7",
+    "cli-table3": "^0.6.3",
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
     "hardhat": "^2.13.0",

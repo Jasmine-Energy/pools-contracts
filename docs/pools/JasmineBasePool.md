@@ -1,10 +1,10 @@
-# JasminePool
+# JasmineBasePool
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> Jasmine Reference Pool
+> Jasmine Base Pool
 
-TODO: Write docs
+Jasmine&#39;s Base Pool contract which other pools extend as needed
 
 
 
@@ -226,24 +226,6 @@ function granularity() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
-### initialize
-
-```solidity
-function initialize(bytes policy_, string name_, string symbol_) external nonpayable
-```
-
-
-
-*Initializer function for proxy deployments to call. Requirements:     - Caller must be factory*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| policy_ | bytes | Deposit Policy Conditions |
-| name_ | string | JLT token name |
-| symbol_ | string | JLT token symbol |
-
 ### isOperatorFor
 
 ```solidity
@@ -446,23 +428,6 @@ Used to convert JLTs from sender into EATs which are sent         to recipient.
 |---|---|---|
 | tokenIds | uint256[] | undefined |
 | amounts | uint256[] | undefined |
-
-### oracle
-
-```solidity
-function oracle() external view returns (contract JasmineOracle)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract JasmineOracle | undefined |
 
 ### policyForVersion
 
@@ -788,15 +753,15 @@ event Deposit(address indexed operator, address indexed owner, uint256 quantity)
 
 
 
-
+*Emitted whenever EATs are deposited to the contract *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator `indexed` | address | undefined |
-| owner `indexed` | address | undefined |
-| quantity  | uint256 | undefined |
+| operator `indexed` | address | Initiator of the deposit |
+| owner `indexed` | address | Token holder depositting to contract |
+| quantity  | uint256 | Number of EATs deposited. Note: JLTs issued are 1-1 with EATs |
 
 ### Initialized
 
@@ -898,15 +863,15 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 
 
 
-
+*Emitted whenever EATs are withdrawn from the contract *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| sender `indexed` | address | undefined |
-| receiver `indexed` | address | undefined |
-| quantity  | uint256 | undefined |
+| sender `indexed` | address | Initiator of the deposit |
+| receiver `indexed` | address | Token holder depositting to contract |
+| quantity  | uint256 | Number of EATs withdrawn. |
 
 
 
