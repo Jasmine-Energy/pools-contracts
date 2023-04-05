@@ -1,5 +1,6 @@
 # Jasmine Reference Pools
 
+[![test](https://github.com/Jasmine-Energy/v1-pools-contracts/actions/workflows/test.yml/badge.svg)](https://github.com/Jasmine-Energy/v1-pools-contracts/actions/workflows/test.yml)
 [![GitBook - Documentation](https://img.shields.io/badge/GitBook-Documentation-orange?logo=gitbook&logoColor=white)](https://docs.jasmine.energy/)
 [![Chat](https://img.shields.io/discord/1012757430779789403)](https://discord.gg/bcGUebezJb)
 [![License: BUSL 1.1](https://img.shields.io/badge/License-BUSL%201.1-blue.svg)](./LICENSE)
