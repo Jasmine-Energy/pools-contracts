@@ -19,6 +19,8 @@ permissions:
 jobs:
   test:
     runs-on: [self-hosted, factory]
+    env:
+      ACTIONS_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
     permissions:
       contents: read
       packages: read
