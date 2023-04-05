@@ -48,7 +48,7 @@ describe(Contracts.pool, function () {
 
         mintEat = makeMintFunction(minter);
 
-        poolImplementation = (await loadFixture(deployPoolImplementation)).poolImplementation;
+        poolImplementation = await loadFixture(deployPoolImplementation)
 
         const PoolFactory = await ethers.getContractFactory(Contracts.factory);
         // NOTE: This errors when no deployment folder's been created
@@ -67,9 +67,9 @@ describe(Contracts.pool, function () {
         const anyTechPoolAddress = await poolFactory.getPoolAtIndex(2);
 
         return {
-            solarPool: poolImplementation.attach(solarPoolAddress),
-            windPool: poolImplementation.attach(windPoolAddress),
-            anyTechAnnualPool: poolImplementation.attach(anyTechPoolAddress)
+            solarPool: { address: solarPoolAddress, ...poolImplementation.attach(solarPoolAddress)},
+            windPool: { address: windPoolAddress, ...poolImplementation.attach(windPoolAddress)},
+            anyTechAnnualPool: { address: anyTechPoolAddress, ...poolImplementation.attach(anyTechPoolAddress) }
         };
     }
 

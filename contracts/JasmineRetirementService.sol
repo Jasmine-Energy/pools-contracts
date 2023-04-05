@@ -10,40 +10,52 @@ import { JasmineMinter } from "@jasmine-energy/contracts/src/JasmineMinter.sol";
 
 contract JasmineRetirementService is IRetirementService {
     function tokensReceived(
-        address operator,
-        address from,
-        address to,
-        uint256 amount,
-        bytes calldata userData,
-        bytes calldata operatorData
-    ) external override {}
+        address,
+        address,
+        address,
+        uint256,
+        bytes calldata,
+        bytes calldata
+    ) external pure  override {
+        revert("JasmineRetirementService: Unimplemented");
+    }
 
     function supportsInterface(
-        bytes4 interfaceId
-    ) external view override returns (bool) {}
+        bytes4
+    ) external pure  override returns (bool) {
+        revert("JasmineRetirementService: Unimplemented");
+    }
 
     function onERC1155Received(
-        address operator,
-        address from,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
-    ) external override returns (bytes4) {}
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) external pure  override returns (bytes4) {
+        revert("JasmineRetirementService: Unimplemented");
+    }
 
     function onERC1155BatchReceived(
-        address operator,
-        address from,
-        uint256[] calldata ids,
-        uint256[] calldata values,
-        bytes calldata data
-    ) external override returns (bytes4) {}
+        address,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    ) external pure  override returns (bytes4) {
+        revert("JasmineRetirementService: Unimplemented");
+    }
 
     function registerRetirementRecipient(
-        address holder,
-        address recipient
-    ) external override {}
+        address,
+        address
+    ) external pure override {
+        revert("JasmineRetirementService: Unimplemented");
+    }
 
     function requestResidualJLT(
-        address pool
-    ) external override returns (bool success) {}
+        address
+    ) external pure  override returns (bool) {
+        revert("JasmineRetirementService: Unimplemented");
+    }
 }

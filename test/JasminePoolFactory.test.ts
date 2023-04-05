@@ -47,7 +47,7 @@ describe(Contracts.factory, function () {
         it("Should revert if pool implementation does not support expect interfaces", async function() {
             // NOTE: This test could be better. Only checks if EAT supports interface
             const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-            await expect(PoolFactory.deploy(await poolImplementation.EAT())).to.be.revertedWithCustomError(
+            await expect(PoolFactory.deploy(await poolImplementation.Eat())).to.be.revertedWithCustomError(
                 poolFactory, "InvalidConformance"
             );
         });

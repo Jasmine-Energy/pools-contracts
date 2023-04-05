@@ -10,10 +10,44 @@ Utility library encoding and decoding calldata between contracts
 
 ## Methods
 
+### BRIDGE_OFF_OP
+
+```solidity
+function BRIDGE_OFF_OP() external view returns (bytes32)
+```
+
+
+
+*Calldata prefix for bridge-off operations*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined |
+
+### RETIREMENT_OP
+
+```solidity
+function RETIREMENT_OP() external view returns (bytes32)
+```
+
+
+
+*Calldata prefix for retirement operations*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined |
+
 ### encodeRetirementCalldata
 
 ```solidity
-function encodeRetirementCalldata(address benificiary, bytes32 memoHash) external view returns (bytes data)
+function encodeRetirementCalldata(address, bytes32) external pure returns (bytes)
 ```
 
 
@@ -24,14 +58,14 @@ function encodeRetirementCalldata(address benificiary, bytes32 memoHash) externa
 
 | Name | Type | Description |
 |---|---|---|
-| benificiary | address | undefined |
-| memoHash | bytes32 | undefined |
+| _0 | address | undefined |
+| _1 | bytes32 | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| data | bytes | undefined |
+| _0 | bytes | undefined |
 
 
 

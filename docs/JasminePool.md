@@ -27,45 +27,6 @@ function EAT() external view returns (contract JasmineEAT)
 |---|---|---|
 | _0 | contract JasmineEAT | undefined |
 
-### _encodeArray
-
-```solidity
-function _encodeArray(string[] list) external pure returns (string)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| list | string[] | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | string | undefined |
-
-### _encodeEntries
-
-```solidity
-function _encodeEntries() external view returns (string)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | string | undefined |
-
 ### allowance
 
 ```solidity
@@ -545,7 +506,7 @@ function poolFactory() external view returns (address)
 ### retire
 
 ```solidity
-function retire(address sender, address beneficiary, uint256 quantity, bytes data) external nonpayable
+function retire(address sender, address, uint256, bytes) external nonpayable
 ```
 
 
@@ -557,9 +518,9 @@ function retire(address sender, address beneficiary, uint256 quantity, bytes dat
 | Name | Type | Description |
 |---|---|---|
 | sender | address | undefined |
-| beneficiary | address | undefined |
-| quantity | uint256 | undefined |
-| data | bytes | undefined |
+| _1 | address | undefined |
+| _2 | uint256 | undefined |
+| _3 | bytes | undefined |
 
 ### revokeOperator
 

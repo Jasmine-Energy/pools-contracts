@@ -106,6 +106,7 @@ abstract contract JasmineBasePool is
 
     //  ────────────────────────────────  Addresses  ────────────────────────────────  \\
 
+    // solhint-disable-next-line var-name-mixedcase
     JasmineEAT public immutable EAT;
     address public immutable poolFactory;
 
@@ -117,7 +118,7 @@ abstract contract JasmineBasePool is
     /// @notice Token Symbol - per ERC-20/777
     string private _symbol;
     /// @notice JLT's decimal precision - per ERC-20
-    uint8 private constant _decimals = 9;
+    uint8 private constant DECIMALS = 9;
 
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -164,14 +165,15 @@ abstract contract JasmineBasePool is
     // TODO: Once pool conforms to IJasminePool again, add above line to natspec
     function retire(
         address sender,
-        address beneficiary,
-        uint256 quantity,
-        bytes calldata data
+        address,
+        uint256,
+        bytes calldata
     )
         external virtual
         nonReentrant onlyOperator(sender)
     {
         // TODO: Implement me
+        revert("JasmineBasePool: Unimplemented");
     }
 
     //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
@@ -542,7 +544,7 @@ abstract contract JasmineBasePool is
      * @dev See {ERC20-decimals}.
      */
     function decimals() public pure override(ERC777, IERC20Metadata) returns (uint8) {
-        return _decimals;
+        return DECIMALS;
     }
 
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\

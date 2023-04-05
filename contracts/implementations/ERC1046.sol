@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+// solhint-disable quotes
 
 pragma solidity >=0.8.0;
 
@@ -105,7 +106,7 @@ abstract contract ERC1046 is IERC1046, IERC20Metadata {
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function _encodeEntries() public view returns (string memory) {
+    function _encodeEntries() internal view returns (string memory) {
         string memory result = "";
         for (uint256 i = 0; i < _metadataKeys.length; i++) {
             if (bytes(_metadataKeys[i]).length != 0) {
@@ -119,7 +120,7 @@ abstract contract ERC1046 is IERC1046, IERC20Metadata {
         return result;
     }
 
-    function _encodeArray(string[] memory list) public pure returns (string memory) {
+    function _encodeArray(string[] memory list) internal pure returns (string memory) {
         string memory result = "[";
         for (uint256 i = 0; i < list.length; i++) {
             result = string(abi.encodePacked(result, '"', list[i], i != list.length - 1 ? '", ' : '"'));

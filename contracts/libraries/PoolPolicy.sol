@@ -23,7 +23,7 @@ library PoolPolicy {
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /// @dev Use this value in DepositPolicy to set no constraints for attribute
-    uint32 constant ANY_VALUE = type(uint32).max;
+    uint32 public constant ANY_VALUE = type(uint32).max;
 
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -87,12 +87,14 @@ library PoolPolicy {
 
     //  ───────────────────────────  Vintage Utilities  ─────────────────────────────  \\
 
-    function frontHalfOfYear(uint16 year) external pure returns (uint256[2] memory period) {
+    function frontHalfOfYear(uint16) external pure returns (uint256[2] memory) {
         // TODO: Implement me
+        revert("PoolPolicy: Unimplemented");
     }
 
-    function backHalfOfYear(uint16 year) external pure returns (uint256[2] memory period) {
+    function backHalfOfYear(uint16) external pure returns (uint256[2] memory) {
         // TODO: Implement me
+        revert("PoolPolicy: Unimplemented");
     }
 
 

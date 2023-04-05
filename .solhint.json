@@ -5,12 +5,11 @@
     "quotes": ["warn", "double"],
     "visibility-modifier-order": "warn",
     "contract-name-camelcase": "warn",
-    "ordering": "warn",
     "imports-on-top": "warn",
     "avoid-tx-origin": "warn",
     "func-visibility": ["error", { "ignoreConstructors": true }],
     "avoid-throw": "error",
-    "reason-string": ["warn", { "maxLength": 32 }],
+    "reason-string": ["warn", { "maxLength": 64 }],
     "no-global-import": "warn"
   }
 }

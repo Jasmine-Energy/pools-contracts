@@ -223,7 +223,7 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         // 4. Ensure new pool matches expected
         require(
             _predictDeploymentAddress(policyHash, 0) == address(poolProxy),
-            "JasminePoolFactory: Deployment failed. Pool address does not match expected"
+            "JasminePoolFactory: Pool address does not match expected"
         );
 
         // 5. Initialize pool, add to pools, emit creation event and return new pool
