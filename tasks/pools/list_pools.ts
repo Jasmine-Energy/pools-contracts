@@ -1,8 +1,9 @@
 
 import { task } from 'hardhat/config';
 import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
-import { colouredLog, Contracts } from '@/utils';
+import { Contracts } from '@/utils';
 import { tryRequire } from '@/utils/safe_import';
+import Table from 'cli-table3';
 
 
 task('pool:list', 'Transfers an EAT')
@@ -19,17 +20,31 @@ task('pool:list', 'Transfers an EAT')
                 await run('typechain');
             }
             // @ts-ignore
-            const { JasminePoolFactory__factory } = await import('@/typechain');
+            const { JasminePoolFactory__factory, JasminePool__factory } = await import('@/typechain');
 
             // 2. Load contract
             const factoryDeployment = await deployments.get(Contracts.factory);
-            const factory = JasminePoolFactory__factory.connect(taskArgs.factory ?? factoryDeployment.address, (await ethers.getSigners())[0]);
+            const defaultSigner = (await ethers.getSigners())[0];
+            const factory = JasminePoolFactory__factory.connect(taskArgs.factory ?? factoryDeployment.address, defaultSigner);
 
             const totalPools = await factory.totalPools();
+            var table = new Table({
+                head: ['Index', 'Address', 'Name', 'Symbol'],
+                style: {
+                    head: ['yellow'],
+                   border: [] 
+                }
+            });
+        
             for (var i = 0; i < totalPools; i++) {
-                const pool = await factory.getPoolAtIndex(i);
-                colouredLog.blue(`${i}: ${pool}`);
+                const poolAddress = await factory.getPoolAtIndex(i);
+                const pool = JasminePool__factory.connect(poolAddress, defaultSigner);
+                const name = await pool.name();
+                const symbol = await pool.symbol();
+                table.push([i.toString(), poolAddress, name, symbol]);
             }
+
+            console.log(table.toString());
         }
     );
 

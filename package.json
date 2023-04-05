@@ -9,6 +9,7 @@
   "scripts": {
     "build": "npx hardhat compile",
     "test": "npx hardhat test --network hardhat",
+    "test:trace": "npx hardhat test --network hardhat --trace-error --gascost",
     "start": "npx hardhat compile && npx hardhat node --network hardhat",
     "clean": "npx hardhat clean",
     "lint": "solhint 'contracts/**/*.sol'",
@@ -53,6 +54,7 @@
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.15.3",
     "chai": "^4.3.7",
+    "cli-table3": "^0.6.3",
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
     "hardhat": "^2.13.0",

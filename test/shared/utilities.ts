@@ -13,6 +13,7 @@ import {
     encodeOracleData,
 } from '@/utils/token_encoding';
 import { JasmineMinter } from '@/typechain';
+import { AnyField } from '@/utils/constants';
 
 export type mintFunctionType = ((recipient: string, amount?: number, fuel?: FuelType, registry?: CertificateRegistry, vintage?: number, endorsement?: CertificateEndorsement, certification?: EnergyCertificateType) => Promise<{ id: bigint; amount: bigint; }>) | ((arg0: string, arg1: number, arg2: FuelType) => { id: bigint; amount: bigint; } | PromiseLike<{ id: bigint; amount: bigint; }>);
 
@@ -112,21 +113,21 @@ export function makeMintFunction(minter: JasmineMinter): mintFunctionType {
 
 export function createSolarPolicy() {
     return {
-        vintagePeriod: [0, 0] as [number, number],
+        vintagePeriod: [AnyField, AnyField] as [number, number],
         techType: BigInt(FuelTypesArray.indexOf(FuelType.SOLAR)) & BigInt(2 ** 32 - 1),
-        registry: 0,
-        certification: 0,
-        endorsement: 0
+        registry: AnyField,
+        certification: AnyField,
+        endorsement: AnyField
     };
 }
 
 export function createWindPolicy() {
     return {
-        vintagePeriod: [0, 0] as [number, number],
+        vintagePeriod: [AnyField, AnyField] as [number, number],
         techType: BigInt(FuelTypesArray.indexOf(FuelType.WIND)) & BigInt(2 ** 32 - 1),
-        registry: 0,
-        certification: 0,
-        endorsement: 0
+        registry: AnyField,
+        certification: AnyField,
+        endorsement: AnyField
     };
 }
 
@@ -137,9 +138,9 @@ export function createAnyTechAnnualPolicy() {
             Math.floor(new Date(currentYear, 0, 0).valueOf() / 1_000),
             Math.ceil(new Date(currentYear + 1, 0, 0).valueOf() / 1_000) - 1,
         ] as [number, number],
-        techType: 0,
-        registry: 0,
-        certification: 0,
-        endorsement: 0
+        techType: AnyField,
+        registry: AnyField,
+        certification: AnyField,
+        endorsement: AnyField
     };
 }
