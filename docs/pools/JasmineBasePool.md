@@ -330,7 +330,7 @@ function name() external view returns (string)
 ### onERC1155BatchReceived
 
 ```solidity
-function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
+function onERC1155BatchReceived(address operator, address from, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
 ```
 
 
@@ -341,7 +341,7 @@ function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint2
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | undefined |
+| operator | address | The address which initiated the batch transfer (i.e. msg.sender) |
 | from | address | The address which previously owned the token |
 | tokenIds | uint256[] | undefined |
 | values | uint256[] | An array containing amounts of each token being transferred (order and length must match ids array) |
@@ -356,7 +356,7 @@ function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint2
 ### onERC1155Received
 
 ```solidity
-function onERC1155Received(address, address from, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
+function onERC1155Received(address operator, address from, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
 ```
 
 
@@ -367,7 +367,7 @@ function onERC1155Received(address, address from, uint256 tokenId, uint256 value
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | undefined |
+| operator | address | The address which initiated the transfer (i.e. msg.sender) |
 | from | address | The address which previously owned the token |
 | tokenId | uint256 | undefined |
 | value | uint256 | The amount of tokens being transferred |

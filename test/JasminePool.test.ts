@@ -10,7 +10,7 @@ import { deployPoolImplementation, deployCoreFixture } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
-import { createSolarPolicy, createWindPolicy, makeMintFunction, mintFunctionType } from "./shared/utilities";
+import { createAnyTechAnnualPolicy, createSolarPolicy, createWindPolicy, makeMintFunction, mintFunctionType } from "./shared/utilities";
 import { CertificateEndorsement, CertificateRegistry, EnergyCertificateType, FuelType } from "@/types/energy-certificate.types";
 
 
@@ -27,6 +27,7 @@ describe(Contracts.pool, function () {
     
     let poolFactory: JasminePoolFactory;
     let poolImplementation: JasminePool;
+    let anyTechAnnualPool: JasminePool;
     let solarPool: JasminePool;
     let windPool: JasminePool;
 
@@ -53,14 +54,30 @@ describe(Contracts.pool, function () {
         // NOTE: This errors when no deployment folder's been created
         // TODO: Fix above requirement of having deploy
         poolFactory = (await PoolFactory.deploy(poolImplementation.address)) as JasminePoolFactory;
+    });
 
+    async function deployPoolsFixture() {
         await poolFactory.deployNewBasePool(createSolarPolicy(), 'Solar Tech', 'sJLT');
         const solarPoolAddress = await poolFactory.getPoolAtIndex(0);
-        solarPool = poolImplementation.attach(solarPoolAddress);
 
         await poolFactory.deployNewBasePool(createWindPolicy(), 'Wind Tech', 'wJLT');
         const windPoolAddress = await poolFactory.getPoolAtIndex(1);
-        windPool = poolImplementation.attach(windPoolAddress);
+
+        await poolFactory.deployNewBasePool(createAnyTechAnnualPolicy(), 'Any Tech \'23', 'a23JLT');
+        const anyTechPoolAddress = await poolFactory.getPoolAtIndex(2);
+
+        return {
+            solarPool: poolImplementation.attach(solarPoolAddress),
+            windPool: poolImplementation.attach(windPoolAddress),
+            anyTechAnnualPool: poolImplementation.attach(anyTechPoolAddress)
+        };
+    }
+
+    beforeEach(async function() {
+        const testPools = await loadFixture(deployPoolsFixture);
+        solarPool = testPools.solarPool;
+        windPool = testPools.windPool;
+        anyTechAnnualPool = testPools.anyTechAnnualPool;
     });
 
 
@@ -139,17 +156,85 @@ describe(Contracts.pool, function () {
                         ownerTokens.windToken.amount,
                         []
                     )).to.be.ok
-                    .and.to.emit(poolImplementation, "Deposit").withArgs(owner.address, owner.address, ownerTokens.windToken.amount);
+                    .and.to.emit(poolImplementation, "Deposit").withArgs(owner.address, owner.address, ownerTokens.windToken.amount)
+                    .and.to.emit(poolImplementation, "Minted").withArgs(owner.address, owner.address, ownerTokens.windToken.amount, [], [])
+                    .and.to.emit(poolImplementation, "Transfer").withArgs(owner.address, owner.address, ownerTokens.windToken.amount)
+                    .and.to.changeTokenBalance(windPool, owner.address, ownerTokens.windToken.amount);
 
-                expect(await windPool.balanceOf(owner.address)).to.be.eq(ownerTokens.windToken.amount);
                 expect(await eat.balanceOf(owner.address, ownerTokens.windToken.id)).to.be.eq(0);
             });
     
             it("Should reject ineligible tokens", async function() {
+                const initalJltBal = await windPool.balanceOf(owner.address);
+                const initalEATtBal = await eat.balanceOf(owner.address, ownerTokens.solarToken.id);
+                await expect(
+                    eat.safeTransferFrom(
+                        owner.address,
+                        windPool.address,
+                        ownerTokens.solarToken.id,
+                        ownerTokens.solarToken.amount,
+                        []
+                    )).to.be.revertedWith(
+                        "ERC1155: transfer to non-ERC1155Receiver implementer"
+                    );
+
+                expect(await windPool.balanceOf(owner.address)).to.be.eq(initalJltBal);
+                expect(await eat.balanceOf(owner.address, ownerTokens.windToken.id)).to.be.eq(initalEATtBal);
             });
         });
 
         describe("#onERC1155BatchReceived", async function () {
+            it("Should allow deposit of eligible tokens", async function() {
+                const initalJltBal = await anyTechAnnualPool.balanceOf(owner.address);
+                const initalEatBal = await eat.balanceOfBatch(
+                    [owner.address, owner.address],
+                    [ownerTokens.solarToken.id, ownerTokens.windToken.id]
+                );
+                expect(
+                    await eat.safeBatchTransferFrom(
+                        owner.address,
+                        anyTechAnnualPool.address,
+                        [ownerTokens.solarToken.id, ownerTokens.windToken.id],
+                        [ownerTokens.solarToken.amount, ownerTokens.windToken.amount],
+                        []
+                    )).to.be.ok
+                    .and.to.emit(poolImplementation, "Deposit") .withArgs(owner.address, owner.address, (ownerTokens.solarToken.amount + ownerTokens.windToken.amount))
+                    .and.to.emit(poolImplementation, "Minted")  .withArgs(owner.address, owner.address, (ownerTokens.solarToken.amount + ownerTokens.windToken.amount), [], [])
+                    .and.to.emit(poolImplementation, "Transfer").withArgs(owner.address, owner.address, (ownerTokens.solarToken.amount + ownerTokens.windToken.amount))
+                    .and.to.changeTokenBalance(anyTechAnnualPool, owner.address, initalJltBal.toBigInt() + ownerTokens.solarToken.amount + ownerTokens.windToken.amount);
+
+                expect(await eat.balanceOfBatch(
+                        [owner.address, owner.address],
+                        [ownerTokens.solarToken.id, ownerTokens.windToken.id]
+                    )).to.deep.equal([
+                        initalEatBal[0].toBigInt() - ownerTokens.solarToken.amount,
+                        initalEatBal[1].toBigInt() - ownerTokens.windToken.amount
+                    ]);
+            });
+    
+            it("Should reject ineligible tokens", async function() {
+                const initalJltBal = await windPool.balanceOf(owner.address);
+                const initalEatBal = await eat.balanceOfBatch(
+                    [owner.address, owner.address],
+                    [ownerTokens.solarToken.id, ownerTokens.windToken.id]
+                );
+                await expect(
+                    eat.safeBatchTransferFrom(
+                        owner.address,
+                        windPool.address,
+                        [ownerTokens.solarToken.id, ownerTokens.windToken.id],
+                        [ownerTokens.solarToken.amount, ownerTokens.windToken.amount],
+                        []
+                    )).to.be.revertedWith(
+                        "ERC1155: transfer to non-ERC1155Receiver implementer"
+                    );
+
+                expect(await windPool.balanceOf(owner.address)).to.be.eq(initalJltBal);
+                expect(await eat.balanceOfBatch(
+                        [owner.address, owner.address],
+                        [ownerTokens.solarToken.id, ownerTokens.windToken.id]
+                    )).to.deep.equal(initalEatBal);
+            });
         });
     });
 

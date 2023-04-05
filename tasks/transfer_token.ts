@@ -2,7 +2,7 @@
 import { task } from 'hardhat/config';
 import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
 import { colouredLog, Contracts } from '@/utils';
-
+import { tryRequire } from '@/utils/safe_import';
 
 task('transfer', 'Transfers an EAT')
     .addPositionalParam<string>('recipient', 'The account to receive token')
@@ -14,9 +14,10 @@ task('transfer', 'Transfers an EAT')
     .setAction(
         async (
             taskArgs: TaskArguments,
-            { ethers, deployments, getNamedAccounts, run }: HardhatRuntimeEnvironment
+            { ethers, deployments, getNamedAccounts, run, tracer }: HardhatRuntimeEnvironment
         ): Promise<void> => {
 
+            tracer.enabled = true;
             // 1. Check if typechain exists. If not, compile and explicitly generate typings
             if (!tryRequire('@/typechain')) {
                 await run('compile');
@@ -59,15 +60,6 @@ task('transfer', 'Transfers an EAT')
             colouredLog.blue(
                 `Sent ${quantity} of token ID ${tokenId} to ${recipient} from ${sender.address} in Tx: ${sendTx.hash}`
             );
+            tracer.enabled = false;
         }
     );
-
-function tryRequire(id: string) {
-  try {
-    require(id);
-    return true;
-  } catch (e: any) {
-    // do nothing
-  }
-  return false;
-}

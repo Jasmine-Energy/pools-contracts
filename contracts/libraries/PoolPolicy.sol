@@ -19,6 +19,14 @@ import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
 library PoolPolicy {
 
     //  ─────────────────────────────────────────────────────────────────────────────
+    //  Constants
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /// @dev Use this value in DepositPolicy to set no constraints for attribute
+    uint32 constant ANY_VALUE = type(uint32).max;
+
+
+    //  ─────────────────────────────────────────────────────────────────────────────
     //  Types
     //  ─────────────────────────────────────────────────────────────────────────────
 
@@ -26,9 +34,12 @@ library PoolPolicy {
      * @title Deposit Policy
      * @notice A deposit policy is a pool's constraints on what EATs may be depositted. 
      * @dev Only supports metadata V1
+     * @dev Due to EAT metadata attribytes being zero indexed, to specify no deposit  
+     *      constraints for a given attribute, use `ANY_VALUE` constant.
+     *      NOTE: This applies for vintage period as well.
      */
     struct DepositPolicy {
-        uint256[2] vintagePeriod;
+        uint56[2] vintagePeriod; // Question: Confirm this is correct size
         uint32 techType;
         uint32 registry;
         uint32 certification;
@@ -45,28 +56,28 @@ library PoolPolicy {
 
     function meetsPolicy(DepositPolicy storage policy, JasmineOracle oracle, uint256 tokenId) external view returns (bool isEligible) {
         // 1. If policy's vintage is not empty, check token has vintage
-        if (policy.vintagePeriod[0] != 0 &&
-            policy.vintagePeriod[1] != 0 &&
+        if (policy.vintagePeriod[0] != ANY_VALUE &&
+            policy.vintagePeriod[1] != ANY_VALUE &&
             !oracle.hasVintage(tokenId, policy.vintagePeriod[0], policy.vintagePeriod[1])) {
             return false;
         }
         // 2. If techType is not empty, check token has tech type
-        if (policy.techType != 0 &&
+        if (policy.techType != ANY_VALUE &&
             !oracle.hasFuel(tokenId, policy.techType)) {
             return false;
         }
         // 3. If registry is not empty, check token has registry
-        if (policy.registry != 0 &&
+        if (policy.registry != ANY_VALUE &&
             !oracle.hasRegistry(tokenId, policy.registry)) {
             return false;
         }
         // 4. If certification is not empty, check token has certification
-        if (policy.certification != 0 &&
+        if (policy.certification != ANY_VALUE &&
             !oracle.hasCertificateType(tokenId, policy.certification)) {
             return false;
         }
         // 5. If endorsement is not empty, check token has endorsement
-        if (policy.endorsement != 0 &&
+        if (policy.endorsement != ANY_VALUE &&
             !oracle.hasEndorsement(tokenId, policy.endorsement)) {
             return false;
         }

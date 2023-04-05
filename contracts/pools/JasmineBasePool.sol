@@ -571,7 +571,7 @@ abstract contract JasmineBasePool is
 
     /// @inheritdoc IERC1155Receiver
     function onERC1155Received(
-        address,
+        address operator,
         address from,
         uint256 tokenId,
         uint256 value,
@@ -594,12 +594,14 @@ abstract contract JasmineBasePool is
 
         // TODO: Call data
 
+        // 3. Emit Deposit and return onERC1155Received
+        emit Deposit(operator, from, value);
         return this.onERC1155Received.selector;
     }
 
     /// @inheritdoc IERC1155Receiver
     function onERC1155BatchReceived(
-        address,
+        address operator,
         address from,
         uint256[] memory tokenIds,
         uint256[] memory values,
@@ -619,7 +621,7 @@ abstract contract JasmineBasePool is
         // 2. Verify all tokens are eligible for pool, add to holdings and sum total EATs received
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            total != values[i];
+            total += values[i];
             _holdings.add(tokenIds[i]);
         }
 
@@ -633,6 +635,8 @@ abstract contract JasmineBasePool is
 
         // TODO: Call data
 
+        // 4. Emit Deposit and return onERC1155BatchReceived
+        emit Deposit(operator, from, total);
         return this.onERC1155BatchReceived.selector;
     }
 

@@ -129,3 +129,17 @@ export function createWindPolicy() {
         endorsement: 0
     };
 }
+
+export function createAnyTechAnnualPolicy() {
+    const currentYear = new Date().getFullYear(); // TODO: This does not account for timezones
+    return {
+        vintagePeriod: [
+            Math.floor(new Date(currentYear, 0, 0).valueOf() / 1_000),
+            Math.ceil(new Date(currentYear + 1, 0, 0).valueOf() / 1_000) - 1,
+        ] as [number, number],
+        techType: 0,
+        registry: 0,
+        certification: 0,
+        endorsement: 0
+    };
+}
