@@ -54,7 +54,7 @@ const config: HardhatUserConfig = {
         },
         tenderly: {
             accounts,
-            url: 'https://rpc.tenderly.co/fork/20e808f7-4569-4778-933b-87706fac8e39',//`https://rpc.tenderly.co/fork/${process.env.TENDERLY_FORK_ID}`,
+            url: 'https://rpc.tenderly.co/fork/20e808f7-4569-4778-933b-87706fac8e39',
             tags: ['tenderly']
         },
         mumbai: {
