@@ -25,9 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Authenticate with private NPM package
-        run: |
-          echo "@https://npm.pkg.github.com" >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.ACTIONS_TOKEN }}" >> .npmrc
+        run: sed -i 's/GITHUB_TOKEN/ACTIONS_TOKEN/g' .npmrc
+      - run: echo .npmrc
       - name: Install packages
         uses: actions/setup-node@v3
         with:

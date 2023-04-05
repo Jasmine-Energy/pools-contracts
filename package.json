@@ -29,7 +29,7 @@
     "url": "https://github.com/Jasmine-Energy/v1-pools-contracts/issues"
   },
   "dependencies": {
-    "@jasmine-energy/jasmine-contracts": "^1.0.0",
+    "@jasmine-energy/contracts": "^1.0.1",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",
     "eslint": "^8.36.0"
