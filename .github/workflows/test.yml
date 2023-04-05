@@ -5,8 +5,6 @@ on:
       - main
       - dev
       - dev/*
-      - refactor-pools
-      - fixing-github-actions 
   pull_request:
     branches:
       - main
@@ -39,6 +37,6 @@ jobs:
       - name: Compile Contracts
         run: npm run build
       - name: Run Hardhat Tests
-        run: npm run test
+        run: npm run test:trace
         env:
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
