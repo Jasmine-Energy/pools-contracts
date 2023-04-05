@@ -6,6 +6,7 @@ on:
       - dev
       - dev/*
       - refactor-pools
+      - fixing-github-actions 
   pull_request:
     branches:
       - main
@@ -17,14 +18,16 @@ permissions:
   packages: read
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, factory]
+    env:
+      ACTIONS_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
     permissions:
       contents: read
       packages: read
     steps:
       - uses: actions/checkout@v3
       - name: Authenticate with private NPM package
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+        run: sed -i 's/GITHUB_TOKEN/ACTIONS_TOKEN/g' .npmrc
       - name: Install packages
         uses: actions/setup-node@v3
         with:
@@ -32,7 +35,7 @@ jobs:
       - run: npm install --legacy-peer-deps
         shell: bash
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{secrets.ACTIONS_TOKEN }}
       - name: Compile Contracts
         run: npm run build
       - name: Run Hardhat Tests
