@@ -96,10 +96,10 @@ export async function deployPoolImplementation() {
       ArrayUtils: arrayUtilsLibAddress,
     },
   });
-  const poolImplementation = (await Pool.deploy(
+  const poolImplementation = await Pool.deploy(
     eat.address,
     oracle.address,
     poolFactoryFutureAddress
-  )) as JasminePool;
-  return { poolImplementation };
+  );
+  return poolImplementation as JasminePool;
 }

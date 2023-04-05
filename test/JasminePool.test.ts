@@ -48,7 +48,7 @@ describe(Contracts.pool, function () {
 
         mintEat = makeMintFunction(minter);
 
-        poolImplementation = await loadFixture(deployPoolImplementation)
+        poolImplementation = await loadFixture(deployPoolImplementation);
 
         const PoolFactory = await ethers.getContractFactory(Contracts.factory);
         // NOTE: This errors when no deployment folder's been created
