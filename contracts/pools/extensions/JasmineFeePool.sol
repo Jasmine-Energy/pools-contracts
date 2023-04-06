@@ -14,6 +14,7 @@ import { JasmineBasePool } from "../core/JasmineBasePool.sol";
 import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
 
 // Utility Libraries
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { 
     ERC20Errors,
     ERC1155Errors
@@ -161,20 +162,25 @@ abstract contract JasmineFeePool is JasmineBasePool {
     //  Overrides
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    // @inheritdoc {IRetireablePool}
-    // TODO: Once pool conforms to IJasminePool again, add above line to natspec
-    function retire(
-        address sender,
-        address,
-        uint256,
-        bytes calldata
-    )
-        external virtual override
-        nonReentrant onlyOperator(sender)
-    {
-        // TODO: Implement me
-        revert("JasmineBasePool: Unimplemented");
-    }
+    // /**
+    //  * @dev Override cost of withdrawal to factor in fees
+    //  */
+    // function _costOfWithdrawal(uint256 withdrawalQuantity)
+    //     internal virtual override
+    //     returns (uint256 withdrawalCost)
+    // {
+    //     return Math.mulDiv(super._costOfWithdrawal(withdrawalQuantity), withdrawalFee(), 10_000);
+    // }
+
+    // /**
+    //  * @dev Override cost of retirement to factor in fees
+    //  */
+    // function _costOfRetirement(uint256 retirementQuantity)
+    //     internal virtual override
+    //     returns (uint256 withdrawalCost)
+    // {
+    //     return retirementQuantity;
+    // }
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal

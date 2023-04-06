@@ -19,7 +19,7 @@ const deployFactory: DeployFunction = async function (
     // 2. Deploy Pool Factory Contract
     const factory = await deploy(Contracts.factory, {
         from: owner,
-        args: [pool.address],
+        args: [pool.address, owner],
         libraries: {
             PoolPolicy: policy.address
         },

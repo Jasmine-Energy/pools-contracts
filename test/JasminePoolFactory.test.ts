@@ -7,6 +7,7 @@ import { deployPoolImplementation } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
+import { DEFAULT_ADMIN_ROLE, FEE_MANAGER_ROLE } from "@/utils/constants";
 
 
 describe(Contracts.factory, function () {
@@ -30,7 +31,7 @@ describe(Contracts.factory, function () {
         accounts = await ethers.getSigners();
 
         const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-        poolFactory = (await PoolFactory.deploy(poolImplementation.address)) as JasminePoolFactory;
+        poolFactory = (await PoolFactory.deploy(poolImplementation.address, owner.address)) as JasminePoolFactory;
     });
 
 
@@ -41,15 +42,25 @@ describe(Contracts.factory, function () {
 
         it("Should revert if no pool implementation is provided", async function() {
             const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-            await expect(PoolFactory.deploy(ethers.constants.AddressZero)).to.be.revertedWith("JasminePoolFactory: Pool implementation must be set");
+            await expect(PoolFactory.deploy(ethers.constants.AddressZero, owner.address)).to.be.revertedWith("JasminePoolFactory: Pool implementation must be set");
         });
 
         it("Should revert if pool implementation does not support expect interfaces", async function() {
             // NOTE: This test could be better. Only checks if EAT supports interface
             const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-            await expect(PoolFactory.deploy(await poolImplementation.EAT())).to.be.revertedWithCustomError(
+            await expect(PoolFactory.deploy(await poolImplementation.EAT(), owner.address)).to.be.revertedWithCustomError(
                 poolFactory, "InvalidConformance"
             );
+        });
+
+        it("Should revert if fee beneficiary is set to zero address", async function() {
+            const PoolFactory = await ethers.getContractFactory(Contracts.factory);
+            await expect(PoolFactory.deploy(poolImplementation.address, ethers.constants.AddressZero)).to.be.revertedWith("JasminePoolFactory: Fee beneficiary must be set");
+        });
+
+        it("Should revert if fee beneficiary is a contract which doesn't support IERC777Recipient", async function() {
+            const PoolFactory = await ethers.getContractFactory(Contracts.factory);
+            await expect(PoolFactory.deploy(poolImplementation.address, await poolImplementation.EAT())).to.be.revertedWith("JasminePoolFactory: Fee beneficiary must support IERC777Recipient interface");
         });
     });
 
@@ -146,6 +157,67 @@ describe(Contracts.factory, function () {
             ).withArgs(owner.address, newOwner);
 
             expect(await poolFactory.owner()).to.be.eq(newOwner);
+        });
+
+        it("Should revoke DEFAULT_ADMIN_ROLE from old owner and assign to new owner", async function() {
+            // TODO: If above tests fail, state will be in incorrect state and test will fail
+            const firstOwner = accounts[1].address;
+            const factoryFromNewOwner = poolFactory.connect(accounts[1]);
+            expect(await poolFactory.hasRole(DEFAULT_ADMIN_ROLE, firstOwner)).to.be.true;
+            expect(await poolFactory.hasRole(DEFAULT_ADMIN_ROLE, owner.address)).to.be.false;
+
+            await factoryFromNewOwner.transferOwnership(owner.address);
+            expect(await poolFactory.acceptOwnership()).to.emit(
+                poolFactory, "OwnershipTransferred"
+            ).withArgs(firstOwner, owner.address)
+            .and.to.emit(
+                poolFactory, "RoleGranted"
+            ).withArgs(DEFAULT_ADMIN_ROLE, owner.address, owner.address)
+            .and.to.emit(
+                poolFactory, "RoleRevoked"
+            ).withArgs(DEFAULT_ADMIN_ROLE, firstOwner, owner.address);
+
+            expect(await poolFactory.hasRole(DEFAULT_ADMIN_ROLE, firstOwner)).to.be.false;
+            expect(await poolFactory.hasRole(DEFAULT_ADMIN_ROLE, owner.address)).to.be.true;
+        });
+
+        describe("Fee Manager Role", async function () {
+            const feeManager = accounts[5];
+
+            it("Should allow owner to grant new fee managers", async function() {
+                expect(await poolFactory.hasRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.false;
+                expect(await poolFactory.grantRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.ok
+                    .and.to.emit(
+                        poolFactory, "RoleGranted"
+                    ).withArgs(FEE_MANAGER_ROLE, feeManager.address, owner.address);
+                expect(await poolFactory.hasRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.true;
+            });
+    
+            it("Should allow owner to revoke fee managers", async function() {
+                expect(await poolFactory.hasRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.true;
+                expect(await poolFactory.revokeRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.ok
+                    .and.to.emit(
+                        poolFactory, "RoleRevoked"
+                    ).withArgs(FEE_MANAGER_ROLE, feeManager.address, owner.address);
+                expect(await poolFactory.hasRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.false;
+            });
+
+            it("Should not allow non-owner to grant or revoke fee managers", async function() {
+                const factoryFromUser = poolFactory.connect(accounts[3]);
+                expect(await factoryFromUser.grantRole(FEE_MANAGER_ROLE, accounts[3].address)).to.be.reverted;
+                expect(await factoryFromUser.revokeRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.reverted;
+            });
+
+            it("Should allow fee managers to resign roll", async function() {
+                expect(await poolFactory.hasRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.true;
+                const factoryFromManager = poolFactory.connect(feeManager);
+
+                expect(await factoryFromManager.renounceRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.ok
+                    .and.to.emit(
+                        poolFactory, "RoleRevoked"
+                    ).withArgs(FEE_MANAGER_ROLE, feeManager.address, feeManager.address);
+                expect(await poolFactory.hasRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.false;
+            });
         });
     });
 });

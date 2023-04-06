@@ -505,12 +505,12 @@ contract JasminePoolFactory is
     {
         require(
             newFeeBeneficiary != address(0x0),
-            "JasminePoolFactory: fee beneficiary must be set"
+            "JasminePoolFactory: Fee beneficiary must be set"
         );
         if (newFeeBeneficiary.isContract()) {
             require(
                 IERC165(newFeeBeneficiary).supportsInterface(type(IERC777Recipient).interfaceId),
-                "JasminePoolFactory: fee beneficiary must support IERC777Recipient interface"
+                "JasminePoolFactory: Fee beneficiary must support IERC777Recipient interface"
             );
         }
     }
