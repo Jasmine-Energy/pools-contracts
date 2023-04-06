@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 
 import { HardhatUserConfig } from 'hardhat/config';
+import * as tenderlyForks from './tenderly-forks.json'
 import * as tenderly from "@tenderly/hardhat-tenderly";
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-chai-matchers';
@@ -54,7 +55,7 @@ const config: HardhatUserConfig = {
         },
         tenderly: {
             accounts,
-            url: 'https://rpc.tenderly.co/fork/20e808f7-4569-4778-933b-87706fac8e39',
+            url: `https://rpc.tenderly.co/fork/${tenderlyForks.forks[tenderlyForks.defaultFork].id ?? '20e808f7-4569-4778-933b-87706fac8e39'}`,
             tags: ['tenderly']
         },
         mumbai: {
@@ -64,6 +65,7 @@ const config: HardhatUserConfig = {
             tags: ['testnet', 'public'],
         },
         polygon: {
+            live: true,
             url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
             chainId: 137,
             saveDeployments: true,

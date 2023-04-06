@@ -3,12 +3,13 @@ import { task } from 'hardhat/config';
 import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
 import * as forksFile from '../../tenderly-forks.json';
 import Table from "cli-table3";
+import colors from '@colors/colors'
 
 task("fork:list", "Creates a tenderly fork of network")
   .setAction(
     async (
       taskArgs: TaskArguments,
-      { ethers, network, getChainId, ...hre }: HardhatRuntimeEnvironment
+      { ethers, network, getChainId }: HardhatRuntimeEnvironment
     ): Promise<void> => {
        
       const head = ["Index", "Name", "Forked", "Pool ID"];
@@ -24,7 +25,12 @@ task("fork:list", "Creates a tenderly fork of network")
 
       for (var i = 0; i < forksFile.total; i++) {
         const fork = forksFile.forks[i];
-        table.push([i, fork.name, fork.Forked, fork.id]);
+        const row = [i, fork.name, fork.forked, fork.id];
+        table.push(
+            i == forksFile.defaultFork ?
+            row.map(i => colors.green(i.toString())) :
+            row
+        );
       }
 
       console.log(table.toString());

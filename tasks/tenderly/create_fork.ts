@@ -36,15 +36,18 @@ task("fork", "Creates a tenderly fork of network")
         }
 
         const { simulation_fork } = resp.data;
+        console.log(resp.data)
         
         var updatesForks = forksFile;
         updatesForks.forks.push({
-            name: taskArgs.name ?? `${network.name} Fork from ${new Date(simulation_fork.created_at).toString()}`,
+            name: taskArgs.name ?? `${network.name} Fork from ${new Date(simulation_fork.created_at).toLocaleString()}`,
+            forked: network.name,
             ...simulation_fork
         });
 
         await fs.writeFile(path.join(hre.config.paths.root, 'tenderly-forks.json'), JSON.stringify({
             total: updatesForks.forks.length,
+            defaultFork: updatesForks.defaultFork,
             forks: updatesForks.forks
         }));
         
