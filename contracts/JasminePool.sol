@@ -8,7 +8,7 @@ pragma solidity >=0.8.0;
 //  ─────────────────────────────────────────────────────────────────────────────
 
 // Parent Contract
-import { JasmineBasePool } from "./pools/JasmineBasePool.sol";
+import { JasmineBasePool } from "./pools/core/JasmineBasePool.sol";
 
 // External Contracts
 import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";

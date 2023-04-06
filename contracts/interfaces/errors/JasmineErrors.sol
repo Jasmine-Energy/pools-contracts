@@ -15,6 +15,11 @@ pragma solidity ^0.8.4;
  */
 interface JasmineErrors {
 
+    //  ──────────────────────────  Access Control Errors  ──────────────────────────  \\
+
+    /// @dev Emitted if access control check fails
+    error RequiresRole(bytes32 role);
+
     //  ───────────────────────────────  Pool Errors  ───────────────────────────────  \\
 
     /// @dev Emitted if a token does not meet pool's deposit policy

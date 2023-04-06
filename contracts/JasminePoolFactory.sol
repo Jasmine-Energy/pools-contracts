@@ -9,8 +9,10 @@ pragma solidity >=0.8.0;
 
 // Core Implementations
 import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
-// TODO Should make new abstract class with TimelockController owner
+// TODO: Should make new abstract class with TimelockController owner
 import { Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+// QUESTION: Use enumerable extension?
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
 // External Contracts
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
@@ -20,6 +22,7 @@ import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy
 import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
+import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 
 // Utility Libraries
 import { PoolPolicy } from "./libraries/PoolPolicy.sol";
@@ -35,7 +38,11 @@ import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
  * @notice 
  * @custom:security-contact dev@jasmine.energy
  */
-contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
+contract JasminePoolFactory is 
+    IJasminePoolFactory,
+    Ownable2Step,
+    AccessControl
+{
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
@@ -44,17 +51,23 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
     using PoolPolicy for PoolPolicy.DepositPolicy;
+    using Address for address;
 
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
 
+    //  ───────────────────────  Pool Deployment Management  ────────────────────────  \\
+
     /**
      * @dev List of pool deposit policy hashes. As pools are deployed via create2,
      *      address of a pool from the hash can be computed as needed.
      */
     EnumerableSet.Bytes32Set internal _pools;
+
+
+    //  ─────────────────────  Pool Implementation Management  ──────────────────────  \\
 
     /**
      * @dev Mapping of Deposit Policy (aka pool init data) hash to _poolImplementations
@@ -65,6 +78,23 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     /// @dev Implementation addresses for pools
     EnumerableSet.AddressSet internal _poolImplementations;
 
+
+    //  ─────────────────────────────  Access Control  ──────────────────────────────  \\
+
+    /// @dev Access control roll for pool fee management
+    bytes32 public constant FEE_MANAGER_ROLE = keccak256("FEE_MANAGER_ROLE");
+
+
+    //  ────────────────────────────────  Pool Fees  ────────────────────────────────  \\
+
+    /// @dev Default fee for withdrawals across pools. May be overridden per pool
+    uint96 public baseWithdrawalFee;
+
+    /// @dev Default fee for retirements across pools. May be overridden per pool
+    uint96 public baseRetirementFee;
+
+    /// @dev Address to receive fees
+    address public feeBeneficiary;
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
@@ -80,10 +110,16 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
      * 
      * @param _poolImplementation Address containing Jasmine Pool implementation
      */
-    constructor(address _poolImplementation) Ownable2Step() {
+    constructor(address _poolImplementation, address _feeBeneficiary)
+        Ownable2Step() AccessControl()
+    {
         _validatePoolImplementation(_poolImplementation);
+        _validateFeeReceiver(_feeBeneficiary);
 
         _poolImplementations.add(_poolImplementation);
+
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setRoleAdmin(FEE_MANAGER_ROLE, FEE_MANAGER_ROLE);
     }
 
 
@@ -323,6 +359,73 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
     }
 
 
+    //  ─────────────────────────────  Access Control  ──────────────────────────────  \\
+
+    /**
+     * @dev Checks if account has pool fee manager roll
+     * 
+     * @param account Account to check fee manager roll against
+     */
+    function hasFeeManagerRole(address account) external view returns (bool) {
+        return hasRole(FEE_MANAGER_ROLE, account);
+    }
+
+    /**
+     * @inheritdoc Ownable2Step
+     * @dev Revokes admin role for previous owner and grants to newOwner
+     */
+    function _transferOwnership(address newOwner) internal virtual override {
+        _revokeRole(DEFAULT_ADMIN_ROLE, owner());
+        _grantRole(DEFAULT_ADMIN_ROLE, newOwner);
+        super._transferOwnership(newOwner);
+    }
+
+
+    //  ─────────────────────────────  Fee Management  ──────────────────────────────  \\
+
+    /**
+     * @notice Allows pool fee managers to update the base withdrawal fee across pools
+     * 
+     * @dev Requirements:
+     *     - Caller must have fee manager role
+     * 
+     * @param newWithdrawalFee New base fee for withdrawals in basis points
+     */
+    function setBaseWithdrawalFee(uint96 newWithdrawalFee) external onlyFeeManager {
+        // TODO: Emit event
+        baseWithdrawalFee = newWithdrawalFee;
+    }
+
+    /**
+     * @notice Allows pool fee managers to update the base retirement fee across pools
+     * 
+     * @dev Requirements:
+     *     - Caller must have fee manager role
+     * 
+     * @param newRetirementFee New base fee for retirements in basis points
+     */
+    function setBaseRetirementFee(uint96 newRetirementFee) external onlyFeeManager {
+        // TODO: Emit event
+        baseRetirementFee = newRetirementFee;
+    }
+
+    /**
+     * @notice Allows pool fee managers to update the beneficiary to receive pool fees
+     *         across all Jasmine pools
+     * 
+     * @dev Requirements:
+     *     - Caller must have fee manager role
+     *     - New beneficiary cannot be zero address
+     *     - If new beneficiary is a contract, must support IERC777Recipient interface
+     * 
+     * @param newFeeBeneficiary Address to receive all pool JLT fees
+     */
+    function setFeeBeneficiary(address newFeeBeneficiary) external onlyFeeManager {
+        _validateFeeReceiver(newFeeBeneficiary);
+        feeBeneficiary = newFeeBeneficiary;
+    }
+
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -390,4 +493,38 @@ contract JasminePoolFactory is IJasminePoolFactory, Ownable2Step {
         if (_poolImplementations.contains(poolImplementation)) 
             revert JasmineErrors.PoolExists(poolImplementation);
     }
+
+    /**
+     * @dev Checks if a given address is valid to receive JLT fees. Address cannot be zero and if
+     *      address is a contract, must support IERC777Recipient interface via ERC-165
+     * 
+     * @param newFeeBeneficiary Address to validate
+     */
+    function _validateFeeReceiver(address newFeeBeneficiary)
+        internal view
+    {
+        require(
+            newFeeBeneficiary != address(0x0),
+            "JasminePoolFactory: fee beneficiary must be set"
+        );
+        if (newFeeBeneficiary.isContract()) {
+            require(
+                IERC165(newFeeBeneficiary).supportsInterface(type(IERC777Recipient).interfaceId),
+                "JasminePoolFactory: fee beneficiary must support IERC777Recipient interface"
+            );
+        }
+    }
+
+    //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
+
+    /**
+     * @dev Enforces caller has fee manager role in pool factory
+     */
+    modifier onlyFeeManager() {
+        if (!hasRole(FEE_MANAGER_ROLE, _msgSender())) {
+            revert JasmineErrors.RequiresRole(FEE_MANAGER_ROLE);
+        }
+        _;
+    }
+
 }

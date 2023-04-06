@@ -66,6 +66,22 @@ error Prohibited()
 *Emitted for unauthorized actions*
 
 
+### RequiresRole
+
+```solidity
+error RequiresRole(bytes32 role)
+```
+
+
+
+*Emitted if access control check fails*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| role | bytes32 | undefined |
+
 ### Unqualified
 
 ```solidity
