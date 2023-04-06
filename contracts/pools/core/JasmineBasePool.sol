@@ -402,45 +402,6 @@ abstract contract JasmineBasePool is
         _withdraw(sender, recipient, tokenIds, amounts, data);
     }
 
-    /**
-     * @notice Internal implementation of withdraw
-     * 
-     * @dev Burns `amount` of JLTs from `sender` and transfers EATs to recipient with `data`.
-     * 
-     * @dev Throws ERC20InsufficientBalance if sender does not have sufficient JLTs
-     * 
-     */
-    function _selectAnyTokens(
-        uint256 amount
-    )
-        internal virtual view
-        returns (
-            uint256[] memory tokenIds,
-            uint256[] memory amounts
-        )
-    {
-        uint256 sum = 0;
-        uint256 i = 0;
-        tokenIds = new uint256[](1);
-        amounts  = new uint256[](1);
-        while (sum != amount) {
-            uint256 tokenId = _holdings.at(i);
-            uint256 balance = EAT.balanceOf(address(this), tokenId);
-
-            tokenIds[i] = tokenId;
-            if (sum + balance <= amount) {
-                amounts[i] = balance;
-                sum += balance;
-                i++;
-                continue;
-            } else {
-                amounts[amounts.length] = amount - sum;
-                break;
-            }
-        }
-
-        return (tokenIds, amounts);
-    }
 
     function _withdraw(
         address sender,
@@ -713,6 +674,43 @@ abstract contract JasmineBasePool is
         } catch {
             revert("JasmineBasePool: Send failed");
         }
+    }
+
+    /**
+     * @dev Used to select an `amout` of tokens to withdraw if unspecified by user
+     * 
+     * TODO: Add param docs
+     */
+    function _selectAnyTokens(
+        uint256 amount
+    )
+        internal virtual view
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        uint256 sum = 0;
+        uint256 i = 0;
+        tokenIds = new uint256[](1);
+        amounts  = new uint256[](1);
+        while (sum != amount) {
+            uint256 tokenId = _holdings.at(i);
+            uint256 balance = EAT.balanceOf(address(this), tokenId);
+
+            tokenIds[i] = tokenId;
+            if (sum + balance <= amount) {
+                amounts[i] = balance;
+                sum += balance;
+                i++;
+                continue;
+            } else {
+                amounts[amounts.length] = amount - sum;
+                break;
+            }
+        }
+
+        return (tokenIds, amounts);
     }
 
     /**

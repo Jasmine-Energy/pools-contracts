@@ -15,6 +15,7 @@ import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
 
 // Utility Libraries
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { ArrayUtils } from "../../libraries/ArrayUtils.sol";
 import { 
     ERC20Errors,
     ERC1155Errors
@@ -32,6 +33,12 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
  * QUESTION: Should there be a maximum permitted fee?
  */
 abstract contract JasmineFeePool is JasmineBasePool {
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Libraries
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    using ArrayUtils for uint256[];
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Events
@@ -162,25 +169,22 @@ abstract contract JasmineFeePool is JasmineBasePool {
     //  Overrides
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    // /**
-    //  * @dev Override cost of withdrawal to factor in fees
-    //  */
-    // function _costOfWithdrawal(uint256 withdrawalQuantity)
-    //     internal virtual override
-    //     returns (uint256 withdrawalCost)
-    // {
-    //     return Math.mulDiv(super._costOfWithdrawal(withdrawalQuantity), withdrawalFee(), 10_000);
-    // }
+    function _withdraw(
+        address sender,
+        address recipient,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        bytes memory data
+    ) 
+        internal virtual override
+        nonReentrant onlyOperator(sender)
+    {
+        // 1. Take fee from caller
+        // TODO Take fee and send to fee beneficiary
 
-    // /**
-    //  * @dev Override cost of retirement to factor in fees
-    //  */
-    // function _costOfRetirement(uint256 retirementQuantity)
-    //     internal virtual override
-    //     returns (uint256 withdrawalCost)
-    // {
-    //     return retirementQuantity;
-    // }
+        // 2. Call super
+        super._withdraw(sender, recipient, tokenIds, amounts, data);
+    }
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
