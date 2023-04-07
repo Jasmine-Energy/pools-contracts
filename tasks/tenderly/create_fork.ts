@@ -1,56 +1,101 @@
-import { colouredLog } from '@/utils';
-import { task } from 'hardhat/config';
-import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
-import * as forksFile from '../../tenderly-forks.json';
-import fs from 'fs/promises';
-import axios from 'axios';
-import path from 'path';
+import { colouredLog } from "@/utils";
+import { task } from "hardhat/config";
+import type { TaskArguments, HardhatRuntimeEnvironment } from "hardhat/types";
+import { Tenderly, TenderlyEndpoints } from "@/utils/constants";
+import { anAxiosOnTenderly, TenderlyFork } from "@/utils/tenderly";
+import * as forksFile from "../../tenderly-forks.json";
+import Table from "cli-table3";
+import fs from "fs/promises";
+import path from "path";
 
-
-const TENDERLY_FORK_API = `http://api.tenderly.co/api/v1/account/Jasmine/project/reference-pools/fork`;
 
 task("fork", "Creates a tenderly fork of network")
   .addOptionalParam<string>("name", "Optional name to save fork as")
+  .addOptionalParam<string>("block", "Block to fork from")
+  .addFlag("default", "Sets new fork to default")
   .setAction(
     async (
       taskArgs: TaskArguments,
-      { ethers, network, getChainId, ...hre }: HardhatRuntimeEnvironment
+      { ethers, network, getChainId, run, ...hre }: HardhatRuntimeEnvironment
     ): Promise<void> => {
-        const opts = {
-            headers: {
-                'X-Access-Key': process.env.TENDERLY_API_KEY,
-            }
-        }
-        const chainId = await getChainId();
-        const body = {
-          "network_id": chainId,
-        }
-        
-        
-        
-        const resp = await axios.post(TENDERLY_FORK_API, body, opts);
+      const chainId = await getChainId();
+      var fork: TenderlyFork = {
+        network_id: chainId,
+      };
 
-        if (resp.status != 201) {
-            colouredLog.red("Failed");
-            return;
+      if (taskArgs.block) {
+        fork.block_number = parseInt(taskArgs.block);
+      }
+
+      const axiosOnTenderly = anAxiosOnTenderly();
+      const forkResponse = await axiosOnTenderly.post(
+        Tenderly.endpoints(TenderlyEndpoints.fork),
+        fork
+      );
+
+      if (forkResponse.status != 201) {
+        if (hre.hardhatArguments.verbose) {
+          console.log(forkResponse);
+          colouredLog.red("Failed. See above response");
+        } else {
+          colouredLog.red("Failed");
         }
+        return;
+      }
 
-        const { simulation_fork } = resp.data;
-        console.log(resp.data)
-        
-        var updatesForks = forksFile;
-        updatesForks.forks.push({
-            name: taskArgs.name ?? `${network.name} Fork from ${new Date(simulation_fork.created_at).toLocaleString()}`,
-            forked: network.name,
-            ...simulation_fork
-        });
+      const { simulation_fork } = forkResponse.data;
 
-        await fs.writeFile(path.join(hre.config.paths.root, 'tenderly-forks.json'), JSON.stringify({
-            total: updatesForks.forks.length,
-            defaultFork: updatesForks.defaultFork,
-            forks: updatesForks.forks
-        }));
-        
-        colouredLog.blue(`Fork created! Index: ${updatesForks.total} ID: ${simulation_fork.id}`);
+      const name =
+        taskArgs.name ??
+        `${network.name} Fork from ${new Date(
+          simulation_fork.created_at
+        ).toLocaleString()}`;
+
+      var updatesForks = forksFile;
+      updatesForks.forks.push({
+        name,
+        forked: network.name,
+        ...simulation_fork,
+      });
+
+      await fs.writeFile(
+        path.join(hre.config.paths.root, "tenderly-forks.json"),
+        JSON.stringify({
+          total: updatesForks.forks.length,
+          defaultFork: updatesForks.defaultFork,
+          forks: updatesForks.forks,
+        })
+      );
+
+      colouredLog.blue(
+        "Fork created".concat(taskArgs.default ? " and set to default!" : "!")
+      );
+      const head = ["Index", "Name", "Forked", "Pool ID"];
+      var table = new Table({
+        head,
+        style: {
+          head: ["yellow"],
+          border: [],
+        },
+        wordWrap: true,
+        wrapOnWordBoundary: false,
+      });
+      table.push([
+        updatesForks.forks.length - 1,
+        name,
+        network.name,
+        {
+          content: simulation_fork.id,
+          href: `${Tenderly.forksDashboard}/${simulation_fork.id}`,
+        },
+      ]);
+
+      console.log(table.toString());
+
+      await run("fork:default", {
+        index: (updatesForks.forks.length - 1).toString(),
+        silent: true,
+        force: true,
+      });
     }
   );

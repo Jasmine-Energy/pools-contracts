@@ -1,11 +1,12 @@
-import { colouredLog } from '@/utils';
 import { task } from 'hardhat/config';
 import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
+import { TENDERLY_FORK_DASHBOARD } from "@/utils/constants";
 import * as forksFile from '../../tenderly-forks.json';
 import Table from "cli-table3";
 import colors from '@colors/colors'
 
 task("fork:list", "Creates a tenderly fork of network")
+  .addOptionalParam<string>("fork", "Only list forks from network")
   .setAction(
     async (
       taskArgs: TaskArguments,
@@ -23,12 +24,19 @@ task("fork:list", "Creates a tenderly fork of network")
         wrapOnWordBoundary: false,
       });
 
-      for (var i = 0; i < forksFile.total; i++) {
-        const fork = forksFile.forks[i];
-        const row = [i, fork.name, fork.forked, fork.id];
+      var forks = forksFile.forks;
+
+      if (taskArgs.fork) {
+        forks = forks.filter((fork) => fork.forked === taskArgs.fork);
+      }
+
+      for (var i = 0; i < forks.length; i++) {
+        const fork = forks[i];
+        const indexOfFork = forksFile.forks.indexOf(fork);
+        const row = [indexOfFork.toString(), fork.name, fork.forked, { content: fork.id, href: `${TENDERLY_FORK_DASHBOARD}/${fork.id}` }];
         table.push(
-            i == forksFile.defaultFork ?
-            row.map(i => colors.green(i.toString())) :
+            indexOfFork == forksFile.defaultFork ?
+            row.map(cell => typeof cell == 'string' ? colors.green(cell) : { content: colors.green(cell.content), href: cell.href }) :
             row
         );
       }
