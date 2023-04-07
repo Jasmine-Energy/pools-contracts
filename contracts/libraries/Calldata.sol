@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity ^0.8.18;
+pragma solidity >=0.8.17;
 
 
 /**
@@ -19,7 +19,7 @@ library Calldata {
     bytes32 public constant RETIREMENT_OP = keccak256("RETIRE");
 
     /// @dev Calldata prefix for bridge-off operations
-    bytes32 public constant BRIDGE_OFF_OP = keccak256("BRIDGE OFF");
+    bytes32 public constant BRIDGE_OFF_OP = keccak256("BRIDGE_OFF");
     
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Utility Functions

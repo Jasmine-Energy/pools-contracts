@@ -1,6 +1,7 @@
 import { task } from "hardhat/config";
 import type { TaskArguments, HardhatRuntimeEnvironment } from "hardhat/types";
 import * as forksFile from "../../tenderly-forks.json";
+import { Tenderly, TenderlyEndpoints } from "@/utils/constants";
 import { colouredLog } from "@/utils";
 import colors from "@colors/colors";
 import fs from "fs/promises";
@@ -36,10 +37,9 @@ task("fork:remove", "Deletes a tenderly fork")
           },
         });
 
-      const projectUrl = "account/Jasmine/project/reference-pools";
       const axiosOnTenderly = anAxiosOnTenderly();
       const resp = await axiosOnTenderly.delete(
-        `${projectUrl}/fork/${forksFile.forks[index].id}`
+        `${Tenderly.endpoints(TenderlyEndpoints.fork)}/${forksFile.forks[index].id}`
       );
 
       if (resp.status != 204) {

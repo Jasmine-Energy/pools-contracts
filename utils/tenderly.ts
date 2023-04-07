@@ -40,7 +40,6 @@ export const anAxiosOnTenderly = () => axios.create({
     fork parameter.
 */
 export const forkForTest = async (fork: TenderlyFork): Promise<EthersOnTenderlyFork> => {
-    const projectUrl = `account/${process.env.TENDERLY_USER}/project/${process.env.TENDERLY_PROJECT}`;
     const axiosOnTenderly = anAxiosOnTenderly();
 
     const forkResponse = await axiosOnTenderly.post(Tenderly.endpoints(TenderlyEndpoints.fork), fork);
@@ -60,7 +59,9 @@ export const forkForTest = async (fork: TenderlyFork): Promise<EthersOnTenderlyF
         signers,
         removeFork: async () => {
             console.log("Removing test fork", forkId);
-            return await axiosOnTenderly.delete(`${projectUrl}/fork/${forkId}`);
+            return await axiosOnTenderly.delete(
+                `${Tenderly.endpoints(TenderlyEndpoints.fork)}/${forkId}`
+              );
         },
     };
 };

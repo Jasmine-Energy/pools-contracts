@@ -70,16 +70,33 @@ Lastly, the *Pool Factory* is responsible for storing shared state across the pr
 The *Jasmine Base Pool* implements deposit functionality contidional upon `meetsPolicy` passing - which is expected to be overriden by [*extensions*](#2-pool-extensions) and [*instantiations*](#3-pool-instantiations) contracts to create more restrictive deposit criteria. The *Base Pool*'s only deposit criteria is that a token (1) is an EAT, (2) is not frozen and (3) exists.
 
 The *Jasmine Base Pool* also impements withdrawal and retirement functionality which is costed per the `withdrawalCost` function. 
+
+**NOTE:**
+- `IJasminePool` interface is deliberately unimplemented by base pool at present time and will be readded once code is in more stable state
+- Pool are in active development: the above is subject to change
  
 #### **2. Pool Extensions**
 
-####  **3. Pool Instantiations**
+*Pool Extensions* are abstract contracts, defined in [`contracts/pools/extensions`](./contracts/pools/extensions/), which add additional functionality to on top of the *Base Pool*. Currently, `JasmineFeePool` is the only extension, though, more will follow and functionality from later pools may be generalized into an extension as needed.
+
+This design pattern is inspired by Openzeppelin's modular approach and composable approach to smart contract development.
+
+#### **3. Pool Instantiations**
+
+*Pool Instantiations* are the real-world smart contracts deployed to be used as implementations within the factory. Currently, only one instantiation exists: the [`JasminePool`](./contracts/JasminePool.sol). 
+
+**The Jasmine Pool**
+
+The *Jasmine Pool* inherits from the *Base Pool* which implements the `JasmineFeePool` extension. The *Jasmine Pool* uses the [`PoolPolicy`](./contracts/libraries/PoolPolicy.sol) library's `DepositPolicy` to restrict which EATs may be deposited. 
+
+The [`PoolPolicy`](./contracts/libraries/PoolPolicy.sol) library defines the different *Deposit Policies* (currently, only one simple policy is supported) pool's may have and creates utility functions for validating eligibility, and (coming soon) comparing like policies to determine inter-pool transfer requirements (ie. if Pool A's policy is a subset of Pool B's policy, JLTs may be transferred from Pool A to Pool B without verifying the eligibility of the EATs Pool B will withdraw upon receipt of Pool A's JLTs).
 
 ## **Jasmine Retirement Service**
 - [Interface](./contracts/interfaces/IRetirementService.sol)
 - [Source](./contracts/JasmineRetirementService.sol)
 - [Docs](./docs/JasmineRetirementService.md)
 
+**TODO**
 
 ## Full Documentation
 For full documentation about the Jasmine Reference Pool contracts, [view docs](./docs/) or visit our [GitBook](https://docs.jasmine.energy/).
@@ -87,10 +104,34 @@ For full documentation about the Jasmine Reference Pool contracts, [view docs](.
 # Useage
 
 ## Local Development
-This repository uses [Hardhat](https://hardhat.org/) as its IDE.
+This repository uses [Hardhat](https://hardhat.org/) as its IDE and makes extensive use of [OpenZeppelin's core contract](https://docs.openzeppelin.com/contracts/4.x/) (v4.8.2). The project also makes extensive use of [Tenderly](https://tenderly.co/), though, it is not required to run locally.
 
-### Installation
-To install dependencies, run `npm install`.
+## Setup
+Be sure to set either an `INUFRA_API_KEY` in .env or specify RPC URLs in .env. To make use of Tenderly (such as the fork management and account funding [hardhat tasks](./tasks/tenderly/)) set `TENDERLY_API_KEY`.
+
+## Installation
+To install dependencies, run `npm install`
+
+**NOTE:** currently, you will require a [Github personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) set in order to access the core contracts repo. Get one [here](https://github.com/settings/tokens).
+
+## Testing
+
+To run all unit tests in [`test`](./test/), simply run `npm run test`. 
+
+## Deploying
+
+To deploy contracts locally, run `npm run start`. This will deploy core contract, librariies, Jasmine Pool implementation contract and the Jasmine Pool Factory. From there, you can run `npx hardhat mint ADDRESS` to mint testing EATs. 
+
+## Utility Tasks
+
+1. **Minting EATs**: `npx hardhat mint ADDRESS` Default network is localhost (aka running hardhat chain)
+2. **Listing Pools**: `npx hardhat pool:list`
+3. **Get Pool from Factory**: `npx hardhat pool:at` Get address of a pool from deployment index
+4. **Transfer 1155**: `npx hardhat transfer` Convenience utility to transfer EATs. *Tip:* EATs may be depositted into a pool via an 1155 transfer
+
+## Linting
+
+The project uses both ESLint and Solhint. To run linter, use `npm run lint` or `npm run lint:fix` to lint and fix where possible.
 
 # Additional Info
 

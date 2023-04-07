@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.17;
 
 
 //  ─────────────────────────────────────────────────────────────────────────────
@@ -83,18 +83,6 @@ library PoolPolicy {
         }
         // 6. If above checks pass, token meets policy
         return true;
-    }
-
-    //  ───────────────────────────  Vintage Utilities  ─────────────────────────────  \\
-
-    function frontHalfOfYear(uint16) external pure returns (uint256[2] memory) {
-        // TODO: Implement me
-        revert("PoolPolicy: Unimplemented");
-    }
-
-    function backHalfOfYear(uint16) external pure returns (uint256[2] memory) {
-        // TODO: Implement me
-        revert("PoolPolicy: Unimplemented");
     }
 
 
