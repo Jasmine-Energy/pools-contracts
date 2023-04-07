@@ -686,6 +686,29 @@ Used to withdraw specific EATs held by pool by burning         JLTs from sender.
 | amounts | uint256[] | Amount of EATs to withdraw per token ID |
 | data | bytes | Optional calldata to forward to recipient |
 
+### withdrawalCost
+
+```solidity
+function withdrawalCost(uint256[] tokenIds, uint256[] amounts) external view returns (uint256 cost)
+```
+
+Cost of withdrawing specified amounts of tokens from pool. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenIds | uint256[] | IDs of EATs to withdaw |
+| amounts | uint256[] | Amounts of EATs to withdaw  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| cost | uint256 | Price of withdrawing EATs in JLTs |
+
 
 
 ## Events

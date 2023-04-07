@@ -414,12 +414,12 @@ abstract contract JasmineBasePool is
         nonReentrant onlyOperator(sender)
     {
         // 1. Ensure sender has sufficient JLTs and lengths match
-        uint256 amountSum = amounts.sum();
-        if (balanceOf(sender) < amountSum)
+        uint256 cost = withdrawalCost(tokenIds, amounts);
+        if (balanceOf(sender) < cost)
             revert ERC20Errors.ERC20InsufficientBalance(
                 sender,
                 balanceOf(sender),
-                amountSum
+                cost
             );
         if (tokenIds.length != amounts.length)
             revert ERC1155Errors.ERC1155InvalidArrayLength(
@@ -428,7 +428,7 @@ abstract contract JasmineBasePool is
             );
 
         // 2. Burn Tokens
-        _burn(sender, amountSum, "", "");
+        _burn(sender, cost, "", "");
 
         // 3. Transfer Select Tokens
         _sendBatchEAT(recipient, tokenIds, amounts, data);
@@ -436,7 +436,7 @@ abstract contract JasmineBasePool is
 
 
     // ──────────────────────────────────────────────────────────────────────────────
-    // Jasmine Pool Conformance Implementations
+    // Jasmine Qualified Pool Implementations
     // ──────────────────────────────────────────────────────────────────────────────
 
     //  ────────────────────────────  Policy Functions  ─────────────────────────────  \\
@@ -464,8 +464,32 @@ abstract contract JasmineBasePool is
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
-    // Admin Functionality
+    // Costing Functionality
     // ──────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Cost of withdrawing specified amounts of tokens from pool.
+     * 
+     * @param tokenIds IDs of EATs to withdaw
+     * @param amounts Amounts of EATs to withdaw
+     * 
+     * @return cost Price of withdrawing EATs in JLTs
+     */
+    function withdrawalCost(
+        uint256[] memory tokenIds,
+        uint256[] memory amounts
+    )
+        public view virtual
+        returns (uint256 cost)
+    {
+        if (tokenIds.length != amounts.length) {
+            revert ERC1155Errors.ERC1155InvalidArrayLength(
+                tokenIds.length,
+                amounts.length
+            );
+        }
+        return amounts.sum();
+    }
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Overrides
