@@ -50,7 +50,7 @@ abstract contract JasmineFeePool is JasmineBasePool {
      * @param withdrawFeeBips New withdrawal fee in basis points
      * @param beneficiary Address to receive fees
      */
-    event WithdrawalFeeUpdate(
+    event WithdrawalRateUpdate(
         uint96 withdrawFeeBips,
         address indexed beneficiary
     );
@@ -61,7 +61,7 @@ abstract contract JasmineFeePool is JasmineBasePool {
      * @param retirementFeeBips new retirement fee in basis points
      * @param beneficiary Address to receive fees
      */
-    event RetirementFeeUpdate(
+    event RetirementRateUpdate(
         uint96 retirementFeeBips,
         address indexed beneficiary
     );
@@ -72,10 +72,10 @@ abstract contract JasmineFeePool is JasmineBasePool {
     // ──────────────────────────────────────────────────────────────────────────────
 
     /// @dev Fee for withdrawals in basis points
-    uint96 private _withdrawalFee;
+    uint96 private _withdrawalRate;
 
     /// @dev Fee for retirements in basis points
-    uint96 private _retirementFee;
+    uint96 private  _retirementRate;
 
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -98,32 +98,32 @@ abstract contract JasmineFeePool is JasmineBasePool {
     // ──────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Returns the pool's JLT withdrawal fee in basis points
+     * @notice Returns the pool's JLT withdrawal rate in basis points
      * 
-     * @dev If pool's withdrawal fee is not set, defer to pool factory's base fee
+     * @dev If pool's withdrawal rate is not set, defer to pool factory's base rate
      * 
      * @return Withdrawal fee in basis points
      */
-    function withdrawalFee() public view returns (uint96) {
-        if (_withdrawalFee != 0) {
-            return _withdrawalFee;
+    function withdrawalRate() public view returns (uint96) {
+        if (_withdrawalRate != 0) {
+            return _withdrawalRate;
         } else {
-            return JasminePoolFactory(poolFactory).baseWithdrawalFee();
+            return JasminePoolFactory(poolFactory).baseWithdrawalRate();
         }
     }
 
     /**
-     * @notice Returns the pool's JLT retirement fee in basis points
+     * @notice Returns the pool's JLT retirement rate in basis points
      * 
-     * @dev If pool's retirement fee is not set, defer to pool factory's base fee
+     * @dev If pool's retirement rate is not set, defer to pool factory's base rate
      * 
-     * @return Retirement fee in basis points
+     * @return Retirement rate in basis points
      */
-    function retirementFee() public view returns (uint96) {
-        if (_retirementFee != 0) {
-            return _retirementFee;
+    function retirementRate() public view returns (uint96) {
+        if ( _retirementRate != 0) {
+            return  _retirementRate;
         } else {
-            return JasminePoolFactory(poolFactory).baseRetirementFee();
+            return JasminePoolFactory(poolFactory).baseRetirementRate();
         }
     }
 
@@ -132,37 +132,37 @@ abstract contract JasmineFeePool is JasmineBasePool {
     // ──────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Allows pool fee managers to update the withdrawal fee
+     * @notice Allows pool fee managers to update the withdrawal rate
      * 
      * @dev Requirements:
      *     - Caller must have fee manager role - in pool factory
      * 
-     * @dev emits WithdrawalFeeUpdate
+     * @dev emits WithdrawalRateUpdate
      * 
-     * @param newWithdrawalFee New fee on withdrawals in basis points
+     * @param newWithdrawalRate New rate on withdrawals in basis points
      */
-    function updateWithdrawalFee(uint96 newWithdrawalFee) 
+    function updateWithdrawalRate(uint96 newWithdrawalRate) 
         external virtual
         onlyFeeManager
     {
-        _updateWithdrawalFee(newWithdrawalFee);
+        _updateWithdrawalRate(newWithdrawalRate);
     }
 
     /**
-     * @notice Allows pool fee managers to update the withdrawal fee
+     * @notice Allows pool fee managers to update the retirement rate
      * 
      * @dev Requirements:
      *     - Caller must have fee manager role - in pool factory
      * 
-     * @dev emits RetirementFeeUpdate
+     * @dev emits RetirementRateUpdate
      * 
-     * @param newRetirementFee New fee on retirements in basis points
+     * @param newRetirementRate New rate on retirements in basis points
      */
-    function updateRetirementFee(uint96 newRetirementFee) 
+    function updateRetirementRate(uint96 newRetirementRate) 
         external virtual
         onlyFeeManager
     {
-        _updateRetirementFee(newRetirementFee);
+        _updateRetirementRate(newRetirementRate);
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -186,34 +186,63 @@ abstract contract JasmineFeePool is JasmineBasePool {
         super._withdraw(sender, recipient, tokenIds, amounts, data);
     }
 
+    /**
+     * @notice Cost of withdrawing specified amounts of tokens from pool including
+     *         withdrawal fee.
+     * 
+     * @param tokenIds IDs of EATs to withdaw
+     * @param amounts Amounts of EATs to withdaw
+     * 
+     * @return cost Price of withdrawing EATs in JLTs
+     */
+    function withdrawalCost(
+        uint256[] memory tokenIds,
+        uint256[] memory amounts
+    )
+        public view virtual override
+        returns (uint256 cost)
+    {
+        if (tokenIds.length != amounts.length) {
+            revert ERC1155Errors.ERC1155InvalidArrayLength(
+                tokenIds.length,
+                amounts.length
+            );
+        }
+        return Math.mulDiv(
+            super.withdrawalCost(tokenIds, amounts), 
+            (withdrawalRate() + 10_000), 
+            10_000
+        );
+    }
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @dev Internal method for setting withdrawal fee
+     * @dev Internal method for setting withdrawal rate
      * 
-     * @param newWithdrawalFee New fee on withdrawals in basis points
+     * @param newWithdrawalRate New rate on withdrawals in basis points
      */
-    function _updateWithdrawalFee(uint96 newWithdrawalFee) 
+    function _updateWithdrawalRate(uint96 newWithdrawalRate) 
         internal virtual
     {
-        _withdrawalFee = newWithdrawalFee;
+        _withdrawalRate = newWithdrawalRate;
 
-        emit WithdrawalFeeUpdate(newWithdrawalFee, _msgSender());
+        emit WithdrawalRateUpdate(newWithdrawalRate, _msgSender());
     }
 
     /**
      * @dev Internal method for setting retirement fee
      * 
-     * @param newRetirementFee New fee on retirements in basis points
+     * @param newRetirementRate New fee on retirements in basis points
      */
-    function _updateRetirementFee(uint96 newRetirementFee) 
+    function _updateRetirementRate(uint96 newRetirementRate) 
         internal virtual
     {
-        _retirementFee = newRetirementFee;
+         _retirementRate = newRetirementRate;
 
-        emit RetirementFeeUpdate(newRetirementFee, _msgSender());
+        emit RetirementRateUpdate(newRetirementRate, _msgSender());
     }
     
     //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\

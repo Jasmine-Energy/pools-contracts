@@ -77,10 +77,10 @@ function addPoolImplementation(address newPoolImplementation) external nonpayabl
 |---|---|---|
 | indexInPools | uint256 | undefined |
 
-### baseRetirementFee
+### baseRetirementRate
 
 ```solidity
-function baseRetirementFee() external view returns (uint96)
+function baseRetirementRate() external view returns (uint96)
 ```
 
 
@@ -94,10 +94,10 @@ function baseRetirementFee() external view returns (uint96)
 |---|---|---|
 | _0 | uint96 | undefined |
 
-### baseWithdrawalFee
+### baseWithdrawalRate
 
 ```solidity
-function baseWithdrawalFee() external view returns (uint96)
+function baseWithdrawalRate() external view returns (uint96)
 ```
 
 
@@ -423,37 +423,37 @@ function revokeRole(bytes32 role, address account) external nonpayable
 | role | bytes32 | undefined |
 | account | address | undefined |
 
-### setBaseRetirementFee
+### setBaseRetirementRate
 
 ```solidity
-function setBaseRetirementFee(uint96 newRetirementFee) external nonpayable
+function setBaseRetirementRate(uint96 newRetirementRate) external nonpayable
 ```
 
-Allows pool fee managers to update the base retirement fee across pools 
+Allows pool fee managers to update the base retirement rate across pools 
 
-*Requirements:     - Caller must have fee manager role *
+*Requirements:     - Caller must have fee manager role emits BaseRetirementFeeUpdate *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| newRetirementFee | uint96 | New base fee for retirements in basis points |
+| newRetirementRate | uint96 | New base rate for retirements in basis points |
 
-### setBaseWithdrawalFee
+### setBaseWithdrawalRate
 
 ```solidity
-function setBaseWithdrawalFee(uint96 newWithdrawalFee) external nonpayable
+function setBaseWithdrawalRate(uint96 newWithdrawalRate) external nonpayable
 ```
 
-Allows pool fee managers to update the base withdrawal fee across pools 
+Allows pool fee managers to update the base withdrawal rate across pools 
 
-*Requirements:     - Caller must have fee manager role *
+*Requirements:     - Caller must have fee manager role emits BaseWithdrawalFeeUpdate *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| newWithdrawalFee | uint96 | New base fee for withdrawals in basis points |
+| newWithdrawalRate | uint96 | New base rate for withdrawals in basis points |
 
 ### setFeeBeneficiary
 
@@ -463,7 +463,7 @@ function setFeeBeneficiary(address newFeeBeneficiary) external nonpayable
 
 Allows pool fee managers to update the beneficiary to receive pool fees         across all Jasmine pools 
 
-*Requirements:     - Caller must have fee manager role     - New beneficiary cannot be zero address     - If new beneficiary is a contract, must support IERC777Recipient interface *
+*Requirements:     - Caller must have fee manager role     - New beneficiary cannot be zero address     - If new beneficiary is a contract, must support IERC777Recipient interface emits BaseWithdrawalFeeUpdate &amp; BaseRetirementFeeUpdate *
 
 #### Parameters
 
@@ -546,6 +546,40 @@ function updateImplementationAddress(address, uint256 poolIndex) external view
 
 
 ## Events
+
+### BaseRetirementFeeUpdate
+
+```solidity
+event BaseRetirementFeeUpdate(uint96 retirementRateBips, address indexed beneficiary)
+```
+
+
+
+*Emitted whenever fee manager updates retirement rate *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| retirementRateBips  | uint96 | new retirement rate in basis points |
+| beneficiary `indexed` | address | Address to receive fees |
+
+### BaseWithdrawalFeeUpdate
+
+```solidity
+event BaseWithdrawalFeeUpdate(uint96 withdrawRateBips, address indexed beneficiary)
+```
+
+
+
+*Emitted whenever fee manager updates withdrawal rate *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| withdrawRateBips  | uint96 | New withdrawal rate in basis points |
+| beneficiary `indexed` | address | Address to receive fees |
 
 ### OwnershipTransferStarted
 

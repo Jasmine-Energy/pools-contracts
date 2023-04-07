@@ -707,7 +707,7 @@ Cost of withdrawing specified amounts of tokens from pool.
 
 | Name | Type | Description |
 |---|---|---|
-| cost | uint256 | Price of withdrawing EATs in JLTs |
+| cost | uint256 | Price of withdrawing EATs in JLTs TODO: Need to add bool whether tokens were chosen by pool or caller |
 
 
 

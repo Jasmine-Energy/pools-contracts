@@ -14,7 +14,9 @@
     "clean": "npx hardhat clean",
     "lint": "solhint 'contracts/**/*.sol'",
     "lint:fix": "solhint 'contracts/**/*.sol' --fix",
-    "interact": "npx hardhat interact"
+    "interact": "npx hardhat interact",
+    "pool:list": "npx hardhat pool:list",
+    "deployments:list": "npx hardhat deployments"
   },
   "repository": {
     "type": "git",

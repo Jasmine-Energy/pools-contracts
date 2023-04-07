@@ -474,6 +474,7 @@ abstract contract JasmineBasePool is
      * @param amounts Amounts of EATs to withdaw
      * 
      * @return cost Price of withdrawing EATs in JLTs
+     * TODO: Need to add bool whether tokens were chosen by pool or caller
      */
     function withdrawalCost(
         uint256[] memory tokenIds,

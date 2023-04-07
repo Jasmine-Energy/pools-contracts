@@ -13,6 +13,7 @@ import { DEFAULT_ADMIN_ROLE, FEE_MANAGER_ROLE } from "@/utils/constants";
 describe(Contracts.factory, function () {
     let owner: SignerWithAddress;
     let bridge: SignerWithAddress;
+    let feeBeneficiary: SignerWithAddress;
     let accounts: SignerWithAddress[];
     
     let poolFactory: JasminePoolFactory;
@@ -28,10 +29,11 @@ describe(Contracts.factory, function () {
         const namedAccounts = await getNamedAccounts();
         owner = await ethers.getSigner(namedAccounts.owner);
         bridge = await ethers.getSigner(namedAccounts.bridge);
+        feeBeneficiary = await ethers.getSigner(namedAccounts.feeBeneficiary);
         accounts = await ethers.getSigners();
 
         const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-        poolFactory = (await PoolFactory.deploy(poolImplementation.address, owner.address)) as JasminePoolFactory;
+        poolFactory = (await PoolFactory.deploy(poolImplementation.address, feeBeneficiary.address)) as JasminePoolFactory;
     });
 
 
@@ -217,6 +219,81 @@ describe(Contracts.factory, function () {
                         poolFactory, "RoleRevoked"
                     ).withArgs(FEE_MANAGER_ROLE, feeManager.address, feeManager.address);
                 expect(await poolFactory.hasRole(FEE_MANAGER_ROLE, feeManager.address)).to.be.false;
+            });
+        });
+    });
+
+    describe("Pool Fees", async function () {
+        const feeManager = accounts[5];
+        const factoryFromManager = poolFactory.connect(feeManager);
+        const factoryFromUser = poolFactory.connect(accounts[3]);
+
+        before(async function() {
+            await poolFactory.grantRole(FEE_MANAGER_ROLE, feeManager.address);
+        });
+
+        beforeEach(async function () {
+            await factoryFromManager.setBaseWithdrawalRate(0);
+            await factoryFromManager.setBaseRetirementRate(0);
+
+            expect(await poolFactory.baseWithdrawalRate()).to.be.eq(0);
+            expect(await poolFactory.baseRetirementRate()).to.be.eq(0);
+        });
+
+        describe("Withdrawal Rate", async function() {
+            it("Should allow fee managers to set base withdrawal rate", async function() {
+                const newRate = 500;
+                expect(await factoryFromManager.setBaseWithdrawalRate(newRate)).to.be.ok
+                    .and.to.emit(poolFactory, "BaseWithdrawalFeeUpdate").withArgs(newRate, feeBeneficiary);
+    
+                expect(await poolFactory.baseWithdrawalRate()).to.be.eql(newRate);
+            });
+
+            it("Should disallow non fee managers to set base withdrawal rate", async function() {
+                const newRate = 500;
+                await expect(factoryFromUser.setBaseWithdrawalRate(newRate)).to.be.revertedWithCustomError(
+                    poolFactory, "RequiresRole"
+                ).withArgs(FEE_MANAGER_ROLE);
+    
+                expect(await poolFactory.baseWithdrawalRate()).to.be.eql(0);
+            });
+        });
+
+        describe("Retirement Rate", async function() {
+            it("Should allow fee managers to set base retirement rate", async function() {
+                const newRate = 500;
+                expect(await factoryFromManager.setBaseRetirementRate(newRate)).to.be.ok
+                    .and.to.emit(poolFactory, "BaseRetirementFeeUpdate").withArgs(newRate, feeBeneficiary);
+    
+                expect(await poolFactory.baseRetirementRate()).to.be.eql(newRate);
+            });
+    
+            it("Should disallow non fee managers to set base retirement rate", async function() {
+                const newRate = 500;
+                await expect(factoryFromUser.setBaseRetirementRate(newRate)).to.be.revertedWithCustomError(
+                    poolFactory, "RequiresRole"
+                ).withArgs(FEE_MANAGER_ROLE);
+    
+                expect(await poolFactory.baseRetirementRate()).to.be.eql(0);
+            });
+        });
+
+        describe("Retirement Rate", async function() {
+            it("Should allow fee managers to set fee beneficiary", async function() {
+                expect(await factoryFromManager.setFeeBeneficiary(owner.address)).to.be.ok
+                    .and.to.emit(poolFactory, "BaseWithdrawalFeeUpdate").withArgs(0, owner.address)
+                    .and.to.emit(poolFactory, "BaseRetirementFeeUpdate").withArgs(0, owner.address);
+    
+                expect(await poolFactory.feeBeneficiary()).to.be.eq(owner.address);
+            });
+    
+            it("Should disallow non fee managers to set fee beneficiary", async function() {
+                const initialBeneficiary = await poolFactory.feeBeneficiary();
+                await expect(factoryFromUser.setFeeBeneficiary(feeManager.address)).to.be.revertedWithCustomError(
+                    poolFactory, "RequiresRole"
+                ).withArgs(FEE_MANAGER_ROLE);
+
+                expect(await poolFactory.feeBeneficiary()).to.be.not.eq(initialBeneficiary);
             });
         });
     });

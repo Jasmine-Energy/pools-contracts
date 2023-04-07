@@ -89,6 +89,9 @@ const config: HardhatUserConfig = {
       default: 1,
       // TODO: Set to correct address on Polygon and mumbai
     },
+    feeBeneficiary: {
+      default: 5,
+    },
     eat: {
       polygon: "0xba3aa8083f8978257aaafb19ed698a623197a7c1",
       mumbai: "0xae205e00c7dcb5292388bd8962e79582a5ae14d0",

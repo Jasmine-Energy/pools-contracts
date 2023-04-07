@@ -487,22 +487,22 @@ function retire(address sender, address, uint256, bytes) external nonpayable
 | _2 | uint256 | undefined |
 | _3 | bytes | undefined |
 
-### retirementFee
+### retirementRate
 
 ```solidity
-function retirementFee() external view returns (uint96)
+function retirementRate() external view returns (uint96)
 ```
 
-Returns the pool&#39;s JLT retirement fee in basis points 
+Returns the pool&#39;s JLT retirement rate in basis points 
 
-*If pool&#39;s retirement fee is not set, defer to pool factory&#39;s base fee *
+*If pool&#39;s retirement rate is not set, defer to pool factory&#39;s base rate *
 
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint96 | Retirement fee in basis points |
+| _0 | uint96 | Retirement rate in basis points |
 
 ### revokeOperator
 
@@ -658,37 +658,37 @@ function transferFrom(address holder, address recipient, uint256 amount) externa
 |---|---|---|
 | _0 | bool | undefined |
 
-### updateRetirementFee
+### updateRetirementRate
 
 ```solidity
-function updateRetirementFee(uint96 newRetirementFee) external nonpayable
+function updateRetirementRate(uint96 newRetirementRate) external nonpayable
 ```
 
-Allows pool fee managers to update the withdrawal fee 
+Allows pool fee managers to update the retirement rate 
 
-*Requirements:     - Caller must have fee manager role - in pool factory emits RetirementFeeUpdate *
+*Requirements:     - Caller must have fee manager role - in pool factory emits RetirementRateUpdate *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| newRetirementFee | uint96 | New fee on retirements in basis points |
+| newRetirementRate | uint96 | New rate on retirements in basis points |
 
-### updateWithdrawalFee
+### updateWithdrawalRate
 
 ```solidity
-function updateWithdrawalFee(uint96 newWithdrawalFee) external nonpayable
+function updateWithdrawalRate(uint96 newWithdrawalRate) external nonpayable
 ```
 
-Allows pool fee managers to update the withdrawal fee 
+Allows pool fee managers to update the withdrawal rate 
 
-*Requirements:     - Caller must have fee manager role - in pool factory emits WithdrawalFeeUpdate *
+*Requirements:     - Caller must have fee manager role - in pool factory emits WithdrawalRateUpdate *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| newWithdrawalFee | uint96 | New fee on withdrawals in basis points |
+| newWithdrawalRate | uint96 | New rate on withdrawals in basis points |
 
 ### withdraw
 
@@ -741,7 +741,7 @@ Used to withdraw specific EATs held by pool by burning         JLTs from sender.
 function withdrawalCost(uint256[] tokenIds, uint256[] amounts) external view returns (uint256 cost)
 ```
 
-Cost of withdrawing specified amounts of tokens from pool. 
+Cost of withdrawing specified amounts of tokens from pool including         withdrawal fee. 
 
 
 
@@ -758,15 +758,15 @@ Cost of withdrawing specified amounts of tokens from pool.
 |---|---|---|
 | cost | uint256 | Price of withdrawing EATs in JLTs |
 
-### withdrawalFee
+### withdrawalRate
 
 ```solidity
-function withdrawalFee() external view returns (uint96)
+function withdrawalRate() external view returns (uint96)
 ```
 
-Returns the pool&#39;s JLT withdrawal fee in basis points 
+Returns the pool&#39;s JLT withdrawal rate in basis points 
 
-*If pool&#39;s withdrawal fee is not set, defer to pool factory&#39;s base fee *
+*If pool&#39;s withdrawal rate is not set, defer to pool factory&#39;s base rate *
 
 
 #### Returns
@@ -888,10 +888,10 @@ event Minted(address indexed operator, address indexed to, uint256 amount, bytes
 | data  | bytes | undefined |
 | operatorData  | bytes | undefined |
 
-### RetirementFeeUpdate
+### RetirementRateUpdate
 
 ```solidity
-event RetirementFeeUpdate(uint96 retirementFeeBips, address indexed beneficiary)
+event RetirementRateUpdate(uint96 retirementFeeBips, address indexed beneficiary)
 ```
 
 
@@ -979,10 +979,10 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 | receiver `indexed` | address | undefined |
 | quantity  | uint256 | undefined |
 
-### WithdrawalFeeUpdate
+### WithdrawalRateUpdate
 
 ```solidity
-event WithdrawalFeeUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
+event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
 ```
 
 

@@ -55,6 +55,37 @@ contract JasminePoolFactory is
 
 
     // ──────────────────────────────────────────────────────────────────────────────
+    // Events
+    // ──────────────────────────────────────────────────────────────────────────────
+
+
+    //  ───────────────────────────────  Fee Events  ───────────────────────────────  \\
+    // TODO: Move to interface
+
+    /**
+     * @dev Emitted whenever fee manager updates withdrawal rate
+     * 
+     * @param withdrawRateBips New withdrawal rate in basis points
+     * @param beneficiary Address to receive fees
+     */
+    event BaseWithdrawalFeeUpdate(
+        uint96 withdrawRateBips,
+        address indexed beneficiary
+    );
+
+    /**
+     * @dev Emitted whenever fee manager updates retirement rate
+     * 
+     * @param retirementRateBips new retirement rate in basis points
+     * @param beneficiary Address to receive fees
+     */
+    event BaseRetirementFeeUpdate(
+        uint96 retirementRateBips,
+        address indexed beneficiary
+    );
+
+
+    // ──────────────────────────────────────────────────────────────────────────────
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
 
@@ -88,10 +119,10 @@ contract JasminePoolFactory is
     //  ────────────────────────────────  Pool Fees  ────────────────────────────────  \\
 
     /// @dev Default fee for withdrawals across pools. May be overridden per pool
-    uint96 public baseWithdrawalFee;
+    uint96 public baseWithdrawalRate;
 
     /// @dev Default fee for retirements across pools. May be overridden per pool
-    uint96 public baseRetirementFee;
+    uint96 public baseRetirementRate;
 
     /// @dev Address to receive fees
     address public feeBeneficiary;
@@ -251,6 +282,7 @@ contract JasminePoolFactory is
         // 2. Ensure policy does not exist
         if (_pools.contains(policyHash)) revert JasmineErrors.PoolExists(computePoolAddress(policyHash));
 
+        // TODO: Beacon proxies may be preferable here
         // 3. Deploy new pool
         ERC1967Proxy poolProxy = new ERC1967Proxy{ salt: policyHash }(
             _poolImplementations.at(version), ""
@@ -384,29 +416,35 @@ contract JasminePoolFactory is
     //  ─────────────────────────────  Fee Management  ──────────────────────────────  \\
 
     /**
-     * @notice Allows pool fee managers to update the base withdrawal fee across pools
+     * @notice Allows pool fee managers to update the base withdrawal rate across pools
      * 
      * @dev Requirements:
      *     - Caller must have fee manager role
      * 
-     * @param newWithdrawalFee New base fee for withdrawals in basis points
+     * @dev emits BaseWithdrawalFeeUpdate
+     * 
+     * @param newWithdrawalRate New base rate for withdrawals in basis points
      */
-    function setBaseWithdrawalFee(uint96 newWithdrawalFee) external onlyFeeManager {
-        // TODO: Emit event
-        baseWithdrawalFee = newWithdrawalFee;
+    function setBaseWithdrawalRate(uint96 newWithdrawalRate) external onlyFeeManager {
+        baseWithdrawalRate = newWithdrawalRate;
+
+        emit BaseWithdrawalFeeUpdate(newWithdrawalRate, feeBeneficiary);
     }
 
     /**
-     * @notice Allows pool fee managers to update the base retirement fee across pools
+     * @notice Allows pool fee managers to update the base retirement rate across pools
      * 
      * @dev Requirements:
      *     - Caller must have fee manager role
      * 
-     * @param newRetirementFee New base fee for retirements in basis points
+     * @dev emits BaseRetirementFeeUpdate
+     * 
+     * @param newRetirementRate New base rate for retirements in basis points
      */
-    function setBaseRetirementFee(uint96 newRetirementFee) external onlyFeeManager {
-        // TODO: Emit event
-        baseRetirementFee = newRetirementFee;
+    function setBaseRetirementRate(uint96 newRetirementRate) external onlyFeeManager {
+        baseRetirementRate = newRetirementRate;
+
+        emit BaseRetirementFeeUpdate(newRetirementRate, feeBeneficiary);
     }
 
     /**
@@ -418,11 +456,16 @@ contract JasminePoolFactory is
      *     - New beneficiary cannot be zero address
      *     - If new beneficiary is a contract, must support IERC777Recipient interface
      * 
+     * @dev emits BaseWithdrawalFeeUpdate & BaseRetirementFeeUpdate
+     * 
      * @param newFeeBeneficiary Address to receive all pool JLT fees
      */
     function setFeeBeneficiary(address newFeeBeneficiary) external onlyFeeManager {
         _validateFeeReceiver(newFeeBeneficiary);
         feeBeneficiary = newFeeBeneficiary;
+
+        emit BaseWithdrawalFeeUpdate(baseWithdrawalRate, newFeeBeneficiary);
+        emit BaseRetirementFeeUpdate(baseRetirementRate, newFeeBeneficiary);
     }
 
 
