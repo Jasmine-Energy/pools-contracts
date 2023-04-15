@@ -471,7 +471,7 @@ function poolFactory() external view returns (address)
 ### retire
 
 ```solidity
-function retire(address sender, address, uint256, bytes) external nonpayable
+function retire(address sender, address, uint256 amount, bytes) external nonpayable
 ```
 
 
@@ -484,7 +484,7 @@ function retire(address sender, address, uint256, bytes) external nonpayable
 |---|---|---|
 | sender | address | undefined |
 | _1 | address | undefined |
-| _2 | uint256 | undefined |
+| amount | uint256 | undefined |
 | _3 | bytes | undefined |
 
 ### revokeOperator
@@ -707,7 +707,7 @@ Cost of withdrawing specified amounts of tokens from pool.
 
 | Name | Type | Description |
 |---|---|---|
-| cost | uint256 | Price of withdrawing EATs in JLTs TODO: Need to add bool whether tokens were chosen by pool or caller |
+| cost | uint256 | Price of withdrawing EATs in JLTs TODO: Need to add bool whether tokens were chosen by pool or msgSender |
 
 
 
@@ -970,6 +970,17 @@ error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)
 | sender | address | undefined |
 | balance | uint256 | undefined |
 | needed | uint256 | undefined |
+
+### InvalidInput
+
+```solidity
+error InvalidInput()
+```
+
+
+
+*Emitted if input is invalid*
+
 
 ### Prohibited
 

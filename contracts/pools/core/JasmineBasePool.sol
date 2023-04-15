@@ -166,11 +166,11 @@ abstract contract JasmineBasePool is
     function retire(
         address sender,
         address,
-        uint256,
+        uint256 amount,
         bytes calldata
     )
         external virtual
-        nonReentrant onlyOperator(sender)
+        nonReentrant onlyAllowed(sender, _standardizeDecimal(amount))
     {
         // TODO: Implement me
         revert("JasmineBasePool: Unimplemented");
@@ -284,6 +284,7 @@ abstract contract JasmineBasePool is
         internal virtual
         returns (uint256 jltQuantity)
     {
+        // TODO: Remove try catch
         // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
         try EAT.safeTransferFrom(from, address(this), tokenId, amount, "") {
             return amount;
@@ -328,12 +329,12 @@ abstract contract JasmineBasePool is
         bytes calldata data
     )
         external virtual
-        nonReentrant
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
+        (tokenIds, amounts) = (new uint256[](0), new uint256[](0));
         (tokenIds, amounts) = _selectAnyTokens(amount);
         _withdraw(_msgSender(), recipient, tokenIds, amounts, data);
         return (tokenIds, amounts);
@@ -360,13 +361,13 @@ abstract contract JasmineBasePool is
         bytes calldata data
     )
         external virtual
-        nonReentrant onlyOperator(sender)
+        onlyAllowed(sender, _standardizeDecimal(amount))
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
-        // (tokenIds, amounts) = (new uint256[](0), new uint256[](0));
+        (tokenIds, amounts) = (new uint256[](0), new uint256[](0));
         (tokenIds, amounts) = _selectAnyTokens(amount);
         _withdraw(sender, recipient, tokenIds, amounts, data);
         return (tokenIds, amounts);
@@ -397,12 +398,21 @@ abstract contract JasmineBasePool is
         bytes calldata data
     ) 
         external virtual
-        nonReentrant onlyOperator(sender)
+        onlyAllowed(sender, _standardizeDecimal(amounts.sum()))
     {
         _withdraw(sender, recipient, tokenIds, amounts, data);
     }
 
-
+    /**
+     * @dev Internal utility function for withdrawing EATs from pool
+     *      in exchange for JLTs
+     * 
+     * @param sender JLT holder from which token will be burned
+     * @param recipient Address to receive EATs
+     * @param tokenIds EAT token IDs to withdraw
+     * @param amounts EAT token amounts to withdraw
+     * @param data Calldata relayed during EAT transfer
+     */
     function _withdraw(
         address sender,
         address recipient,
@@ -411,7 +421,7 @@ abstract contract JasmineBasePool is
         bytes memory data
     ) 
         internal virtual
-        nonReentrant onlyOperator(sender)
+        nonReentrant
     {
         // 1. Ensure sender has sufficient JLTs and lengths match
         uint256 cost = withdrawalCost(tokenIds, amounts);
@@ -474,7 +484,7 @@ abstract contract JasmineBasePool is
      * @param amounts Amounts of EATs to withdaw
      * 
      * @return cost Price of withdrawing EATs in JLTs
-     * TODO: Need to add bool whether tokens were chosen by pool or caller
+     * TODO: Need to add bool whether tokens were chosen by pool or msgSender
      */
     function withdrawalCost(
         uint256[] memory tokenIds,
@@ -489,7 +499,7 @@ abstract contract JasmineBasePool is
                 amounts.length
             );
         }
-        return amounts.sum();
+        return _standardizeDecimal(amounts.sum());
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -571,7 +581,7 @@ abstract contract JasmineBasePool is
         bytes memory 
     )
         public virtual override
-        nonReentrant onlyEAT checkEligibility(tokenId)
+        onlyEAT checkEligibility(tokenId)
         returns (bytes4)
     {
         // 1. Add token ID to holdings
@@ -580,7 +590,7 @@ abstract contract JasmineBasePool is
         // 2. Mint Tokens
         _mint(
             from,
-            value,
+            _standardizeDecimal(value),
             "", // TODO: Anything to pass here🤔
             ""
         );
@@ -601,7 +611,7 @@ abstract contract JasmineBasePool is
         bytes memory 
     )
         public virtual override
-        nonReentrant onlyEAT checkEligibilities(tokenIds)
+        onlyEAT checkEligibilities(tokenIds)
         returns (bytes4)
     {
         // 1. Ensure tokens received are EATs
@@ -621,7 +631,7 @@ abstract contract JasmineBasePool is
         // 3. Authorize JLT mint
         _mint(
             from,
-            total,
+            _standardizeDecimal(total),
             "", // TODO: Anything to pass here🤔
             ""
         );
@@ -751,6 +761,20 @@ abstract contract JasmineBasePool is
         return EAT.exists(tokenId) && !EAT.frozen(tokenId);
     }
 
+    /**
+     * @dev Standardizes an integers input to the pool's ERC-20 decimal storage value
+     * 
+     * @param input Integer value to standardize
+     * 
+     * @return value Decimal value of input per pool's decimal specificity
+     */
+    function _standardizeDecimal(uint256 input) 
+        internal pure
+        returns (uint256 value)
+    {
+        return input * (10 ** DECIMALS);
+    }
+
     //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
 
     /**
@@ -819,7 +843,18 @@ abstract contract JasmineBasePool is
      * @dev Throws Prohibited() on failure
      */
     modifier onlyOperator(address holder) {
-        if (_msgSender() != holder || !isOperatorFor(_msgSender(), holder)) revert JasmineErrors.Prohibited();
+        if (!isOperatorFor(_msgSender(), holder)) revert JasmineErrors.Prohibited();
+        _;
+    }
+
+     /**
+     * @dev Extend onlyOperator to include addresses approved for an amount of JLTs
+     * 
+     * @dev Throws Prohibited() on failure or InvalidInput() if quantity is 0
+     */
+    modifier onlyAllowed(address holder, uint256 quantity) {
+        if (quantity == 0) revert JasmineErrors.InvalidInput();
+        if (!isOperatorFor(_msgSender(), holder) && allowance(holder, _msgSender()) < quantity) revert JasmineErrors.Prohibited();
         _;
     }
 

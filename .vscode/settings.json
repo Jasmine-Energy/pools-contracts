@@ -4,5 +4,10 @@
         "source.fixAll.eslint": true
     },
     "eslint.validate": ["javascript", "typescript"],
-    "eslint.format.enable": true
+    "eslint.format.enable": true,
+    "solidity-va.debug.parser.showExceptions": true,
+    "solidity-va.whatsNew.disabled": true,
+    "solidity-va.uml.actors.enable": true,
+    "solidity-va.diagnostics.cdili_json.import": true,
+    "solidity-va.preview.markdown": true
 }

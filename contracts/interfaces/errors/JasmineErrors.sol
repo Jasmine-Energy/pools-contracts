@@ -15,6 +15,11 @@ pragma solidity ^0.8.4;
  */
 interface JasmineErrors {
 
+    //  ─────────────────────────────  General Errors  ──────────────────────────────  \\
+
+    /// @dev Emitted if input is invalid
+    error InvalidInput();
+
     //  ──────────────────────────  Access Control Errors  ──────────────────────────  \\
 
     /// @dev Emitted if access control check fails

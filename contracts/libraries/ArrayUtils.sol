@@ -36,6 +36,7 @@ library ArrayUtils {
         address repeatedAddress,
         uint256 amount
     ) external pure returns (address[] memory filledArray) {
+        filledArray = new address[](amount);
         for (uint256 i = 0; i < amount; i++) {
             filledArray[i] = repeatedAddress;
         }

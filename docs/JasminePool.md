@@ -506,7 +506,7 @@ function poolFactory() external view returns (address)
 ### retire
 
 ```solidity
-function retire(address sender, address, uint256, bytes) external nonpayable
+function retire(address sender, address, uint256 amount, bytes) external nonpayable
 ```
 
 
@@ -519,8 +519,25 @@ function retire(address sender, address, uint256, bytes) external nonpayable
 |---|---|---|
 | sender | address | undefined |
 | _1 | address | undefined |
-| _2 | uint256 | undefined |
+| amount | uint256 | undefined |
 | _3 | bytes | undefined |
+
+### retirementRate
+
+```solidity
+function retirementRate() external view returns (uint96)
+```
+
+Returns the pool&#39;s JLT retirement rate in basis points 
+
+*If pool&#39;s retirement rate is not set, defer to pool factory&#39;s base rate *
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint96 | Retirement rate in basis points |
 
 ### revokeOperator
 
@@ -676,6 +693,38 @@ function transferFrom(address holder, address recipient, uint256 amount) externa
 |---|---|---|
 | _0 | bool | undefined |
 
+### updateRetirementRate
+
+```solidity
+function updateRetirementRate(uint96 newRetirementRate) external nonpayable
+```
+
+Allows pool fee managers to update the retirement rate 
+
+*Requirements:     - Caller must have fee manager role - in pool factory emits RetirementRateUpdate *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newRetirementRate | uint96 | New rate on retirements in basis points |
+
+### updateWithdrawalRate
+
+```solidity
+function updateWithdrawalRate(uint96 newWithdrawalRate) external nonpayable
+```
+
+Allows pool fee managers to update the withdrawal rate 
+
+*Requirements:     - Caller must have fee manager role - in pool factory emits WithdrawalRateUpdate *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newWithdrawalRate | uint96 | New rate on withdrawals in basis points |
+
 ### withdraw
 
 ```solidity
@@ -727,7 +776,7 @@ Used to withdraw specific EATs held by pool by burning         JLTs from sender.
 function withdrawalCost(uint256[] tokenIds, uint256[] amounts) external view returns (uint256 cost)
 ```
 
-Cost of withdrawing specified amounts of tokens from pool. 
+Cost of withdrawing specified amounts of tokens from pool including         withdrawal fee. 
 
 
 
@@ -742,7 +791,24 @@ Cost of withdrawing specified amounts of tokens from pool.
 
 | Name | Type | Description |
 |---|---|---|
-| cost | uint256 | Price of withdrawing EATs in JLTs TODO: Need to add bool whether tokens were chosen by pool or caller |
+| cost | uint256 | Price of withdrawing EATs in JLTs |
+
+### withdrawalRate
+
+```solidity
+function withdrawalRate() external view returns (uint96)
+```
+
+Returns the pool&#39;s JLT withdrawal rate in basis points 
+
+*If pool&#39;s withdrawal rate is not set, defer to pool factory&#39;s base rate *
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint96 | Withdrawal fee in basis points |
 
 
 
@@ -857,6 +923,23 @@ event Minted(address indexed operator, address indexed to, uint256 amount, bytes
 | data  | bytes | undefined |
 | operatorData  | bytes | undefined |
 
+### RetirementRateUpdate
+
+```solidity
+event RetirementRateUpdate(uint96 retirementFeeBips, address indexed beneficiary)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| retirementFeeBips  | uint96 | undefined |
+| beneficiary `indexed` | address | undefined |
+
 ### RevokedOperator
 
 ```solidity
@@ -930,6 +1013,23 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 | sender `indexed` | address | undefined |
 | receiver `indexed` | address | undefined |
 | quantity  | uint256 | undefined |
+
+### WithdrawalRateUpdate
+
+```solidity
+event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| withdrawFeeBips  | uint96 | undefined |
+| beneficiary `indexed` | address | undefined |
 
 
 
@@ -1006,6 +1106,17 @@ error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)
 | balance | uint256 | undefined |
 | needed | uint256 | undefined |
 
+### InvalidInput
+
+```solidity
+error InvalidInput()
+```
+
+
+
+*Emitted if input is invalid*
+
+
 ### Prohibited
 
 ```solidity
@@ -1016,6 +1127,22 @@ error Prohibited()
 
 *Emitted for unauthorized actions*
 
+
+### RequiresRole
+
+```solidity
+error RequiresRole(bytes32 role)
+```
+
+
+
+*Emitted if access control check fails*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| role | bytes32 | undefined |
 
 ### Unqualified
 

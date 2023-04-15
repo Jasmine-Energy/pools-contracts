@@ -169,6 +169,7 @@ abstract contract JasmineFeePool is JasmineBasePool {
     //  Overrides
     //  ─────────────────────────────────────────────────────────────────────────────
 
+    /// @inheritdoc JasmineBasePool
     function _withdraw(
         address sender,
         address recipient,
@@ -177,10 +178,20 @@ abstract contract JasmineFeePool is JasmineBasePool {
         bytes memory data
     ) 
         internal virtual override
-        nonReentrant onlyOperator(sender)
     {
-        // 1. Take fee from caller
-        // TODO Take fee and send to fee beneficiary
+        // 1. If fee is not 0, calculate and take fee from caller
+        if (withdrawalRate() != 0) {
+            uint256 amountSum = amounts.sum();
+            uint256 withdrawalFee = Math.mulDiv(amountSum, withdrawalRate(), 10_000);
+            _send(
+                sender,
+                JasminePoolFactory(poolFactory).feeBeneficiary(),
+                withdrawalFee,
+                "",
+                "",
+                false
+            );
+        }
 
         // 2. Call super
         super._withdraw(sender, recipient, tokenIds, amounts, data);

@@ -150,7 +150,8 @@ contract JasminePoolFactory is
         _poolImplementations.add(_poolImplementation);
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setRoleAdmin(FEE_MANAGER_ROLE, FEE_MANAGER_ROLE);
+        _setupRole(FEE_MANAGER_ROLE, msg.sender);
+        _setRoleAdmin(FEE_MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
     }
 
 

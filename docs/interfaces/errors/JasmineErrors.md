@@ -28,6 +28,17 @@ error InvalidConformance(bytes4 interfaceId)
 |---|---|---|
 | interfaceId | bytes4 | undefined |
 
+### InvalidInput
+
+```solidity
+error InvalidInput()
+```
+
+
+
+*Emitted if input is invalid*
+
+
 ### NoPool
 
 ```solidity
