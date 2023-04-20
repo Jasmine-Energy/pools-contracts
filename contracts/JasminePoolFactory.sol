@@ -67,10 +67,12 @@ contract JasminePoolFactory is
      * 
      * @param withdrawRateBips New withdrawal rate in basis points
      * @param beneficiary Address to receive fees
+     * @param specific Specifies whether new rate applies to specific or any withdrawals
      */
     event BaseWithdrawalFeeUpdate(
         uint96 withdrawRateBips,
-        address indexed beneficiary
+        address indexed beneficiary,
+        bool indexed specific
     );
 
     /**
@@ -120,6 +122,8 @@ contract JasminePoolFactory is
 
     /// @dev Default fee for withdrawals across pools. May be overridden per pool
     uint96 public baseWithdrawalRate;
+
+    uint96 public baseWithdrawalSpecificRate;
 
     /// @dev Default fee for retirements across pools. May be overridden per pool
     uint96 public baseRetirementRate;
@@ -429,7 +433,25 @@ contract JasminePoolFactory is
     function setBaseWithdrawalRate(uint96 newWithdrawalRate) external onlyFeeManager {
         baseWithdrawalRate = newWithdrawalRate;
 
-        emit BaseWithdrawalFeeUpdate(newWithdrawalRate, feeBeneficiary);
+        emit BaseWithdrawalFeeUpdate(newWithdrawalRate, feeBeneficiary, false);
+    }
+
+    /**
+     * @notice Allows pool fee managers to update the base withdrawal rate across pools
+     * 
+     * @dev Requirements:
+     *     - Caller must have fee manager role
+     *     - Specific rate must be greater than base rate
+     * 
+     * @dev emits BaseWithdrawalFeeUpdate
+     * 
+     * @param newWithdrawalRate New base rate for withdrawals in basis points
+     */
+    function setBaseWithdrawalSpecificRate(uint96 newWithdrawalRate) external onlyFeeManager {
+        if (newWithdrawalRate < baseWithdrawalRate) revert JasmineErrors.InvalidInput();
+        baseWithdrawalSpecificRate = newWithdrawalRate;
+
+        emit BaseWithdrawalFeeUpdate(newWithdrawalRate, feeBeneficiary, true);
     }
 
     /**
@@ -465,7 +487,7 @@ contract JasminePoolFactory is
         _validateFeeReceiver(newFeeBeneficiary);
         feeBeneficiary = newFeeBeneficiary;
 
-        emit BaseWithdrawalFeeUpdate(baseWithdrawalRate, newFeeBeneficiary);
+        emit BaseWithdrawalFeeUpdate(baseWithdrawalRate, newFeeBeneficiary, false);
         emit BaseRetirementFeeUpdate(baseRetirementRate, newFeeBeneficiary);
     }
 

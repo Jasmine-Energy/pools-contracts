@@ -74,6 +74,9 @@ abstract contract JasmineFeePool is JasmineBasePool {
     /// @dev Fee for withdrawals in basis points
     uint96 private _withdrawalRate;
 
+    /// @dev Fee for withdrawals in basis points
+    uint96 private _withdrawalSpecificRate;
+
     /// @dev Fee for retirements in basis points
     uint96 private  _retirementRate;
 
@@ -109,6 +112,22 @@ abstract contract JasmineFeePool is JasmineBasePool {
             return _withdrawalRate;
         } else {
             return JasminePoolFactory(poolFactory).baseWithdrawalRate();
+        }
+    }
+
+    /**
+     * @notice Returns the pool's JLT withdrawal rate for withdrawing specific tokens,
+     *         in basis points
+     * 
+     * @dev If pool's specific withdrawal rate is not set, defer to pool factory's base rate
+     * 
+     * @return Withdrawal fee in basis points
+     */
+    function withdrawalSpecificRate() public view returns (uint96) {
+        if (_withdrawalSpecificRate != 0) {
+            return _withdrawalSpecificRate;
+        } else {
+            return JasminePoolFactory(poolFactory).baseWithdrawalSpecificRate();
         }
     }
 
@@ -180,7 +199,9 @@ abstract contract JasmineFeePool is JasmineBasePool {
         internal virtual override
     {
         // 1. If fee is not 0, calculate and take fee from caller
-        if (withdrawalRate() != 0) {
+        if (withdrawalRate() != 0 && 
+            JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
+        {
             uint256 amountSum = amounts.sum();
             uint256 withdrawalFee = Math.mulDiv(amountSum, withdrawalRate(), 10_000);
             _send(
@@ -219,11 +240,16 @@ abstract contract JasmineFeePool is JasmineBasePool {
                 amounts.length
             );
         }
-        return Math.mulDiv(
-            super.withdrawalCost(tokenIds, amounts), 
-            (withdrawalRate() + 10_000), 
-            10_000
-        );
+        // NOTE: If no feeBeneficiary is set, fees may not be collected
+        if (JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0)) {
+            return Math.mulDiv(
+                super.withdrawalCost(tokenIds, amounts), 
+                (withdrawalRate() + 10_000), 
+                10_000
+            );
+        } else {
+            return super.withdrawalCost(tokenIds, amounts);
+        }
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────

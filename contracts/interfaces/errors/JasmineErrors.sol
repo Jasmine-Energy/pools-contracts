@@ -20,6 +20,9 @@ interface JasmineErrors {
     /// @dev Emitted if input is invalid
     error InvalidInput();
 
+    /// @dev Emitted if internal validation failed
+    error ValidationFailed();
+
     //  ──────────────────────────  Access Control Errors  ──────────────────────────  \\
 
     /// @dev Emitted if access control check fails
@@ -32,7 +35,6 @@ interface JasmineErrors {
 
     /// @dev Emitted for unauthorized actions
     error Prohibited();
-    
 
     //  ───────────────────────────  Pool Factory Errors  ───────────────────────────  \\
 

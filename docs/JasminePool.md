@@ -810,6 +810,23 @@ Returns the pool&#39;s JLT withdrawal rate in basis points
 |---|---|---|
 | _0 | uint96 | Withdrawal fee in basis points |
 
+### withdrawalSpecificRate
+
+```solidity
+function withdrawalSpecificRate() external view returns (uint96)
+```
+
+Returns the pool&#39;s JLT withdrawal rate for withdrawing specific tokens,         in basis points 
+
+*If pool&#39;s specific withdrawal rate is not set, defer to pool factory&#39;s base rate *
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint96 | Withdrawal fee in basis points |
+
 
 
 ## Events
@@ -1159,5 +1176,16 @@ error Unqualified(uint256 tokenId)
 | Name | Type | Description |
 |---|---|---|
 | tokenId | uint256 | undefined |
+
+### ValidationFailed
+
+```solidity
+error ValidationFailed()
+```
+
+
+
+*Emitted if internal validation failed*
+
 
 

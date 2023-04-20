@@ -134,5 +134,17 @@ const deployCore: DeployFunction = async function (
         await tenderly.verify(...contracts);
     }
 };
+deployCore.skip = async function (
+    hre: HardhatRuntimeEnvironment
+) {
+    const { eat, minter, oracle } = await hre.getNamedAccounts();
+    if (eat && minter && oracle) { 
+        return true;
+    } else if (hre.network.live || hre.network.tags['public']) {
+        return true;
+    } else {
+        return false;
+    }
+}
 deployCore.tags = ['Core', 'all'];
 export default deployCore;

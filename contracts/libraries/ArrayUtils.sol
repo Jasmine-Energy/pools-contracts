@@ -3,7 +3,7 @@
 pragma solidity >=0.8.17;
 
 /**
- * @title ArrayUtils
+ * @title Array Utilities
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Utility library for interacting with arrays
  * @custom:security-contact dev@jasmine.energy

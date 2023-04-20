@@ -714,7 +714,10 @@ abstract contract JasmineBasePool is
     /**
      * @dev Used to select an `amout` of tokens to withdraw if unspecified by user
      * 
-     * TODO: Add param docs
+     * @param amount The numer of EATs to select from holdings
+     * 
+     * @return tokenIds List of EAT IDs to withdraw
+     * @return amounts Number of EATs to withdraw, corresponding to same index in tokenIds
      */
     function _selectAnyTokens(
         uint256 amount
@@ -730,6 +733,8 @@ abstract contract JasmineBasePool is
         tokenIds = new uint256[](1);
         amounts  = new uint256[](1);
         while (sum != amount) {
+            if (i >= _holdings.length()) revert JasmineErrors.ValidationFailed();
+
             uint256 tokenId = _holdings.at(i);
             uint256 balance = EAT.balanceOf(address(this), tokenId);
 
@@ -740,7 +745,7 @@ abstract contract JasmineBasePool is
                 i++;
                 continue;
             } else {
-                amounts[amounts.length] = amount - sum;
+                amounts[i] = amount - sum;
                 break;
             }
         }

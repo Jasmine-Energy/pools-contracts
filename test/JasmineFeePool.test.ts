@@ -20,12 +20,8 @@ import {
   makeMintFunction,
   mintFunctionType,
 } from "./shared/utilities";
-import {
-  CertificateEndorsement,
-  CertificateRegistry,
-  EnergyCertificateType,
-  FuelType,
-} from "@/types/energy-certificate.types";
+import { FuelType } from "@/types/energy-certificate.types";
+
 
 describe("Fee Pool", function () {
   let owner: SignerWithAddress;
@@ -119,7 +115,21 @@ describe("Fee Pool", function () {
     it("Should allow fee manager to set a base withdrawal fee", async function () {
       expect(await poolFactory.setBaseWithdrawalRate(500))
         .to.be.ok.and.to.emit(poolFactory, "BaseWithdrawalFeeUpdate")
-        .withArgs(500, await poolFactory.feeBeneficiary());
+        .withArgs(500, await poolFactory.feeBeneficiary(), false);
+    });
+
+    it("Should allow fee manager to set a base specific withdrawal fee", async function () {
+        await poolFactory.setBaseWithdrawalRate(500);
+        expect(await poolFactory.setBaseWithdrawalSpecificRate(550))
+          .to.be.ok.and.to.emit(poolFactory, "BaseWithdrawalFeeUpdate")
+          .withArgs(550, await poolFactory.feeBeneficiary(), true);
+    });
+
+    it("Should revert if base specific withdrawal fee is set to be less than any withdrawal rate", async function () {
+        await poolFactory.setBaseWithdrawalRate(500);
+        await expect(poolFactory.setBaseWithdrawalSpecificRate(100)).to.be.revertedWithCustomError(
+            poolFactory, "InvalidInput"
+        );
     });
 
     it("Should allow fee manager to set a base retirement fee", async function () {
@@ -158,8 +168,30 @@ describe("Fee Pool", function () {
   });
 
   describe("Paying Pool Fees", async function () {
+    const feeBeneficiary = owner.address;
+    const baseWithdrawalRate = 500;
+    const baseWithdrawalSpecificRate = 550;
+    const baseRetirementRate = 125;
+    let poolDecimals: number;
+    let solarTokens: { id: bigint; amount: bigint; } | { id: bigint; amount: bigint; };
+
+    beforeEach(async function () {
+        await poolFactory.setFeeBeneficiary(feeBeneficiary);
+        await poolFactory.setBaseWithdrawalRate(baseWithdrawalRate);
+        await poolFactory.setBaseWithdrawalSpecificRate(baseWithdrawalSpecificRate);
+        await poolFactory.setBaseRetirementRate(baseRetirementRate);
+
+        poolDecimals = await solarPool.decimals();
+
+        solarTokens = await mintEat(owner.address, 10_000, FuelType.SOLAR);
+        await eat.safeTransferFrom(owner.address, solarPool.address, solarTokens.id, solarTokens.amount, []);
+    });
+
     it("Should take withdrawal fees if set", async function () {
-      // TODO
+      const withdrawAmount = 1_000;
+      expect(await solarPool.withdraw(owner.address, withdrawAmount, [])).to.be.ok
+        .and.to.changeTokenBalance(solarPool, owner.address,  withdrawAmount * ((10_000 + baseWithdrawalRate) / 10_000) * (10 ** poolDecimals))
+        .and.to.changeTokenBalance(solarPool, feeBeneficiary, withdrawAmount * (baseWithdrawalRate / 10_000) * (10 ** poolDecimals));
     });
 
     it("Should take retirement fees if set", async function () {

@@ -111,6 +111,23 @@ function baseWithdrawalRate() external view returns (uint96)
 |---|---|---|
 | _0 | uint96 | undefined |
 
+### baseWithdrawalSpecificRate
+
+```solidity
+function baseWithdrawalSpecificRate() external view returns (uint96)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint96 | undefined |
+
 ### computePoolAddress
 
 ```solidity
@@ -455,6 +472,22 @@ Allows pool fee managers to update the base withdrawal rate across pools
 |---|---|---|
 | newWithdrawalRate | uint96 | New base rate for withdrawals in basis points |
 
+### setBaseWithdrawalSpecificRate
+
+```solidity
+function setBaseWithdrawalSpecificRate(uint96 newWithdrawalRate) external nonpayable
+```
+
+Allows pool fee managers to update the base withdrawal rate across pools 
+
+*Requirements:     - Caller must have fee manager role     - Specific rate must be greater than base rate emits BaseWithdrawalFeeUpdate *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newWithdrawalRate | uint96 | New base rate for withdrawals in basis points |
+
 ### setFeeBeneficiary
 
 ```solidity
@@ -567,7 +600,7 @@ event BaseRetirementFeeUpdate(uint96 retirementRateBips, address indexed benefic
 ### BaseWithdrawalFeeUpdate
 
 ```solidity
-event BaseWithdrawalFeeUpdate(uint96 withdrawRateBips, address indexed beneficiary)
+event BaseWithdrawalFeeUpdate(uint96 withdrawRateBips, address indexed beneficiary, bool indexed specific)
 ```
 
 
@@ -580,6 +613,7 @@ event BaseWithdrawalFeeUpdate(uint96 withdrawRateBips, address indexed beneficia
 |---|---|---|
 | withdrawRateBips  | uint96 | New withdrawal rate in basis points |
 | beneficiary `indexed` | address | Address to receive fees |
+| specific `indexed` | bool | Specifies whether new rate applies to specific or any withdrawals |
 
 ### OwnershipTransferStarted
 
@@ -741,6 +775,17 @@ error InvalidConformance(bytes4 interfaceId)
 | Name | Type | Description |
 |---|---|---|
 | interfaceId | bytes4 | undefined |
+
+### InvalidInput
+
+```solidity
+error InvalidInput()
+```
+
+
+
+*Emitted if input is invalid*
+
 
 ### NoPool
 
