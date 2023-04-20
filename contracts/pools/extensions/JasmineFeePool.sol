@@ -192,6 +192,7 @@ abstract contract JasmineFeePool is JasmineBasePool {
     function _withdraw(
         address sender,
         address recipient,
+        uint256 cost,
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         bytes memory data
@@ -199,23 +200,24 @@ abstract contract JasmineFeePool is JasmineBasePool {
         internal virtual override
     {
         // 1. If fee is not 0, calculate and take fee from caller
-        if (withdrawalRate() != 0 && 
+
+        // NOTE: Implicit in this implementation is that both withdrawal cost
+        // NOTE: functions in parent return same value for any and specific
+        uint256 feeAmount = cost - super.withdrawalCost(tokenIds, amounts);
+        if (feeAmount != 0 && 
             JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
         {
-            uint256 amountSum = amounts.sum();
-            uint256 withdrawalFee = Math.mulDiv(amountSum, withdrawalRate(), 10_000);
             _send(
                 sender,
                 JasminePoolFactory(poolFactory).feeBeneficiary(),
-                withdrawalFee,
+                feeAmount,
                 "",
                 "",
                 false
             );
         }
-
         // 2. Call super
-        super._withdraw(sender, recipient, tokenIds, amounts, data);
+        super._withdraw(sender, recipient, cost - feeAmount, tokenIds, amounts, data);
     }
 
     /**
@@ -249,6 +251,32 @@ abstract contract JasmineFeePool is JasmineBasePool {
             );
         } else {
             return super.withdrawalCost(tokenIds, amounts);
+        }
+    }
+
+    /**
+     * @notice Cost of withdrawing amount of tokens from pool where pool
+     *         selects the tokens to withdraw, including withdrawal fee.
+     * 
+     * @param amount Number of EATs to withdraw.
+     * 
+     * @return cost Price of withdrawing EATs in JLTs
+     */
+    function withdrawalCost(
+        uint256 amount
+    )
+        public view virtual override
+        returns (uint256 cost)
+    {
+        // NOTE: If no feeBeneficiary is set, fees may not be collected
+        if (JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0)) {
+            return Math.mulDiv(
+                super.withdrawalCost(amount), 
+                (withdrawalSpecificRate() + 10_000), 
+                10_000
+            );
+        } else {
+            return super.withdrawalCost(amount);
         }
     }
 

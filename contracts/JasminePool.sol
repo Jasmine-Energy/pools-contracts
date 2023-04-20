@@ -115,15 +115,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     // Withdraw Overrides
     // ──────────────────────────────────────────────────────────────────────────────
 
-    /**
-     * @notice Cost of withdrawing specified amounts of tokens from pool including
-     *         withdrawal fee.
-     * 
-     * @param tokenIds IDs of EATs to withdaw
-     * @param amounts Amounts of EATs to withdaw
-     * 
-     * @return cost Price of withdrawing EATs in JLTs
-     */
+    /// @inheritdoc JasmineFeePool
     function withdrawalCost(
         uint256[] memory tokenIds,
         uint256[] memory amounts
@@ -131,19 +123,30 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         public view override(JasmineBasePool, JasmineFeePool)
         returns (uint256 cost)
     {
-        cost = super.withdrawalCost(tokenIds, amounts);
+        return super.withdrawalCost(tokenIds, amounts);
+    }
+
+    /// @inheritdoc JasmineFeePool
+    function withdrawalCost(
+        uint256 amount
+    )
+        public view override(JasmineBasePool, JasmineFeePool)
+        returns (uint256 cost)
+    {
+        return super.withdrawalCost(amount);
     }
 
     /// @inheritdoc JasmineBasePool
     function _withdraw(
         address sender,
         address recipient,
+        uint256 cost,
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         bytes memory data
     ) 
         internal override(JasmineBasePool, JasmineFeePool)
     {
-        super._withdraw(sender, recipient, tokenIds, amounts, data);
+        super._withdraw(sender, recipient, cost, tokenIds, amounts, data);
     }
 }

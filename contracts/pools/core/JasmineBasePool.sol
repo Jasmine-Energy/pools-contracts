@@ -336,7 +336,14 @@ abstract contract JasmineBasePool is
     {
         (tokenIds, amounts) = (new uint256[](0), new uint256[](0));
         (tokenIds, amounts) = _selectAnyTokens(amount);
-        _withdraw(_msgSender(), recipient, tokenIds, amounts, data);
+        _withdraw(
+            _msgSender(),
+            recipient,
+            withdrawalCost(amount),
+            tokenIds,
+            amounts,
+            data
+        );
         return (tokenIds, amounts);
     }
 
@@ -369,7 +376,14 @@ abstract contract JasmineBasePool is
     {
         (tokenIds, amounts) = (new uint256[](0), new uint256[](0));
         (tokenIds, amounts) = _selectAnyTokens(amount);
-        _withdraw(sender, recipient, tokenIds, amounts, data);
+        _withdraw(
+            sender,
+            recipient,
+            withdrawalCost(amount),
+            tokenIds,
+            amounts,
+            data
+        );
         return (tokenIds, amounts);
     }
 
@@ -400,7 +414,14 @@ abstract contract JasmineBasePool is
         external virtual
         onlyAllowed(sender, _standardizeDecimal(amounts.sum()))
     {
-        _withdraw(sender, recipient, tokenIds, amounts, data);
+        _withdraw(
+            sender,
+            recipient,
+            withdrawalCost(tokenIds, amounts),
+            tokenIds,
+            amounts,
+            data
+        );
     }
 
     /**
@@ -416,6 +437,7 @@ abstract contract JasmineBasePool is
     function _withdraw(
         address sender,
         address recipient,
+        uint256 cost,
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         bytes memory data
@@ -424,7 +446,6 @@ abstract contract JasmineBasePool is
         nonReentrant
     {
         // 1. Ensure sender has sufficient JLTs and lengths match
-        uint256 cost = withdrawalCost(tokenIds, amounts);
         if (balanceOf(sender) < cost)
             revert ERC20Errors.ERC20InsufficientBalance(
                 sender,
@@ -477,6 +498,8 @@ abstract contract JasmineBasePool is
     // Costing Functionality
     // ──────────────────────────────────────────────────────────────────────────────
 
+    // QUESTION: Should these two costing functions be seperately named?
+
     /**
      * @notice Cost of withdrawing specified amounts of tokens from pool.
      * 
@@ -484,7 +507,6 @@ abstract contract JasmineBasePool is
      * @param amounts Amounts of EATs to withdaw
      * 
      * @return cost Price of withdrawing EATs in JLTs
-     * TODO: Need to add bool whether tokens were chosen by pool or msgSender
      */
     function withdrawalCost(
         uint256[] memory tokenIds,
@@ -500,6 +522,23 @@ abstract contract JasmineBasePool is
             );
         }
         return _standardizeDecimal(amounts.sum());
+    }
+
+    /**
+     * @notice Cost of withdrawing amount of tokens from pool where pool
+     *         selects the tokens to withdraw.
+     * 
+     * @param amount Number of EATs to withdraw.
+     * 
+     * @return cost Price of withdrawing EATs in JLTs
+     */
+    function withdrawalCost(
+        uint256 amount
+    )
+        public view virtual
+        returns (uint256 cost)
+    {
+        return _standardizeDecimal(amount);
     }
 
     // ──────────────────────────────────────────────────────────────────────────────

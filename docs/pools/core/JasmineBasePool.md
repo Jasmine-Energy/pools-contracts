@@ -689,6 +689,28 @@ Used to withdraw specific EATs held by pool by burning         JLTs from sender.
 ### withdrawalCost
 
 ```solidity
+function withdrawalCost(uint256 amount) external view returns (uint256 cost)
+```
+
+Cost of withdrawing amount of tokens from pool where pool         selects the tokens to withdraw. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| amount | uint256 | Number of EATs to withdraw.  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| cost | uint256 | Price of withdrawing EATs in JLTs |
+
+### withdrawalCost
+
+```solidity
 function withdrawalCost(uint256[] tokenIds, uint256[] amounts) external view returns (uint256 cost)
 ```
 
@@ -707,7 +729,7 @@ Cost of withdrawing specified amounts of tokens from pool.
 
 | Name | Type | Description |
 |---|---|---|
-| cost | uint256 | Price of withdrawing EATs in JLTs TODO: Need to add bool whether tokens were chosen by pool or msgSender |
+| cost | uint256 | Price of withdrawing EATs in JLTs |
 
 
 
