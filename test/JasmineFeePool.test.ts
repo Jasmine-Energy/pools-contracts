@@ -194,6 +194,13 @@ describe("Fee Pool", function () {
         .and.to.changeTokenBalance(solarPool, feeBeneficiary, withdrawAmount * (baseWithdrawalRate / 10_000) * (10 ** poolDecimals));
     });
 
+    it("Should take specific withdrawal fees if set", async function () {
+        const withdrawAmount = 1_000;
+        expect(await solarPool.withdrawSpecific(owner.address, owner.address, [solarTokens.id], [withdrawAmount], [])).to.be.ok
+          .and.to.changeTokenBalance(solarPool, owner.address,  withdrawAmount * ((10_000 + baseWithdrawalSpecificRate) / 10_000) * (10 ** poolDecimals))
+          .and.to.changeTokenBalance(solarPool, feeBeneficiary, withdrawAmount * (baseWithdrawalSpecificRate / 10_000) * (10 ** poolDecimals));
+      });
+
     it("Should take retirement fees if set", async function () {
       // TODO
     });
