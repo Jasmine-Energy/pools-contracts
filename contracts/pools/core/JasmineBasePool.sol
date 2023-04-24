@@ -13,8 +13,9 @@ import { IJasminePool } from "../../interfaces/IJasminePool.sol";
 // Implementation Contracts
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC1155Holder } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
-import { ERC777 } from "@openzeppelin/contracts/token/ERC777/ERC777.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ERC1046 } from "../../implementations/ERC1046.sol";
+import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // External Contracts
@@ -34,7 +35,6 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
-import { IERC777 } from "@openzeppelin/contracts/interfaces/IERC777.sol";
 import { IERC1046 } from "../../interfaces/ERC/IERC1046.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
@@ -46,7 +46,8 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
  * @custom:security-contact dev@jasmine.energy
  */
 abstract contract JasmineBasePool is
-    ERC777,
+    ERC20,
+    ERC20Permit,
     ERC1046,
     ERC1155Holder,
     Initializable,
@@ -113,9 +114,9 @@ abstract contract JasmineBasePool is
 
     //  ─────────────────────────────  Token Metadata  ──────────────────────────────  \\
 
-    /// @notice Token Display name - per ERC-20/777
+    /// @notice Token Display name - per ERC-20
     string private _name;
-    /// @notice Token Symbol - per ERC-20/777
+    /// @notice Token Symbol - per ERC-20
     string private _symbol;
     /// @notice JLT's decimal precision - per ERC-20
     uint8 private constant DECIMALS = 9;
@@ -129,7 +130,8 @@ abstract contract JasmineBasePool is
      * @dev
      */
     constructor(address _eat, address _poolFactory) 
-        ERC777("Jasmine Liquidity Token Base", "JLT", new address[](0))
+        ERC20("Jasmine Liquidity Token Base", "JLT")
+        ERC20Permit("Jasmine Liquidity Token Base")
     {
         require(_eat != address(0), "JasminePool: EAT must be set");
         require(_poolFactory != address(0), "JasminePool: Pool factory must be set");
@@ -214,6 +216,7 @@ abstract contract JasmineBasePool is
      * @param amount Number of EATs to deposit
      * 
      * @return jltQuantity Number of JLTs issued
+     * TODO: Rename from operator deposit
      */
     function operatorDeposit(
         address from,
@@ -221,7 +224,7 @@ abstract contract JasmineBasePool is
         uint256 amount
     )
         external virtual
-        nonReentrant onlyOperator(from) checkEligibility(tokenId)
+        nonReentrant onlyEATApproved(from) checkEligibility(tokenId)
         returns (uint256 jltQuantity)
     {
         return _deposit(from, tokenId, amount);
@@ -244,7 +247,7 @@ abstract contract JasmineBasePool is
         uint256[] calldata amounts
     )
         external virtual
-        nonReentrant onlyOperator(from) checkEligibilities(tokenIds)
+        nonReentrant onlyEATApproved(from) checkEligibilities(tokenIds)
         returns (uint256 jltQuantity)
     {
         // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
@@ -459,7 +462,7 @@ abstract contract JasmineBasePool is
             );
 
         // 2. Burn Tokens
-        _burn(sender, cost, "", "");
+        _burn(sender, cost);
 
         // 3. Transfer Select Tokens
         _sendBatchEAT(recipient, tokenIds, amounts, data);
@@ -546,44 +549,42 @@ abstract contract JasmineBasePool is
     // ──────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @inheritdoc ERC777
-     * @dev See {IERC777-balanceOf}
+     * @inheritdoc ERC20
+     * @dev See {ERC20-balanceOf}
      */
-    function balanceOf(address account) public view override(ERC777, IERC20) returns (uint256) {
+    function balanceOf(address account) public view override(ERC20, IERC20) returns (uint256) {
         return super.balanceOf(account);
     }
 
     /**
-     * @inheritdoc ERC777
-     * @dev See {IERC777-totalSupply}
+     * @inheritdoc ERC20
+     * @dev See {ERC20-totalSupply}
      */
-    function totalSupply() public view override(ERC777, IERC20) returns (uint256) {
+    function totalSupply() public view override(ERC20, IERC20) returns (uint256) {
         return super.totalSupply();
     }
 
     /**
-     * @inheritdoc ERC777
-     * @dev See {IERC777-name}
+     * @inheritdoc IERC20Metadata
+     * @dev See {IERC20Metadata-name}
      */
-    function name() public view override(ERC777, IERC20Metadata) returns (string memory) {
+    function name() public view override(ERC20, IERC20Metadata) returns (string memory) {
         return _name;
     }
 
     /**
-     * @inheritdoc ERC777
-     * @dev See {IERC777-symbol}
+     * @inheritdoc IERC20Metadata
+     * @dev See {IERC20Metadata-symbol}
      */
-    function symbol() public view override(ERC777, IERC20Metadata) returns (string memory) {
+    function symbol() public view override(ERC20, IERC20Metadata) returns (string memory) {
         return _symbol;
     }
 
     /**
-     * @notice All Jasmine Pools have 9 decimal points
-     * 
-     * @inheritdoc ERC777
-     * @dev See {ERC20-decimals}.
+     * @inheritdoc IERC20Metadata
+     * @dev See {IERC20Metadata-decimals}.
      */
-    function decimals() public pure override(ERC777, IERC20Metadata) returns (uint8) {
+    function decimals() public pure override(ERC20, IERC20Metadata) returns (uint8) {
         return DECIMALS;
     }
 
@@ -597,7 +598,6 @@ abstract contract JasmineBasePool is
         bytes4 interfaceId
     ) public view override returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId ||
-            interfaceId == type(IERC777).interfaceId ||
             interfaceId == type(IERC1155Receiver).interfaceId ||
             interfaceId == type(IJasminePool).interfaceId ||
             interfaceId == type(IERC1046).interfaceId ||
@@ -629,9 +629,7 @@ abstract contract JasmineBasePool is
         // 2. Mint Tokens
         _mint(
             from,
-            _standardizeDecimal(value),
-            "", // TODO: Anything to pass here🤔
-            ""
+            _standardizeDecimal(value)
         );
 
         // TODO: Call data
@@ -670,9 +668,7 @@ abstract contract JasmineBasePool is
         // 3. Authorize JLT mint
         _mint(
             from,
-            _standardizeDecimal(total),
-            "", // TODO: Anything to pass here🤔
-            ""
+            _standardizeDecimal(total)
         );
 
         // TODO: Call data
@@ -882,12 +878,12 @@ abstract contract JasmineBasePool is
     }
 
     /**
-     * @dev Enforce caller is approved for holder's JLTs - or caller is holder
+     * @dev Enforce caller is approved for holder's EATs - or caller is holder
      * 
      * @dev Throws Prohibited() on failure
      */
-    modifier onlyOperator(address holder) {
-        if (!isOperatorFor(_msgSender(), holder)) revert JasmineErrors.Prohibited();
+    modifier onlyEATApproved(address holder) {
+        if (!EAT.isApprovedForAll(holder, _msgSender())) revert JasmineErrors.Prohibited();
         _;
     }
 
@@ -898,7 +894,7 @@ abstract contract JasmineBasePool is
      */
     modifier onlyAllowed(address holder, uint256 quantity) {
         if (quantity == 0) revert JasmineErrors.InvalidInput();
-        if (!isOperatorFor(_msgSender(), holder) && allowance(holder, _msgSender()) < quantity) revert JasmineErrors.Prohibited();
+        if (holder != _msgSender() && allowance(holder, _msgSender()) < quantity) revert JasmineErrors.Prohibited();
         _;
     }
 
