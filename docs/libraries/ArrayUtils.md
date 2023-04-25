@@ -2,7 +2,7 @@
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> ArrayUtils
+> Array Utilities
 
 Utility library for interacting with arrays
 

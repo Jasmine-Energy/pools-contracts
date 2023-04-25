@@ -28,6 +28,17 @@ error InvalidConformance(bytes4 interfaceId)
 |---|---|---|
 | interfaceId | bytes4 | undefined |
 
+### InvalidInput
+
+```solidity
+error InvalidInput()
+```
+
+
+
+*Emitted if input is invalid*
+
+
 ### NoPool
 
 ```solidity
@@ -66,6 +77,22 @@ error Prohibited()
 *Emitted for unauthorized actions*
 
 
+### RequiresRole
+
+```solidity
+error RequiresRole(bytes32 role)
+```
+
+
+
+*Emitted if access control check fails*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| role | bytes32 | undefined |
+
 ### Unqualified
 
 ```solidity
@@ -81,5 +108,16 @@ error Unqualified(uint256 tokenId)
 | Name | Type | Description |
 |---|---|---|
 | tokenId | uint256 | undefined |
+
+### ValidationFailed
+
+```solidity
+error ValidationFailed()
+```
+
+
+
+*Emitted if internal validation failed*
+
 
 

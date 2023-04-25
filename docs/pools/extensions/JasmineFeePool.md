@@ -1,10 +1,10 @@
-# JasmineBasePool
+# JasmineFeePool
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> Jasmine Base Pool
+> Jasmine Fee Pool
 
-Jasmine&#39;s Base Pool contract which other pools extend as needed
+Extends JasmineBasePool with withdrawal and retirement fees managed by         a universal admin entity.
 
 
 
@@ -471,7 +471,7 @@ function poolFactory() external view returns (address)
 ### retire
 
 ```solidity
-function retire(address sender, address, uint256, bytes) external nonpayable
+function retire(address sender, address, uint256 amount, bytes) external nonpayable
 ```
 
 
@@ -484,8 +484,25 @@ function retire(address sender, address, uint256, bytes) external nonpayable
 |---|---|---|
 | sender | address | undefined |
 | _1 | address | undefined |
-| _2 | uint256 | undefined |
+| amount | uint256 | undefined |
 | _3 | bytes | undefined |
+
+### retirementRate
+
+```solidity
+function retirementRate() external view returns (uint96)
+```
+
+Returns the pool&#39;s JLT retirement rate in basis points 
+
+*If pool&#39;s retirement rate is not set, defer to pool factory&#39;s base rate *
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint96 | Retirement rate in basis points |
 
 ### revokeOperator
 
@@ -641,6 +658,38 @@ function transferFrom(address holder, address recipient, uint256 amount) externa
 |---|---|---|
 | _0 | bool | undefined |
 
+### updateRetirementRate
+
+```solidity
+function updateRetirementRate(uint96 newRetirementRate) external nonpayable
+```
+
+Allows pool fee managers to update the retirement rate 
+
+*Requirements:     - Caller must have fee manager role - in pool factory emits RetirementRateUpdate *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newRetirementRate | uint96 | New rate on retirements in basis points |
+
+### updateWithdrawalRate
+
+```solidity
+function updateWithdrawalRate(uint96 newWithdrawalRate) external nonpayable
+```
+
+Allows pool fee managers to update the withdrawal rate 
+
+*Requirements:     - Caller must have fee manager role - in pool factory emits WithdrawalRateUpdate *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newWithdrawalRate | uint96 | New rate on withdrawals in basis points |
+
 ### withdraw
 
 ```solidity
@@ -685,6 +734,85 @@ Used to withdraw specific EATs held by pool by burning         JLTs from sender.
 | tokenIds | uint256[] | EAT token IDs to withdraw |
 | amounts | uint256[] | Amount of EATs to withdraw per token ID |
 | data | bytes | Optional calldata to forward to recipient |
+
+### withdrawalCost
+
+```solidity
+function withdrawalCost(uint256 amount) external view returns (uint256 cost)
+```
+
+Cost of withdrawing amount of tokens from pool where pool         selects the tokens to withdraw, including withdrawal fee. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| amount | uint256 | Number of EATs to withdraw.  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| cost | uint256 | Price of withdrawing EATs in JLTs |
+
+### withdrawalCost
+
+```solidity
+function withdrawalCost(uint256[] tokenIds, uint256[] amounts) external view returns (uint256 cost)
+```
+
+Cost of withdrawing specified amounts of tokens from pool including         withdrawal fee. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenIds | uint256[] | IDs of EATs to withdaw |
+| amounts | uint256[] | Amounts of EATs to withdaw  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| cost | uint256 | Price of withdrawing EATs in JLTs |
+
+### withdrawalRate
+
+```solidity
+function withdrawalRate() external view returns (uint96)
+```
+
+Returns the pool&#39;s JLT withdrawal rate in basis points 
+
+*If pool&#39;s withdrawal rate is not set, defer to pool factory&#39;s base rate *
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint96 | Withdrawal fee in basis points |
+
+### withdrawalSpecificRate
+
+```solidity
+function withdrawalSpecificRate() external view returns (uint96)
+```
+
+Returns the pool&#39;s JLT withdrawal rate for withdrawing specific tokens,         in basis points 
+
+*If pool&#39;s specific withdrawal rate is not set, defer to pool factory&#39;s base rate *
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint96 | Withdrawal fee in basis points |
 
 
 
@@ -753,15 +881,15 @@ event Deposit(address indexed operator, address indexed owner, uint256 quantity)
 
 
 
-*Emitted whenever EATs are deposited to the contract *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator `indexed` | address | Initiator of the deposit |
-| owner `indexed` | address | Token holder depositting to contract |
-| quantity  | uint256 | Number of EATs deposited. Note: JLTs issued are 1-1 with EATs |
+| operator `indexed` | address | undefined |
+| owner `indexed` | address | undefined |
+| quantity  | uint256 | undefined |
 
 ### Initialized
 
@@ -798,6 +926,23 @@ event Minted(address indexed operator, address indexed to, uint256 amount, bytes
 | amount  | uint256 | undefined |
 | data  | bytes | undefined |
 | operatorData  | bytes | undefined |
+
+### RetirementRateUpdate
+
+```solidity
+event RetirementRateUpdate(uint96 retirementFeeBips, address indexed beneficiary)
+```
+
+
+
+*Emitted whenever fee manager updates retirement fee *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| retirementFeeBips  | uint96 | new retirement fee in basis points |
+| beneficiary `indexed` | address | Address to receive fees |
 
 ### RevokedOperator
 
@@ -863,15 +1008,32 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 
 
 
-*Emitted whenever EATs are withdrawn from the contract *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| sender `indexed` | address | Initiator of the deposit |
-| receiver `indexed` | address | Token holder depositting to contract |
-| quantity  | uint256 | Number of EATs withdrawn. |
+| sender `indexed` | address | undefined |
+| receiver `indexed` | address | undefined |
+| quantity  | uint256 | undefined |
+
+### WithdrawalRateUpdate
+
+```solidity
+event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
+```
+
+
+
+*Emitted whenever fee manager updates withdrawal fee *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| withdrawFeeBips  | uint96 | New withdrawal fee in basis points |
+| beneficiary `indexed` | address | Address to receive fees |
 
 
 
@@ -948,6 +1110,17 @@ error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)
 | balance | uint256 | undefined |
 | needed | uint256 | undefined |
 
+### InvalidInput
+
+```solidity
+error InvalidInput()
+```
+
+
+
+*Emitted if input is invalid*
+
+
 ### Prohibited
 
 ```solidity
@@ -958,6 +1131,22 @@ error Prohibited()
 
 *Emitted for unauthorized actions*
 
+
+### RequiresRole
+
+```solidity
+error RequiresRole(bytes32 role)
+```
+
+
+
+*Emitted if access control check fails*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| role | bytes32 | undefined |
 
 ### Unqualified
 
@@ -974,5 +1163,16 @@ error Unqualified(uint256 tokenId)
 | Name | Type | Description |
 |---|---|---|
 | tokenId | uint256 | undefined |
+
+### ValidationFailed
+
+```solidity
+error ValidationFailed()
+```
+
+
+
+*Emitted if internal validation failed*
+
 
 

@@ -14,7 +14,7 @@ task("send", "send eth to an address")
       to: address,
       value,
     });
-    console.log(`Sending ${value} from ${primarySigner.address} to ${address} on chain: ${sendTx.chainId}`);
+    console.log(`Sending ${value}${ethers.constants.EtherSymbol} from ${primarySigner.address} to ${address} on chain: ${sendTx.chainId}`);
     const result = await sendTx.wait();
     console.log("Tx: ", result);
   });

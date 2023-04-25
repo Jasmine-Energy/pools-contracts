@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { Contracts, Libraries, colouredLog } from '@/utils';
 import { JasminePoolFactory } from '@/typechain';
+import { AnyField } from '@/utils/constants';
 
 const deployFactory: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
@@ -19,7 +20,7 @@ const deployFactory: DeployFunction = async function (
     // 2. Deploy Pool Factory Contract
     const factory = await deploy(Contracts.factory, {
         from: owner,
-        args: [pool.address],
+        args: [pool.address, owner],
         libraries: {
             PoolPolicy: policy.address
         },
@@ -68,13 +69,13 @@ const deployFactory: DeployFunction = async function (
         const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address) as JasminePoolFactory;
         await factoryContract.deployNewBasePool({
             vintagePeriod: [
-                Math.ceil(new Date().valueOf() / 1_000),
-                Math.ceil(new Date().valueOf() + 100_000  / 1_000)
+                Math.ceil(new Date().valueOf() / 1_000) - 10_000_000,
+                Math.ceil(new Date().valueOf() / 1_000) + 10_000_000
             ],
-            techType: 0,
-            registry: 0,
-            certification: 0,
-            endorsement: 0
+            techType: AnyField,
+            registry: AnyField,
+            certification: AnyField,
+            endorsement: AnyField
         }, 'Any Tech \'23', 'a23JLT');
     }
 };

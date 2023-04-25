@@ -1,9 +1,9 @@
 
 import { task } from 'hardhat/config';
 import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Contracts } from '@/utils';
-import { tryRequire } from '@/utils/safe_import';
+import { Contracts, tryRequire, makeLinkedTableCell } from '@/utils';
 import Table from 'cli-table3';
+import { BigNumber } from 'ethers';
 
 
 task('pool:list', 'Transfers an EAT')
@@ -36,12 +36,12 @@ task('pool:list', 'Transfers an EAT')
                 }
             });
         
-            for (var i = 0; i < totalPools; i++) {
+            for (var i = 0; i < totalPools.toNumber(); i++) {
                 const poolAddress = await factory.getPoolAtIndex(i);
                 const pool = JasminePool__factory.connect(poolAddress, defaultSigner);
                 const name = await pool.name();
                 const symbol = await pool.symbol();
-                table.push([i.toString(), poolAddress, name, symbol]);
+                table.push([i.toString(), await makeLinkedTableCell(poolAddress, { run }), name, symbol]);
             }
 
             console.log(table.toString());

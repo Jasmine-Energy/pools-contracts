@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.17;
 
 /**
- * @title ArrayUtils
+ * @title Array Utilities
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Utility library for interacting with arrays
  * @custom:security-contact dev@jasmine.energy
@@ -36,6 +36,7 @@ library ArrayUtils {
         address repeatedAddress,
         uint256 amount
     ) external pure returns (address[] memory filledArray) {
+        filledArray = new address[](amount);
         for (uint256 i = 0; i < amount; i++) {
             filledArray[i] = repeatedAddress;
         }

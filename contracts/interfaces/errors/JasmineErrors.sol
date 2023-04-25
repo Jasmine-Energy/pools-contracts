@@ -15,6 +15,19 @@ pragma solidity ^0.8.4;
  */
 interface JasmineErrors {
 
+    //  ─────────────────────────────  General Errors  ──────────────────────────────  \\
+
+    /// @dev Emitted if input is invalid
+    error InvalidInput();
+
+    /// @dev Emitted if internal validation failed
+    error ValidationFailed();
+
+    //  ──────────────────────────  Access Control Errors  ──────────────────────────  \\
+
+    /// @dev Emitted if access control check fails
+    error RequiresRole(bytes32 role);
+
     //  ───────────────────────────────  Pool Errors  ───────────────────────────────  \\
 
     /// @dev Emitted if a token does not meet pool's deposit policy
@@ -22,7 +35,6 @@ interface JasmineErrors {
 
     /// @dev Emitted for unauthorized actions
     error Prohibited();
-    
 
     //  ───────────────────────────  Pool Factory Errors  ───────────────────────────  \\
 

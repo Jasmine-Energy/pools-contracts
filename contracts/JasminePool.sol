@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.17;
 
 
 //  ─────────────────────────────────────────────────────────────────────────────
@@ -8,7 +8,8 @@ pragma solidity >=0.8.0;
 //  ─────────────────────────────────────────────────────────────────────────────
 
 // Parent Contract
-import { JasmineBasePool } from "./pools/JasmineBasePool.sol";
+import { JasmineBasePool } from "./pools/core/JasmineBasePool.sol";
+import { JasmineFeePool } from "./pools/extensions/JasmineFeePool.sol";
 
 // External Contracts
 import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
@@ -26,7 +27,7 @@ import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
  * @notice 
  * @custom:security-contact dev@jasmine.energy
  */
-contract JasminePool is JasmineBasePool {
+contract JasminePool is JasmineBasePool, JasmineFeePool {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
@@ -49,7 +50,7 @@ contract JasminePool is JasmineBasePool {
     // Setup
     // ──────────────────────────────────────────────────────────────────────────────
     constructor(address _eat, address _oracle, address _poolFactory)
-        JasmineBasePool(_eat, _poolFactory)
+        JasmineFeePool(_eat, _poolFactory)
     {
         require(_oracle != address(0), "JasminePool: Oracle must be set");
 
@@ -107,5 +108,45 @@ contract JasminePool is JasmineBasePool {
             _policy.certification,
             _policy.endorsement
         );
+    }
+
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Withdraw Overrides
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    /// @inheritdoc JasmineFeePool
+    function withdrawalCost(
+        uint256[] memory tokenIds,
+        uint256[] memory amounts
+    )
+        public view override(JasmineBasePool, JasmineFeePool)
+        returns (uint256 cost)
+    {
+        return super.withdrawalCost(tokenIds, amounts);
+    }
+
+    /// @inheritdoc JasmineFeePool
+    function withdrawalCost(
+        uint256 amount
+    )
+        public view override(JasmineBasePool, JasmineFeePool)
+        returns (uint256 cost)
+    {
+        return super.withdrawalCost(amount);
+    }
+
+    /// @inheritdoc JasmineBasePool
+    function _withdraw(
+        address sender,
+        address recipient,
+        uint256 cost,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        bytes memory data
+    ) 
+        internal override(JasmineBasePool, JasmineFeePool)
+    {
+        super._withdraw(sender, recipient, cost, tokenIds, amounts, data);
     }
 }
