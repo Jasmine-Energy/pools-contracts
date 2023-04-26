@@ -55,9 +55,8 @@ export const externalNetworks: {
   polygon,
 };
 
-export const forkNetwork: HttpNetworkUserConfig = process.env.FORK_NETWORK
-  ? externalNetworks[process.env.FORK_NETWORK!]
-  : polygon;
+export const forkNetworkName = process.env.FORK_NETWORK ?? "polygon";
+export const forkNetwork: HttpNetworkUserConfig = externalNetworks[forkNetworkName];
 
 const hardhat: HardhatNetworkUserConfig = {
   chainId: 31337,
@@ -67,6 +66,7 @@ const hardhat: HardhatNetworkUserConfig = {
     url: forkNetwork.url!,
   },
   saveDeployments: true,
+  autoImpersonate: true,
   tags: ["local"],
 };
 
@@ -82,12 +82,3 @@ export const networks: NetworksUserConfig = {
   hardhat,
   ...externalNetworks,
 };
-
-// export function networkName(
-//   network: HttpNetworkUserConfig | HardhatNetworkUserConfig
-// ): string | undefined {
-//   const matchingNetworks = Object.entries(networks).find(([key, value]) => {
-//     return value === network ? key : false;
-//   });
-//   return matchingNetworks && matchingNetworks[0];
-// }

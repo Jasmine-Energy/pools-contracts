@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 
 import { HardhatUserConfig } from "hardhat/config";
-import * as tenderlyForks from "./tenderly-forks.json";
 import * as tenderly from "@tenderly/hardhat-tenderly";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-chai-matchers";
@@ -20,7 +19,6 @@ import "hardhat-interact";
 import "@typechain/hardhat";
 
 import "tsconfig-paths/register";
-
 
 import { 
   networks, defaultNetwork,

@@ -16,6 +16,8 @@ import {
     encodeEnergyAttributeTokenId,
     encodeOracleData,
 } from '@/utils/token_encoding';
+import { JasmineMinter } from '@/typechain';
+
 
 task('mint', 'Mints an EAT')
     .addOptionalPositionalParam<string>('account', 'The account\'s address')
@@ -57,17 +59,22 @@ task('mint', 'Mints an EAT')
             }
             // 1. Load required accounts, contracts and info
             const { bridge, minter } = await getNamedAccounts();
-            const minterDeployment = await deployments.get(Contracts.minter);
-            const minterAddress = taskArgs.minter ?? minterDeployment.address ?? minter;
+            let minterSavedAddress;
+            try {
+                minterSavedAddress = (await deployments.get(Contracts.minter)).address;
+            } catch {
+                minterSavedAddress = minter;
+            }
+            const minterAddress = taskArgs.minter ?? minterSavedAddress;
             const signer = taskArgs.account ? await ethers.getSigner(taskArgs.account) : (await ethers.getSigners())[0];
             const recipientAddress: string = signer.address;
-            const bridgeSigner = await ethers.getSigner(bridge);
-            const chainId = await bridgeSigner.getChainId();
             const minterContract = await ethers.getContractAt(
                 Contracts.minter,
                 minterAddress,
                 signer
-            );
+            ) as JasmineMinter;
+            const bridgeSigner = await ethers.getSigner(bridge);
+            const chainId = await bridgeSigner.getChainId();
 
             // 2. Create typed data struct
             const domain = {
