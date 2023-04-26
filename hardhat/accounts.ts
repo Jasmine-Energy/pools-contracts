@@ -1,6 +1,7 @@
 import { HDAccountsUserConfig, HttpNetworkAccountsUserConfig } from "hardhat/types";
 import { forkNetworkName } from "./networks";
 import * as tenderlyForks from "@/tenderly-forks.json";
+import { PERMIT2_ADDRESS } from "@uniswap/permit2-sdk";
 
 const mnemonic =
   process.env.MNEMONIC ?? "tattoo clip ankle prefer cruise car motion borrow bread future legal system";
@@ -116,6 +117,6 @@ export const namedAccounts = {
     default: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
   },
   permit2: {
-    default: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+    default: PERMIT2_ADDRESS,
   },
 };
