@@ -86,9 +86,22 @@ export const namedAccounts = {
     },
   },
   // Tokens
-  usdc: {
+  USDC: {
     polygon: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
     mumbai: "0x0FA8781a83E46826621b3BC094Ea2A0212e71B23",
+    get localhost() { 
+      return this[forkNetworkName as 'polygon' | 'mumbai'];
+    },
+    get hardhat() { 
+      return this[forkNetworkName as 'polygon' | 'mumbai'];
+    },
+    get tenderly() {
+      return this[tenderlyForks.forks[tenderlyForks.defaultFork].forked as 'polygon' | 'mumbai'];
+    },
+  },
+  WMATIC: {
+    polygon: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+    mumbai: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
     get localhost() { 
       return this[forkNetworkName as 'polygon' | 'mumbai'];
     },

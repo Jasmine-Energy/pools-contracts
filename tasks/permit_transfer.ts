@@ -68,54 +68,22 @@ task("permit:transfer", "Transfers using permit2")
       colouredLog.blue(`Permit is: ${signature}`);
 
       const permit2Contract = createPermit2(signer);
-      console.log(111);
-      //   console.log(await permit2Contract["allowance"](poolAddress, signer.address, "0x4072ff0d59436ce70a63eaadfd32a2240603fc14"))
-
-      //   console.log(...Object.values(permit.values), permit.values)
-
-      // @ts-ignore
-      console.log(...Object.values(permit.values.details[0]))
-      const coder = new ethers.utils.AbiCoder();
-      console.log(
-        coder.encode(
-          ["address", "uint160", "uint48", "uint48", "address", "uint256"],
-          [
-            // @ts-ignore
-            ...Object.values(permit.values.details[0]),
-            permit.values.spender,
-            permit.values.sigDeadline,
-          ]
-        ),
-        // @ts-ignore
-        permit.values.details[0].token
-      );
+      
       const tx = await permit2Contract[
         "permit(address,((address,uint160,uint48,uint48),address,uint256),bytes)"
       ](
         signer.address,
-        // permit, //...Object.values(permit.values),
         {
             // @ts-ignore
             details: permit.values.details[0],
             spender: permit.values.spender,
             sigDeadline: permit.values.sigDeadline
         },
-        // coder.encode(
-        //   ["address", "uint160", "uint48", "uint48", "address", "uint256"],
-        //   [
-        //     // @ts-ignore
-        //     ...Object.values(permit.values.details[0]),
-        //     permit.values.spender,
-        //     permit.values.sigDeadline,
-        //   ]
-        // ),
         signature,
         {
             gasLimit: 25_000_000
         }
       );
       console.log(tx);
-
-      //   const tx = await permit2Contract["permitTransferFrom(((address,uint256),uint256,uint256),(address,uint256),address,bytes)"](coder.encode(["address","uint256","uint256","uint256"],[poolAddress,amount,expiration,nonce]), coder.encode(["address","uint256"], ["0x4072ff0d59436ce70a63eaadfd32a2240603fc14", amount]), signer.address, signature);
     }
   );

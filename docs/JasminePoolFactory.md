@@ -44,6 +44,40 @@ function FEE_MANAGER_ROLE() external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined |
 
+### USDC
+
+```solidity
+function USDC() external view returns (address)
+```
+
+
+
+*Address of USDC contract used to create UniSwap V3 pools for new JLTs*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
+### UniswapFactory
+
+```solidity
+function UniswapFactory() external view returns (address)
+```
+
+
+
+*Address of Uniswap V3 Factory to automatically deploy JLT liquidity pools*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
 ### acceptOwnership
 
 ```solidity
@@ -119,7 +153,7 @@ function baseWithdrawalSpecificRate() external view returns (uint96)
 
 
 
-
+*Default fee for withdrawing specific EATs from pools. May be overridden per pool*
 
 
 #### Returns

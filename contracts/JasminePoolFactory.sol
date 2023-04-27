@@ -9,17 +9,19 @@ pragma solidity >=0.8.17;
 
 // Core Implementations
 import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
-// TODO: Should make new abstract class with TimelockController owner
 import { Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
-// QUESTION: Use enumerable extension?
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
 // External Contracts
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
+import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
+// Proxies
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
+
+// Interfaces
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
@@ -118,11 +120,20 @@ contract JasminePoolFactory is
     bytes32 public constant FEE_MANAGER_ROLE = keccak256("FEE_MANAGER_ROLE");
 
 
+    //  ───────────────────────────  External Addresses  ────────────────────────────  \\
+
+    /// @dev Address of Uniswap V3 Factory to automatically deploy JLT liquidity pools
+    address public immutable UniswapFactory;
+
+    /// @dev Address of USDC contract used to create UniSwap V3 pools for new JLTs
+    address public immutable USDC;
+
     //  ────────────────────────────────  Pool Fees  ────────────────────────────────  \\
 
     /// @dev Default fee for withdrawals across pools. May be overridden per pool
     uint96 public baseWithdrawalRate;
 
+    /// @dev Default fee for withdrawing specific EATs from pools. May be overridden per pool
     uint96 public baseWithdrawalSpecificRate;
 
     /// @dev Default fee for retirements across pools. May be overridden per pool
@@ -144,14 +155,25 @@ contract JasminePoolFactory is
      *     - Pool implementation is not zero address
      * 
      * @param _poolImplementation Address containing Jasmine Pool implementation
+     * @param _feeBeneficiary Address to receive all pool fees
+     * @param _uniswapFactory Address of Uniswap V3 Factory
+     * @param _usdc Address of USDC token
      */
-    constructor(address _poolImplementation, address _feeBeneficiary)
+    constructor(
+        address _poolImplementation,
+        address _feeBeneficiary,
+        address _uniswapFactory,
+        address _usdc
+    )
         Ownable2Step() AccessControl()
     {
         _validatePoolImplementation(_poolImplementation);
         _validateFeeReceiver(_feeBeneficiary);
 
         _poolImplementations.add(_poolImplementation);
+
+        UniswapFactory = _uniswapFactory;
+        USDC = _usdc;
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(FEE_MANAGER_ROLE, msg.sender);
@@ -495,6 +517,28 @@ contract JasminePoolFactory is
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
+
+    function _createUniswapPool(
+        address JLTPool,
+        uint24 fee,
+        uint160 sqrtPriceX96
+    ) 
+        private
+        returns (address pool)
+    {
+        require(JLTPool < USDC);
+        pool = IUniswapV3Factory(UniswapFactory).getPool(JLTPool, USDC, fee);
+
+        if (pool == address(0)) {
+            pool = IUniswapV3Factory(UniswapFactory).createPool(JLTPool, USDC, fee);
+            IUniswapV3Pool(pool).initialize(sqrtPriceX96);
+        } else {
+            (uint160 sqrtPriceX96Existing, , , , , , ) = IUniswapV3Pool(pool).slot0();
+            if (sqrtPriceX96Existing == 0) {
+                IUniswapV3Pool(pool).initialize(sqrtPriceX96);
+            }
+        }
+    }
 
     /**
      * @dev Determines the address of a newly deployed proxy, salted with the policy

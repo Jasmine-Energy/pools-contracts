@@ -60,6 +60,7 @@ const deployPoolImplementation: DeployFunction = async function (
 
     // 3. If on external network, verify contracts
     if (network.tags['public']) {
+        // TODO: Verify on sourcify as well. Run "sourcify" command
         console.log('Verifyiyng on Etherscan...');
         await hre.run('verify:verify', {
             address: pool,
