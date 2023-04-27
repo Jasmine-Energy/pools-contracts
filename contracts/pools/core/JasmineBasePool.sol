@@ -119,7 +119,7 @@ abstract contract JasmineBasePool is
     /// @notice Token Symbol - per ERC-20
     string private _symbol;
     /// @notice JLT's decimal precision - per ERC-20
-    uint8 private constant DECIMALS = 9;
+    uint8 private constant DECIMALS = 18;
 
 
     // ──────────────────────────────────────────────────────────────────────────────

@@ -6,6 +6,8 @@ const AnyField = 4_294_967_295;
 const DEFAULT_ADMIN_ROLE = "0x0000000000000000000000000000000000000000000000000000000000000000";
 const FEE_MANAGER_ROLE = "0x6c0757dc3e6b28b2580c03fd9e96c274acf4f99d91fbec9b418fa1d70604ff1c";
 
+const DEFAULT_DECIMAL_MULTIPLE = 10n ** 18n;
+
 // TODO: Swap to using env vars. Fine for now
 const TENDERLY_FORK_API = `http://api.tenderly.co/api/v1/account/Jasmine/project/reference-pools/fork`;
 const TENDERLY_FORK_DASHBOARD = "https://dashboard.tenderly.co/Jasmine/reference-pools/fork"
@@ -47,6 +49,7 @@ const Libraries = {
 export {
     AnyField,
     DEFAULT_ADMIN_ROLE, FEE_MANAGER_ROLE,
+    DEFAULT_DECIMAL_MULTIPLE,
     Tenderly, TenderlyEndpoints, TENDERLY_API_BASE_URL, TENDERLY_FORK_API, TENDERLY_FORK_DASHBOARD,
     Contracts, Libraries
 };
