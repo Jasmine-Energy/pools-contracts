@@ -11,7 +11,7 @@ export const extensions = {
     outDir: "./typechain",
   },
   dodoc: {
-    exclude: ["elin", "energy"],
+    exclude: ["elin", "energy", "v3-core"],
     // freshOutput: false // NOTE: Found this fixes annoying iCloud overrides
   },
   etherscan: {
