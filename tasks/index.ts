@@ -2,6 +2,7 @@
 import './eth';
 import './pools';
 import './tenderly';
+import './uniswap';
 import './mint_eat';
 import './permit';
 import './permit_transfer';

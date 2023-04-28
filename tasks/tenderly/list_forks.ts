@@ -1,5 +1,5 @@
 import { task } from 'hardhat/config';
-import type { TaskArguments, HardhatRuntimeEnvironment } from 'hardhat/types';
+import type { TaskArguments } from 'hardhat/types';
 import { TENDERLY_FORK_DASHBOARD } from "@/utils/constants";
 import * as forksFile from '../../tenderly-forks.json';
 import Table from "cli-table3";
@@ -9,8 +9,7 @@ task("fork:list", "Creates a tenderly fork of network")
   .addOptionalParam<string>("fork", "Only list forks from network")
   .setAction(
     async (
-      taskArgs: TaskArguments,
-      { ethers, network, getChainId }: HardhatRuntimeEnvironment
+      taskArgs: TaskArguments
     ): Promise<void> => {
        
       const head = ["Index", "Name", "Forked", "Pool ID"];

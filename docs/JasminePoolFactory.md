@@ -184,6 +184,23 @@ Utility function to calculate deployed address of a pool from its         policy
 |---|---|---|
 | poolAddress | address | Address of deployed pool |
 
+### defaultUniswapFee
+
+```solidity
+function defaultUniswapFee() external view returns (uint24)
+```
+
+
+
+*Default fee tier for Uniswap V3 pools. Default is 0.3%*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint24 | undefined |
+
 ### deployNewBasePool
 
 ```solidity

@@ -38,6 +38,11 @@ const Contracts = {
     eat: 'JasmineEAT',
     oracle: 'JasmineOracle',
     minter: 'JasmineMinter',
+
+    uniswap: {
+        factory: 'IUniswapV3Factory',
+        pool: 'IUniswapV3Pool',
+    },
 };
 
 const Libraries = {
