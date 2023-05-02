@@ -15,7 +15,7 @@ task("permit:transfer", "Transfers using permit2")
   .setAction(
     async (
       taskArgs: TaskArguments,
-      { ethers, deployments, hardhatArguments }: HardhatRuntimeEnvironment
+      { ethers, deployments }: HardhatRuntimeEnvironment
     ): Promise<void> => {
       let poolAddress: string;
       if (taskArgs.pool.length === 42) {
