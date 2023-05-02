@@ -105,6 +105,10 @@ describe(Contracts.factory, function () {
       // TODO Check ok and ensure PoolImplementationAdded was emitted
     });
 
+    it("Should allow owner to update a new pool implementation", async function () {
+      
+    });
+
     it("Should revert if non-owner calls add, remove or update pool implementation", async function () {
       const factoryFromExt = poolFactory.connect(accounts[1]);
       await expect(
