@@ -15,6 +15,9 @@ describe(Contracts.factory, function () {
   let feeBeneficiary: SignerWithAddress;
   let accounts: SignerWithAddress[];
 
+  let USDC: string;
+  let uniswapPoolFactory: string;
+
   let poolFactory: JasminePoolFactory;
   let poolImplementation: JasminePool;
 
@@ -30,11 +33,15 @@ describe(Contracts.factory, function () {
     bridge = await ethers.getSigner(namedAccounts.bridge);
     feeBeneficiary = await ethers.getSigner(namedAccounts.feeBeneficiary);
     accounts = await ethers.getSigners();
+    USDC = namedAccounts.USDC;
+    uniswapPoolFactory = namedAccounts.uniswapPoolFactory;
 
     const PoolFactory = await ethers.getContractFactory(Contracts.factory);
     poolFactory = (await PoolFactory.deploy(
       poolImplementation.address,
-      feeBeneficiary.address
+      feeBeneficiary.address,
+      uniswapPoolFactory,
+      USDC
     )) as JasminePoolFactory;
   });
 
@@ -46,7 +53,7 @@ describe(Contracts.factory, function () {
     it("Should revert if no pool implementation is provided", async function () {
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
-        PoolFactory.deploy(ethers.constants.AddressZero, owner.address)
+        PoolFactory.deploy(ethers.constants.AddressZero, owner.address, uniswapPoolFactory, USDC)
       ).to.be.revertedWith(
         "JasminePoolFactory: Pool implementation must be set"
       );
@@ -56,7 +63,7 @@ describe(Contracts.factory, function () {
       // NOTE: This test could be better. Only checks if EAT supports interface
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
-        PoolFactory.deploy(await poolImplementation.EAT(), owner.address)
+        PoolFactory.deploy(await poolImplementation.EAT(), owner.address, uniswapPoolFactory, USDC)
       ).to.be.revertedWithCustomError(poolFactory, "InvalidConformance");
     });
 
@@ -65,7 +72,9 @@ describe(Contracts.factory, function () {
       await expect(
         PoolFactory.deploy(
           poolImplementation.address,
-          ethers.constants.AddressZero
+          ethers.constants.AddressZero,
+          uniswapPoolFactory,
+          USDC
         )
       ).to.be.revertedWith("JasminePoolFactory: Fee beneficiary must be set");
     });
@@ -75,7 +84,9 @@ describe(Contracts.factory, function () {
       await expect(
         PoolFactory.deploy(
           poolImplementation.address,
-          await poolImplementation.EAT()
+          await poolImplementation.EAT(),
+          uniswapPoolFactory,
+          USDC
         )
       ).to.be.revertedWith(
         "JasminePoolFactory: Fee beneficiary must support IERC777Recipient interface"
@@ -92,6 +103,10 @@ describe(Contracts.factory, function () {
 
     it("Should allow owner to add a new pool implementation", async function () {
       // TODO Check ok and ensure PoolImplementationAdded was emitted
+    });
+
+    it("Should allow owner to update a new pool implementation", async function () {
+      
     });
 
     it("Should revert if non-owner calls add, remove or update pool implementation", async function () {

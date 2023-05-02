@@ -26,6 +26,7 @@ import {
   EnergyCertificateType,
   FuelType,
 } from "@/types/energy-certificate.types";
+import { DEFAULT_DECIMAL } from "@/utils/constants";
 
 describe(Contracts.pool, function () {
   let owner: SignerWithAddress;
@@ -53,6 +54,7 @@ describe(Contracts.pool, function () {
     owner = await ethers.getSigner(namedAccounts.owner);
     bridge = await ethers.getSigner(namedAccounts.bridge);
     accounts = await ethers.getSigners();
+    const { uniswapPoolFactory, USDC } = namedAccounts;
 
     const coreContract = await loadFixture(deployCoreFixture);
     eat = coreContract.eat;
@@ -68,7 +70,9 @@ describe(Contracts.pool, function () {
     // TODO: Fix above requirement of having deploy
     poolFactory = (await PoolFactory.deploy(
       poolImplementation.address,
-      owner.address
+      owner.address,
+      uniswapPoolFactory,
+      USDC
     )) as JasminePoolFactory;
   });
 
@@ -124,7 +128,7 @@ describe(Contracts.pool, function () {
     });
     describe("State", async function () {
       it("Should have constants set", async function () {
-        expect(await poolImplementation.decimals()).to.be.eq(9);
+        expect(await poolImplementation.decimals()).to.be.eq(DEFAULT_DECIMAL);
         expect(await poolImplementation.name()).to.be.empty;
         expect(await poolImplementation.symbol()).to.be.empty;
 
@@ -351,15 +355,17 @@ describe(Contracts.pool, function () {
       expect(await anyTechAnnualPool.withdraw(owner.address, tokenAmount, []))
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw")
         .withArgs(owner.address, owner.address, tokenAmount);
+      // TODO: Test JLT token decrease
     });
 
     it("Should allow operator withdrawals", async function () {
       const operator = accounts[4];
       const operatorPool = anyTechAnnualPool.connect(operator);
+      const ownerBalance = await anyTechAnnualPool.balanceOf(owner.address);
 
-      expect(await anyTechAnnualPool.authorizeOperator(operator.address))
-        .to.be.ok.and.to.emit(anyTechAnnualPool, "AuthorizedOperator")
-        .withArgs(operator.address, owner.address);
+      expect(await anyTechAnnualPool.increaseAllowance(operator.address, ownerBalance))
+        .to.be.ok.and.to.emit(anyTechAnnualPool, "Approval")
+        .withArgs(owner.address, operator.address, ownerBalance);
       expect(
         await operatorPool.operatorWithdraw(
           owner.address,
@@ -370,6 +376,7 @@ describe(Contracts.pool, function () {
       )
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw")
         .withArgs(owner.address, operator.address, tokenAmount);
+      // TODO: Test JLT token decrease
     });
 
     it("Should allow allowance withdrawals", async function () {

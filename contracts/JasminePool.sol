@@ -49,6 +49,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     // ──────────────────────────────────────────────────────────────────────────────
     // Setup
     // ──────────────────────────────────────────────────────────────────────────────
+
     constructor(address _eat, address _oracle, address _poolFactory)
         JasmineFeePool(_eat, _poolFactory)
     {

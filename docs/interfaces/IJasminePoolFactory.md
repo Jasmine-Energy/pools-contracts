@@ -97,7 +97,7 @@ Emitted when a new Jasmine pool is created
 ### PoolImplementationAdded
 
 ```solidity
-event PoolImplementationAdded(address indexed poolImplementation, uint256 indexed poolIndex)
+event PoolImplementationAdded(address indexed poolImplementation, address indexed beaconAddress, uint256 indexed poolIndex)
 ```
 
 Emitted when new pool implementations are supported by factory 
@@ -109,12 +109,13 @@ Emitted when new pool implementations are supported by factory
 | Name | Type | Description |
 |---|---|---|
 | poolImplementation `indexed` | address | Address of newly supported pool implementation |
+| beaconAddress `indexed` | address | Address of Beacon smart contract |
 | poolIndex `indexed` | uint256 | Index of new pool in set of pool implementations |
 
 ### PoolImplementationRemoved
 
 ```solidity
-event PoolImplementationRemoved(address indexed poolImplementation, uint256 indexed poolIndex)
+event PoolImplementationRemoved(address indexed poolImplementation, address indexed beaconAddress, uint256 indexed poolIndex)
 ```
 
 Emitted when a pool implementations is removed 
@@ -126,7 +127,26 @@ Emitted when a pool implementations is removed
 | Name | Type | Description |
 |---|---|---|
 | poolImplementation `indexed` | address | Address of deleted pool implementation |
+| beaconAddress `indexed` | address | Address of Beacon smart contract |
 | poolIndex `indexed` | uint256 | Index of deleted pool in set of pool implementations |
+
+### PoolImplementationUpgraded
+
+```solidity
+event PoolImplementationUpgraded(address indexed newPoolImplementation, address indexed beaconAddress, uint256 indexed poolIndex)
+```
+
+Emitted when a pool&#39;s beacon implementation updates 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newPoolImplementation `indexed` | address | Address of new pool implementation |
+| beaconAddress `indexed` | address | Address of Beacon smart contract |
+| poolIndex `indexed` | uint256 | Index of new pool in set of pool implementations |
 
 
 

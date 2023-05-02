@@ -11,7 +11,7 @@ const deployFactory: DeployFunction = async function (
 
     const { ethers, tenderly, deployments, network, getNamedAccounts } = hre;
     const { deploy } = deployments;
-    const { owner } = await getNamedAccounts();
+    const { owner, feeBeneficiary, uniswapPoolFactory, USDC } = await getNamedAccounts();
 
     // 1. Get deployments
     const pool = await deployments.get(Contracts.pool);
@@ -20,7 +20,7 @@ const deployFactory: DeployFunction = async function (
     // 2. Deploy Pool Factory Contract
     const factory = await deploy(Contracts.factory, {
         from: owner,
-        args: [pool.address, owner],
+        args: [pool.address, feeBeneficiary, uniswapPoolFactory, USDC],
         libraries: {
             PoolPolicy: policy.address
         },

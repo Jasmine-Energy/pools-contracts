@@ -9,17 +9,20 @@ pragma solidity >=0.8.17;
 
 // Core Implementations
 import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
-// TODO: Should make new abstract class with TimelockController owner
 import { Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
-// QUESTION: Use enumerable extension?
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
 // External Contracts
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
+import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
-import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
+// Proxies
+import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import { BeaconProxy } from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
+
+// Interfaces
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
@@ -108,8 +111,8 @@ contract JasminePoolFactory is
      */
     mapping(bytes32 => uint256) internal _poolVersions;
 
-    /// @dev Implementation addresses for pools
-    EnumerableSet.AddressSet internal _poolImplementations;
+    /// @dev Pool beacon proxy addresses containing pool implementations
+    EnumerableSet.AddressSet internal _poolBeacons;
 
 
     //  ─────────────────────────────  Access Control  ──────────────────────────────  \\
@@ -118,11 +121,20 @@ contract JasminePoolFactory is
     bytes32 public constant FEE_MANAGER_ROLE = keccak256("FEE_MANAGER_ROLE");
 
 
+    //  ───────────────────────────  External Addresses  ────────────────────────────  \\
+
+    /// @dev Address of Uniswap V3 Factory to automatically deploy JLT liquidity pools
+    address public immutable UniswapFactory;
+
+    /// @dev Address of USDC contract used to create UniSwap V3 pools for new JLTs
+    address public immutable USDC;
+
     //  ────────────────────────────────  Pool Fees  ────────────────────────────────  \\
 
     /// @dev Default fee for withdrawals across pools. May be overridden per pool
     uint96 public baseWithdrawalRate;
 
+    /// @dev Default fee for withdrawing specific EATs from pools. May be overridden per pool
     uint96 public baseWithdrawalSpecificRate;
 
     /// @dev Default fee for retirements across pools. May be overridden per pool
@@ -130,6 +142,9 @@ contract JasminePoolFactory is
 
     /// @dev Address to receive fees
     address public feeBeneficiary;
+
+    /// @dev Default fee tier for Uniswap V3 pools. Default is 0.3%
+    uint24 public constant defaultUniswapFee = 3_000;
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
@@ -144,18 +159,29 @@ contract JasminePoolFactory is
      *     - Pool implementation is not zero address
      * 
      * @param _poolImplementation Address containing Jasmine Pool implementation
+     * @param _feeBeneficiary Address to receive all pool fees
+     * @param _uniswapFactory Address of Uniswap V3 Factory
+     * @param _usdc Address of USDC token
      */
-    constructor(address _poolImplementation, address _feeBeneficiary)
+    constructor(
+        address _poolImplementation,
+        address _feeBeneficiary,
+        address _uniswapFactory,
+        address _usdc
+    )
         Ownable2Step() AccessControl()
     {
         _validatePoolImplementation(_poolImplementation);
         _validateFeeReceiver(_feeBeneficiary);
 
-        _poolImplementations.add(_poolImplementation);
+        UniswapFactory = _uniswapFactory;
+        USDC = _usdc;
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(FEE_MANAGER_ROLE, msg.sender);
         _setRoleAdmin(FEE_MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
+
+        addPoolImplementation(_poolImplementation);
     }
 
 
@@ -285,52 +311,62 @@ contract JasminePoolFactory is
         bytes32 policyHash = keccak256(initData);
 
         // 2. Ensure policy does not exist
-        if (_pools.contains(policyHash)) revert JasmineErrors.PoolExists(computePoolAddress(policyHash));
+        if (_pools.contains(policyHash)) revert JasmineErrors.PoolExists(_predictDeploymentAddress(policyHash, version));
 
-        // TODO: Beacon proxies may be preferable here
         // 3. Deploy new pool
-        ERC1967Proxy poolProxy = new ERC1967Proxy{ salt: policyHash }(
-            _poolImplementations.at(version), ""
+        BeaconProxy poolProxy = new BeaconProxy{ salt: policyHash }(
+            _poolBeacons.at(version), ""
         );
 
         // 4. Ensure new pool matches expected
         require(
-            _predictDeploymentAddress(policyHash, 0) == address(poolProxy),
+            _predictDeploymentAddress(policyHash, version) == address(poolProxy),
             "JasminePoolFactory: Pool address does not match expected"
         );
 
-        // 5. Initialize pool, add to pools, emit creation event and return new pool
+        // 5. Initialize pool, add to pools and emit creation event
         Address.functionCall(address(poolProxy), abi.encodePacked(initSelector, abi.encode(initData, name, symbol)));
-
+        _addDeployedPool(policyHash, version);
         emit PoolCreated(initData, address(poolProxy), name, symbol);
 
-        _addDeployedPool(policyHash, version);
-
+        // 6. Create Uniswap pool and return new pool
+        // QUESTION: How do we want to set initial price? $5/JLT is default
+        _createUniswapPool(address(poolProxy), 177159557114295710296101716160); // NOTE: = $5/JLT
+        // * uint160(10**IJasminePool(address(poolProxy)).decimals())
         return address(poolProxy);
     }
 
     //  ────────────────────────────  Pool Management  ──────────────────────────────  \\
 
     /**
-     * @dev Allows owner to update a pool implementation
+     * @notice Allows owner to update a pool implementation
      * 
-     * @ param newPoolImplementation New address to replace
+     * @dev emits PoolImplementationUpgraded
+     * 
+     * @param newPoolImplementation New address to replace
      * @param poolIndex Index of pool to replace
-     * TODO: Would be nice to have an overloaded version that takes address of pool to update
      */
     function updateImplementationAddress(
-        address, // newPoolImplementation,
+        address newPoolImplementation,
         uint256 poolIndex
     )
-        external view
+        external
         onlyOwner
     {
-        removePoolImplementation(poolIndex);
-        // addPoolImplementation(newPoolImplementation); // NOTE: Currently unreachable
+        _validatePoolImplementation(newPoolImplementation);
+
+        UpgradeableBeacon implementationBeacon = UpgradeableBeacon(_poolBeacons.at(poolIndex));
+        implementationBeacon.upgradeTo(newPoolImplementation);
+
+        emit PoolImplementationUpgraded(
+            newPoolImplementation, address(implementationBeacon), poolIndex
+        );
     }
 
     /**
-     * @dev Used to add a new pool implementation
+     * @notice Used to add a new pool implementation
+     * 
+     * @dev emits PoolImplementationAdded
      * 
      * @param newPoolImplementation New pool implementation address to support
      */
@@ -341,17 +377,27 @@ contract JasminePoolFactory is
     {
         _validatePoolImplementation(newPoolImplementation);
 
+        bytes32 poolSalt = keccak256(abi.encodePacked(_poolBeacons.length()));
+
+        UpgradeableBeacon implementationBeacon = new UpgradeableBeacon{ salt: poolSalt }(
+            newPoolImplementation
+        );
+
         require(
-            _poolImplementations.add(newPoolImplementation),
+            _poolBeacons.add(address(implementationBeacon)),
             "JasminePoolFactory: Failed to add new pool"
         );
 
-        emit PoolImplementationAdded(newPoolImplementation, _poolImplementations.length() - 1);
-        return _poolImplementations.length() - 1;
+        emit PoolImplementationAdded(
+            newPoolImplementation,
+            address(implementationBeacon),
+            _poolBeacons.length() - 1
+        );
+        return _poolBeacons.length() - 1;
     }
 
     /**
-     * @dev Used to remove a pool implementation
+     * @notice Used to remove a pool implementation
      * 
      * @ param poolIndex Index of pool to remove
      * TODO: Would be nice to have an overloaded version that takes address of pool to remove
@@ -497,6 +543,35 @@ contract JasminePoolFactory is
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
+     * @dev Creates a Uniswap V3 pool between JLT and USDC
+     * 
+     * @param JLTPool Address of JLT pool to create Uniswap pool between USDC
+     * @param sqrtPriceX96 Initial price of the pool. See [docs]().
+     */
+    function _createUniswapPool(
+        address JLTPool,
+        uint160 sqrtPriceX96
+    ) 
+        private
+        returns (address pool)
+    {
+        (address token0, address token1) = JLTPool < USDC ? (JLTPool, USDC) : (USDC, JLTPool);
+        require(token0 < token1);
+        
+        pool = IUniswapV3Factory(UniswapFactory).getPool(token0, token1, defaultUniswapFee);
+
+        if (pool == address(0)) {
+            pool = IUniswapV3Factory(UniswapFactory).createPool(JLTPool, USDC, defaultUniswapFee);
+            IUniswapV3Pool(pool).initialize(sqrtPriceX96);
+        } else {
+            (uint160 sqrtPriceX96Existing, , , , , , ) = IUniswapV3Pool(pool).slot0();
+            if (sqrtPriceX96Existing == 0) {
+                IUniswapV3Pool(pool).initialize(sqrtPriceX96);
+            }
+        }
+    }
+
+    /**
      * @dev Determines the address of a newly deployed proxy, salted with the policy
      *      and deployed via CREATE2
      * 
@@ -511,8 +586,8 @@ contract JasminePoolFactory is
         internal view
         returns (address poolAddress)
     {
-        bytes memory bytecode = type(ERC1967Proxy).creationCode;
-        bytes memory proxyByteCode = abi.encodePacked(bytecode, abi.encode(_poolImplementations.at(implementationIndex), ""));
+        bytes memory bytecode = type(BeaconProxy).creationCode;
+        bytes memory proxyByteCode = abi.encodePacked(bytecode, abi.encode(_poolBeacons.at(implementationIndex), ""));
         return Create2.computeAddress(policyHash, keccak256(proxyByteCode));
     }
 
@@ -556,8 +631,11 @@ contract JasminePoolFactory is
         if (!IERC165(poolImplementation).supportsInterface(type(IERC1155Receiver).interfaceId))
             revert JasmineErrors.InvalidConformance(type(IERC1155Receiver).interfaceId);
 
-        if (_poolImplementations.contains(poolImplementation)) 
-            revert JasmineErrors.PoolExists(poolImplementation);
+        for (uint i = 0; i < _poolBeacons.length(); i++) {
+            UpgradeableBeacon beacon = UpgradeableBeacon(_poolBeacons.at(i));
+            if (beacon.implementation() == poolImplementation)
+                revert JasmineErrors.PoolExists(poolImplementation);
+        }
     }
 
     /**
@@ -575,6 +653,7 @@ contract JasminePoolFactory is
         );
         if (newFeeBeneficiary.isContract()) {
             require(
+                // TODO: ERC777 support dropped. Change this line
                 IERC165(newFeeBeneficiary).supportsInterface(type(IERC777Recipient).interfaceId),
                 "JasminePoolFactory: Fee beneficiary must support IERC777Recipient interface"
             );

@@ -207,13 +207,10 @@ abstract contract JasmineFeePool is JasmineBasePool {
         if (feeAmount != 0 && 
             JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
         {
-            _send(
+            _transfer(
                 sender,
                 JasminePoolFactory(poolFactory).feeBeneficiary(),
-                feeAmount,
-                "",
-                "",
-                false
+                feeAmount
             );
         }
         // 2. Call super

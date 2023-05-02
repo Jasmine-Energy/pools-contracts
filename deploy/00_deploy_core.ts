@@ -2,6 +2,8 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { Contracts, colouredLog } from '@/utils';
 import { FormatTypes } from '@ethersproject/abi';
+import { impersonateAccount } from '@nomicfoundation/hardhat-network-helpers';
+import { JasmineMinter } from '@/typechain';
 
 // TODO: Migrate this over to using Jasmine contract's deploy function - included via plugin
 const deployCore: DeployFunction = async function (
@@ -137,14 +139,32 @@ const deployCore: DeployFunction = async function (
 deployCore.skip = async function (
     hre: HardhatRuntimeEnvironment
 ) {
-    const { eat, minter, oracle } = await hre.getNamedAccounts();
-    if (eat && minter && oracle) { 
-        return true;
+    const { eat, minter, oracle, bridge } = await hre.getNamedAccounts();
+    let skip: boolean;
+    if (eat && minter && oracle) {
+        if (hre.network.name === "hardhat" && hre.network.autoImpersonate) {
+            // NOTE: This screws up following deployment steps...
+            // await hre.run("run", { script: "./scripts/set_bridge.ts", network: "hardhat" });
+            var minterContract = await hre.ethers.getContractAt(Contracts.minter, minter) as JasmineMinter;
+            const ownerAddress = await minterContract.owner();
+            await impersonateAccount(ownerAddress);
+            const ownerSigner = await hre.ethers.getSigner(ownerAddress);
+            minterContract = await hre.ethers.getContractAt(Contracts.minter, minter, ownerSigner) as JasmineMinter;
+            await minterContract.setBridge(bridge);
+            colouredLog.blue(`BRIDGE CHANGED TO: ${bridge}`);
+        }
+        skip = true;
     } else if (hre.network.live || hre.network.tags['public']) {
-        return true;
+        skip = true;
     } else {
-        return false;
+        skip = false;
     }
+
+    if (skip) {
+        colouredLog.yellow(`Skipping core contracts deployment on: ${hre.network.name}`);
+    }
+
+    return skip;
 }
 deployCore.tags = ['Core', 'all'];
 export default deployCore;

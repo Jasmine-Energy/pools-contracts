@@ -9,7 +9,8 @@ const deployPoolImplementation: DeployFunction = async function (
 
     const { ethers, tenderly, deployments, network, getNamedAccounts } = hre;
     const { deploy, get } = deployments;
-    const { owner } = await getNamedAccounts();
+    const namedAccounts = await getNamedAccounts();
+    const { owner } = namedAccounts;
     const ownerSigner = await ethers.getSigner(owner);
     const ownerNonce = await ownerSigner.getTransactionCount();
     const poolFactoryFutureAddress = ethers.utils.getContractAddress({
@@ -20,15 +21,22 @@ const deployPoolImplementation: DeployFunction = async function (
     // 1. Get deployements
     const policy = await get(Libraries.poolPolicy);
     const arrayUtils = await get(Libraries.arrayUtils);
-    const eat = await get(Contracts.eat);
-    const oracle = await get(Contracts.oracle);
+    let eat: string;
+    let oracle: string;
+    try {
+        eat = (await get(Contracts.eat)).address;
+        oracle = (await get(Contracts.oracle)).address;
+    } catch {
+        eat = namedAccounts.eat;
+        oracle = namedAccounts.oracle;
+    }
 
     // 2. Deploy Pool Contract
     const pool = await deploy(Contracts.pool, {
         from: owner,
         args: [
-            eat.address,
-            oracle.address,
+            eat,
+            oracle,
             poolFactoryFutureAddress
         ],
         libraries: {
@@ -52,12 +60,13 @@ const deployPoolImplementation: DeployFunction = async function (
 
     // 3. If on external network, verify contracts
     if (network.tags['public']) {
+        // TODO: Verify on sourcify as well. Run "sourcify" command
         console.log('Verifyiyng on Etherscan...');
         await hre.run('verify:verify', {
             address: pool,
             constructorArguments: [
-                eat.address,
-                oracle.address,
+                eat,
+                oracle,
                 poolFactoryFutureAddress
             ],
         });
