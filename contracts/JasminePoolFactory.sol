@@ -377,8 +377,6 @@ contract JasminePoolFactory is
     {
         _validatePoolImplementation(newPoolImplementation);
 
-        // TODO: Check pool implementation is not already deployed
-
         bytes32 poolSalt = keccak256(abi.encodePacked(_poolBeacons.length()));
 
         UpgradeableBeacon implementationBeacon = new UpgradeableBeacon{ salt: poolSalt }(

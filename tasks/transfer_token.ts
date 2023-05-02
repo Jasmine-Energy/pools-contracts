@@ -2,7 +2,6 @@ import { task } from "hardhat/config";
 import type { TaskArguments, HardhatRuntimeEnvironment } from "hardhat/types";
 import { colouredLog, Contracts } from "@/utils";
 import { tryRequire } from "@/utils/safe_import";
-import { JasminePool } from "@/typechain";
 import { DEFAULT_DECIMAL_MULTIPLE } from "@/utils/constants";
 
 task("transfer", "Transfers an EAT")
@@ -40,7 +39,7 @@ task("transfer", "Transfers an EAT")
         await run("typechain");
       }
       // @ts-ignore
-      const { IERC1155Upgradeable__factory } = await import("@/typechain");
+      const { IERC1155Upgradeable__factory, JasminePool__factory } = await import("@/typechain");
 
       // 2. Load required accounts, contracts and info
       const { eat } = await getNamedAccounts();
@@ -88,10 +87,7 @@ task("transfer", "Transfers an EAT")
 
       // 5. Check if pool, if so, log balance
       try {
-        const pool = (await ethers.getContractAt(
-          Contracts.pool,
-          recipient
-        )) as JasminePool;
+        const pool = JasminePool__factory.connect(recipient, sender);
         const balance = await pool.balanceOf(sender.address);
         const poolName = await pool.name();
         const symbol = await pool.symbol();
