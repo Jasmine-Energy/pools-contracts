@@ -26,6 +26,7 @@ import {
   EnergyCertificateType,
   FuelType,
 } from "@/types/energy-certificate.types";
+import { DEFAULT_DECIMAL } from "@/utils/constants";
 
 describe(Contracts.pool, function () {
   let owner: SignerWithAddress;
@@ -53,6 +54,7 @@ describe(Contracts.pool, function () {
     owner = await ethers.getSigner(namedAccounts.owner);
     bridge = await ethers.getSigner(namedAccounts.bridge);
     accounts = await ethers.getSigners();
+    const { uniswapPoolFactory, USDC } = namedAccounts;
 
     const coreContract = await loadFixture(deployCoreFixture);
     eat = coreContract.eat;
@@ -68,7 +70,9 @@ describe(Contracts.pool, function () {
     // TODO: Fix above requirement of having deploy
     poolFactory = (await PoolFactory.deploy(
       poolImplementation.address,
-      owner.address
+      owner.address,
+      uniswapPoolFactory,
+      USDC
     )) as JasminePoolFactory;
   });
 
@@ -124,7 +128,7 @@ describe(Contracts.pool, function () {
     });
     describe("State", async function () {
       it("Should have constants set", async function () {
-        expect(await poolImplementation.decimals()).to.be.eq(9);
+        expect(await poolImplementation.decimals()).to.be.eq(DEFAULT_DECIMAL);
         expect(await poolImplementation.name()).to.be.empty;
         expect(await poolImplementation.symbol()).to.be.empty;
 

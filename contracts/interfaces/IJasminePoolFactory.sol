@@ -35,10 +35,25 @@ interface IJasminePoolFactory {
      * @notice Emitted when new pool implementations are supported by factory
      * 
      * @param poolImplementation Address of newly supported pool implementation
+     * @param beaconAddress Address of Beacon smart contract
      * @param poolIndex Index of new pool in set of pool implementations
      */
     event PoolImplementationAdded(
         address indexed poolImplementation,
+        address indexed beaconAddress,
+        uint256 indexed poolIndex
+    );
+
+    /**
+     * @notice Emitted when a pool's beacon implementation updates
+     * 
+     * @param newPoolImplementation Address of new pool implementation
+     * @param beaconAddress Address of Beacon smart contract
+     * @param poolIndex Index of new pool in set of pool implementations
+     */
+    event PoolImplementationUpgraded(
+        address indexed newPoolImplementation,
+        address indexed beaconAddress,
         uint256 indexed poolIndex
     );
 
@@ -46,10 +61,12 @@ interface IJasminePoolFactory {
      * @notice Emitted when a pool implementations is removed
      * 
      * @param poolImplementation Address of deleted pool implementation
+     * @param beaconAddress Address of Beacon smart contract
      * @param poolIndex Index of deleted pool in set of pool implementations
      */
     event PoolImplementationRemoved(
         address indexed poolImplementation,
+        address indexed beaconAddress,
         uint256 indexed poolIndex
     );
 

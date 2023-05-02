@@ -49,6 +49,7 @@ describe("Fee Pool", function () {
     owner = await ethers.getSigner(namedAccounts.owner);
     bridge = await ethers.getSigner(namedAccounts.bridge);
     accounts = await ethers.getSigners();
+    const { uniswapPoolFactory, USDC } = namedAccounts;
 
     const coreContract = await loadFixture(deployCoreFixture);
     eat = coreContract.eat;
@@ -64,7 +65,9 @@ describe("Fee Pool", function () {
     // TODO: Fix above requirement of having deploy
     poolFactory = (await PoolFactory.deploy(
       poolImplementation.address,
-      owner.address
+      owner.address,
+      uniswapPoolFactory,
+      USDC
     )) as JasminePoolFactory;
   });
 

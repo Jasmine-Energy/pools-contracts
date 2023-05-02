@@ -95,9 +95,9 @@ function acceptOwnership() external nonpayable
 function addPoolImplementation(address newPoolImplementation) external nonpayable returns (uint256 indexInPools)
 ```
 
+Used to add a new pool implementation 
 
-
-*Used to add a new pool implementation *
+*emits PoolImplementationAdded *
 
 #### Parameters
 
@@ -436,9 +436,9 @@ function pendingOwner() external view returns (address)
 function removePoolImplementation(uint256) external view
 ```
 
+Used to remove a pool implementation  param poolIndex Index of pool to remove TODO: Would be nice to have an overloaded version that takes address of pool to remove NOTE: This will break CREATE2 address predictions. Think of means around this
 
 
-*Used to remove a pool implementation  param poolIndex Index of pool to remove TODO: Would be nice to have an overloaded version that takes address of pool to remove NOTE: This will break CREATE2 address predictions. Think of means around this*
 
 #### Parameters
 
@@ -613,19 +613,19 @@ function transferOwnership(address newOwner) external nonpayable
 ### updateImplementationAddress
 
 ```solidity
-function updateImplementationAddress(address, uint256 poolIndex) external view
+function updateImplementationAddress(address newPoolImplementation, uint256 poolIndex) external nonpayable
 ```
 
+Allows owner to update a pool implementation 
 
-
-*Allows owner to update a pool implementation  param newPoolImplementation New address to replace*
+*emits PoolImplementationUpgraded *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | undefined |
-| poolIndex | uint256 | Index of pool to replace TODO: Would be nice to have an overloaded version that takes address of pool to update |
+| newPoolImplementation | address | New address to replace |
+| poolIndex | uint256 | Index of pool to replace |
 
 
 
@@ -722,7 +722,7 @@ Emitted when a new Jasmine pool is created
 ### PoolImplementationAdded
 
 ```solidity
-event PoolImplementationAdded(address indexed poolImplementation, uint256 indexed poolIndex)
+event PoolImplementationAdded(address indexed poolImplementation, address indexed beaconAddress, uint256 indexed poolIndex)
 ```
 
 Emitted when new pool implementations are supported by factory 
@@ -734,12 +734,13 @@ Emitted when new pool implementations are supported by factory
 | Name | Type | Description |
 |---|---|---|
 | poolImplementation `indexed` | address | undefined |
+| beaconAddress `indexed` | address | undefined |
 | poolIndex `indexed` | uint256 | undefined |
 
 ### PoolImplementationRemoved
 
 ```solidity
-event PoolImplementationRemoved(address indexed poolImplementation, uint256 indexed poolIndex)
+event PoolImplementationRemoved(address indexed poolImplementation, address indexed beaconAddress, uint256 indexed poolIndex)
 ```
 
 Emitted when a pool implementations is removed 
@@ -751,6 +752,25 @@ Emitted when a pool implementations is removed
 | Name | Type | Description |
 |---|---|---|
 | poolImplementation `indexed` | address | undefined |
+| beaconAddress `indexed` | address | undefined |
+| poolIndex `indexed` | uint256 | undefined |
+
+### PoolImplementationUpgraded
+
+```solidity
+event PoolImplementationUpgraded(address indexed newPoolImplementation, address indexed beaconAddress, uint256 indexed poolIndex)
+```
+
+Emitted when a pool&#39;s beacon implementation updates 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newPoolImplementation `indexed` | address | undefined |
+| beaconAddress `indexed` | address | undefined |
 | poolIndex `indexed` | uint256 | undefined |
 
 ### RoleAdminChanged
