@@ -12,6 +12,17 @@ Convenience interface for errors omitted by Jasmine&#39;s smart contracts
 
 ## Errors
 
+### InbalancedDeposits
+
+```solidity
+error InbalancedDeposits()
+```
+
+
+
+*Emitted if operation would cause inbalance in pool&#39;s EAT deposits*
+
+
 ### InvalidConformance
 
 ```solidity

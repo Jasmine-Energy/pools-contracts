@@ -227,12 +227,12 @@ function policyForVersion(uint8 metadataVersion) external view returns (bytes po
 ### retire
 
 ```solidity
-function retire(address owner, address beneficiary, uint256 quantity, bytes data) external nonpayable returns (bool success)
+function retire(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
 ```
 
 Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;beneficiary&#39;. 
 
-*Internally, calls are routed to Retirement Service to facilitate the retirement. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - Owner cannot be zero address *
+*Internally, calls are routed to Retirement Service to facilitate the retirement. Emits a {Retirement} event. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - Owner cannot be zero address *
 
 #### Parameters
 
@@ -240,14 +240,8 @@ Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;bene
 |---|---|---|
 | owner | address | JLT owner from which to burn tokens |
 | beneficiary | address | Address to receive retirement acknowledgment. If none, assume msg.sender |
-| quantity | uint256 | Number of JLTs to withdraw |
+| amount | uint256 | Number of JLTs to withdraw |
 | data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| success | bool | If retirement operation was successful, true will be returned  Emits a {Retirement} event. |
 
 ### symbol
 

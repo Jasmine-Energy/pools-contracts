@@ -44,6 +44,8 @@ interface IRetireablePool is IEATBackedPool {
      * 
      * @dev Internally, calls are routed to Retirement Service to facilitate the retirement.
      * 
+     * @dev Emits a {Retirement} event.
+     * 
      * @dev Requirements:
      *     - msg.sender must be approved for owner's JLTs
      *     - Owner must have sufficient JLTs
@@ -51,18 +53,15 @@ interface IRetireablePool is IEATBackedPool {
      * 
      * @param owner JLT owner from which to burn tokens
      * @param beneficiary Address to receive retirement acknowledgment. If none, assume msg.sender
-     * @param quantity Number of JLTs to withdraw
+     * @param amount Number of JLTs to withdraw
      * @param data Optional calldata to relay to retirement service via onERC1155Received
      * 
-     * @return success If retirement operation was successful, true will be returned
-     * 
-     * Emits a {Retirement} event.
      */
     function retire(
         address owner, 
         address beneficiary, 
-        uint256 quantity, 
+        uint256 amount, 
         bytes calldata data
-    ) external returns (bool success);
+    ) external;
 
 }

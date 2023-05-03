@@ -36,6 +36,9 @@ interface JasmineErrors {
     /// @dev Emitted for unauthorized actions
     error Prohibited();
 
+    /// @dev Emitted if operation would cause inbalance in pool's EAT deposits
+    error InbalancedDeposits();
+
     //  ───────────────────────────  Pool Factory Errors  ───────────────────────────  \\
 
     /// @dev Emitted if no pool(s) meet query

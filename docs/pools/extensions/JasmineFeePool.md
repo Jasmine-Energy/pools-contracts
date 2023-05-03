@@ -449,7 +449,7 @@ function poolFactory() external view returns (address)
 ### retire
 
 ```solidity
-function retire(address sender, address, uint256 amount, bytes) external nonpayable
+function retire(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
 ```
 
 
@@ -460,10 +460,10 @@ function retire(address sender, address, uint256 amount, bytes) external nonpaya
 
 | Name | Type | Description |
 |---|---|---|
-| sender | address | undefined |
-| _1 | address | undefined |
+| owner | address | undefined |
+| beneficiary | address | undefined |
 | amount | uint256 | undefined |
-| _3 | bytes | undefined |
+| data | bytes | undefined |
 
 ### retirementRate
 
@@ -958,6 +958,17 @@ error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)
 | sender | address | undefined |
 | balance | uint256 | undefined |
 | needed | uint256 | undefined |
+
+### InbalancedDeposits
+
+```solidity
+error InbalancedDeposits()
+```
+
+
+
+*Emitted if operation would cause inbalance in pool&#39;s EAT deposits*
+
 
 ### InvalidInput
 

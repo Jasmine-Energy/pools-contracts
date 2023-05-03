@@ -99,15 +99,17 @@ abstract contract JasmineBasePool is
     // ──────────────────────────────────────────────────────────────────────────────
 
 
-    //  ────────────────────────  Deposit Management Fields  ────────────────────────  \\
+    //  ─────────────────  Deposit & Retirement Management Fields  ──────────────────  \\
 
     /// @dev Convenience mapping to record EATs held by a given pool
     EnumerableSet.UintSet internal _holdings;
 
+    /// @dev Counter of all EAT deposits
+    uint256 internal _totalDeposits;
+
 
     //  ────────────────────────────────  Addresses  ────────────────────────────────  \\
 
-    // solhint-disable-next-line var-name-mixedcase
     JasmineEAT public immutable EAT;
     address public immutable poolFactory;
 
@@ -118,6 +120,7 @@ abstract contract JasmineBasePool is
     string private _name;
     /// @notice Token Symbol - per ERC-20
     string private _symbol;
+    // TODO: Can prob be deleted. Default is 18
     /// @notice JLT's decimal precision - per ERC-20
     uint8 private constant DECIMALS = 18;
 
@@ -166,16 +169,16 @@ abstract contract JasmineBasePool is
     // @inheritdoc {IRetireablePool}
     // TODO: Once pool conforms to IJasminePool again, add above line to natspec
     function retire(
-        address sender,
-        address,
-        uint256 amount,
-        bytes calldata
+        address owner, 
+        address beneficiary, 
+        uint256 amount, 
+        bytes calldata data
     )
         external virtual
-        nonReentrant onlyAllowed(sender, _standardizeDecimal(amount))
+        onlyAllowed(owner, amount)
+        nonReentrant enforceDeposits
     {
-        // TODO: Implement me
-        revert("JasmineBasePool: Unimplemented");
+        
     }
 
     //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
@@ -197,7 +200,7 @@ abstract contract JasmineBasePool is
         uint256 amount
     )
         external virtual
-        nonReentrant checkEligibility(tokenId)
+        checkEligibility(tokenId)
         returns (uint256 jltQuantity)
     {
         return _deposit(_msgSender(), tokenId, amount);
@@ -224,7 +227,7 @@ abstract contract JasmineBasePool is
         uint256 amount
     )
         external virtual
-        nonReentrant onlyEATApproved(from) checkEligibility(tokenId)
+        onlyEATApproved(from) checkEligibility(tokenId)
         returns (uint256 jltQuantity)
     {
         return _deposit(from, tokenId, amount);
@@ -247,12 +250,13 @@ abstract contract JasmineBasePool is
         uint256[] calldata amounts
     )
         external virtual
-        nonReentrant onlyEATApproved(from) checkEligibilities(tokenIds)
+        onlyEATApproved(from) checkEligibilities(tokenIds)
+        nonReentrant enforceDeposits
         returns (uint256 jltQuantity)
     {
         // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
         try EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "") {
-            return amounts.sum();
+            return _standardizeDecimal(amounts.sum());
         } catch Error(string memory reason) {
             // TODO Attempt to determine other failure reasons
             if (tokenIds.length != amounts.length) {
@@ -285,12 +289,13 @@ abstract contract JasmineBasePool is
         uint256 amount
     )
         internal virtual
+        nonReentrant enforceDeposits
         returns (uint256 jltQuantity)
     {
         // TODO: Remove try catch
         // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
         try EAT.safeTransferFrom(from, address(this), tokenId, amount, "") {
-            return amount;
+            return _standardizeDecimal(amount);
         } catch Error(string memory reason) {
             // If failed, attempt to determine cause, else return reason string
             if (!EAT.isApprovedForAll(from, address(this))) {
@@ -446,7 +451,7 @@ abstract contract JasmineBasePool is
         bytes memory data
     ) 
         internal virtual
-        nonReentrant
+        nonReentrant enforceDeposits
     {
         // 1. Ensure sender has sufficient JLTs and lengths match
         if (balanceOf(sender) < cost)
@@ -465,7 +470,9 @@ abstract contract JasmineBasePool is
         _burn(sender, cost);
 
         // 3. Transfer Select Tokens
-        _sendBatchEAT(recipient, tokenIds, amounts, data);
+        tokenIds.length == 1 
+            ? _sendEAT(recipient, tokenIds[0], amounts[0], data)
+            : _sendBatchEAT(recipient, tokenIds, amounts, data);
     }
 
 
@@ -623,8 +630,9 @@ abstract contract JasmineBasePool is
         onlyEAT checkEligibility(tokenId)
         returns (bytes4)
     {
-        // 1. Add token ID to holdings
+        // 1. Add token ID to holdings and increment total deposits
         _holdings.add(tokenId);
+        _totalDeposits += value;
 
         // 2. Mint Tokens
         _mint(
@@ -664,6 +672,7 @@ abstract contract JasmineBasePool is
             total += values[i];
             _holdings.add(tokenIds[i]);
         }
+        _totalDeposits += total;
 
         // 3. Authorize JLT mint
         _mint(
@@ -696,10 +705,11 @@ abstract contract JasmineBasePool is
         address to,
         uint256 tokenId,
         uint256 amount,
-        bytes calldata data
+        bytes memory data
     ) internal {
         try EAT.safeTransferFrom(address(this), to, tokenId, amount, data) {
             if (EAT.balanceOf(address(this), tokenId) == 0) _holdings.remove(tokenId);
+            _totalDeposits -= amount;
             emit Withdraw(address(this), to, amount);
         } catch Error(string memory reason) {
             // If failed, attempt to determine cause, else return reason string
@@ -737,7 +747,9 @@ abstract contract JasmineBasePool is
             for (uint256 i = 0; i < balances.length; i++) {
                 if (balances[i] == 0) _holdings.remove(tokenIds[i]);
             }
-            emit Withdraw(address(this), to, amounts.sum());
+            uint256 withdrawSum = amounts.sum();
+            _totalDeposits -= withdrawSum;
+            emit Withdraw(address(this), to, withdrawSum);
         } catch Error(string memory reason) {
             // TODO: Attempt to determine reason
             revert(reason);
@@ -816,6 +828,14 @@ abstract contract JasmineBasePool is
     }
 
     //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
+
+    /**
+     * @dev Enforce the pool holds more in deposit reserves than outstanding supply
+     */
+    modifier enforceDeposits() {
+        _;
+        if (_standardizeDecimal(_totalDeposits) < totalSupply()) revert JasmineErrors.InbalancedDeposits();
+    }
 
     /**
      * @dev Enforce token ID meets pool's policy
