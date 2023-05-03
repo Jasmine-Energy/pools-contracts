@@ -137,6 +137,16 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         return super.withdrawalCost(amount);
     }
 
+    /// @inheritdoc JasmineFeePool
+    function retirementCost(
+        uint256 amount
+    )
+        public view override(JasmineBasePool, JasmineFeePool)
+        returns (uint256 cost)
+    {
+        return super.retirementCost(amount);
+    }
+
     /// @inheritdoc JasmineBasePool
     function _withdraw(
         address sender,

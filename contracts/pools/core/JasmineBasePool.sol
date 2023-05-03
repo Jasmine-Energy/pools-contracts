@@ -24,6 +24,7 @@ import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 // Utility Libraries
 import { PoolPolicy } from "../../libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils } from "../../libraries/ArrayUtils.sol";
 import { 
     ERC20Errors,
@@ -178,8 +179,59 @@ abstract contract JasmineBasePool is
         onlyAllowed(owner, amount)
         nonReentrant enforceDeposits
     {
-        
+        // 1. Burn JLTs from owner
+        _burn(owner, amount);
+
+        // 2. Select quantity of EATs to retire
+        uint256 oneEATCost = _standardizeDecimal(1);
+        if (amount < oneEATCost) {
+
+        }
+
+        // 3. Select tokens to withdraw
+        (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](0), new uint256[](0));
+        (tokenIds, amounts) = _selectAnyTokens(amount);
     }
+
+    /**
+     * @notice Retires an exact amount of JLTs. If fees or other conversions are set,
+     *         cost of retirement will be greater than amount.
+     * 
+     * @param owner JLT holder to retire from
+     * @param beneficiary Address to receive retirement attestation
+     * @param amount Exact number of JLTs to retire
+     * @param data Optional calldata to relay to retirement service via onERC1155Received
+     */
+    function retireExact(
+        address owner, 
+        address beneficiary, 
+        uint256 amount, 
+        bytes calldata data
+    )
+        external virtual
+        onlyAllowed(owner, amount)
+        nonReentrant enforceDeposits
+    {
+        // 1. Burn JLTs from owner
+        uint256 cost = retirementCost(amount);
+        _burn(owner, cost);
+
+        // 2. Select quantity of EATs to retire
+        uint256 eatQuantity = _totalDeposits - Math.ceilDiv(totalSupply(), 10 ** DECIMALS);
+
+        // 3. Select tokens to withdraw
+        (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](0), new uint256[](0));
+        (tokenIds, amounts) = _selectAnyTokens(eatQuantity);
+
+        // 4. If EAT quantity is greater than amount // TODO: Write comment
+        if (eatQuantity > (amount / (10 ** DECIMALS))) {
+            // TODO: Seperate one EAT from tokens to forward as fractional amount
+        } else {
+            // TODO: Retire EATs
+        }
+
+    }
+
 
     //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
 
@@ -549,6 +601,22 @@ abstract contract JasmineBasePool is
         returns (uint256 cost)
     {
         return _standardizeDecimal(amount);
+    }
+
+    /**
+     * @notice Cost of retiring JLTs from pool.
+     * 
+     * @param amount Amount of JLTs to retire.
+     * 
+     * @return cost Price of retiring in JLTs.
+     */
+    function retirementCost(
+        uint256 amount
+    )
+        public view virtual
+        returns (uint256 cost)
+    {
+        return amount;
     }
 
     // ──────────────────────────────────────────────────────────────────────────────

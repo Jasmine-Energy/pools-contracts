@@ -465,6 +465,47 @@ function retire(address owner, address beneficiary, uint256 amount, bytes data) 
 | amount | uint256 | undefined |
 | data | bytes | undefined |
 
+### retireExact
+
+```solidity
+function retireExact(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
+```
+
+Retires an exact amount of JLTs. If fees or other conversions are set,         cost of retirement will be greater than amount. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| owner | address | JLT holder to retire from |
+| beneficiary | address | Address to receive retirement attestation |
+| amount | uint256 | Exact number of JLTs to retire |
+| data | bytes | Optional calldata to relay to retirement service via onERC1155Received |
+
+### retirementCost
+
+```solidity
+function retirementCost(uint256 amount) external view returns (uint256 cost)
+```
+
+Cost of retiring JLTs from pool including retirement fees. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| amount | uint256 | Amount of JLTs to retire.  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| cost | uint256 | Price of retiring in JLTs. |
+
 ### retirementRate
 
 ```solidity
