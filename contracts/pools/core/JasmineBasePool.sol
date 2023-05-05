@@ -20,6 +20,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 
 // External Contracts
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
+import { JasmineMinter } from "@jasmine-energy/contracts/src/JasmineMinter.sol";
 
 // Utility Libraries
 import { PoolPolicy } from "../../libraries/PoolPolicy.sol";
@@ -128,6 +129,7 @@ abstract contract JasmineBasePool is
     //  ────────────────────────────────  Addresses  ────────────────────────────────  \\
 
     JasmineEAT public immutable EAT;
+    JasmineMinter public immutable minter;
     address public immutable poolFactory;
 
 
@@ -149,7 +151,7 @@ abstract contract JasmineBasePool is
     /**
      * @dev
      */
-    constructor(address _eat, address _poolFactory) 
+    constructor(address _eat, address _poolFactory, address _minter)
         ERC20("Jasmine Liquidity Token Base", "JLT")
         ERC20Permit("Jasmine Liquidity Token Base")
     {
@@ -157,6 +159,7 @@ abstract contract JasmineBasePool is
         require(_poolFactory != address(0), "JasminePool: Pool factory must be set");
 
         EAT = JasmineEAT(_eat);
+        minter = JasmineMinter(_minter);
         poolFactory = _poolFactory;
     }
 

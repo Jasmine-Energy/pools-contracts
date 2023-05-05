@@ -13,7 +13,7 @@ Utility library encoding and decoding calldata between contracts
 ### BRIDGE_OFF_OP
 
 ```solidity
-function BRIDGE_OFF_OP() external view returns (bytes32)
+function BRIDGE_OFF_OP() external view returns (uint8)
 ```
 
 
@@ -25,47 +25,41 @@ function BRIDGE_OFF_OP() external view returns (bytes32)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bytes32 | undefined |
+| _0 | uint8 | undefined |
+
+### RETIREMENT_FRACTIONAL_OP
+
+```solidity
+function RETIREMENT_FRACTIONAL_OP() external view returns (uint8)
+```
+
+
+
+*Calldata prefix for fractional retirement operations*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint8 | undefined |
 
 ### RETIREMENT_OP
 
 ```solidity
-function RETIREMENT_OP() external view returns (bytes32)
+function RETIREMENT_OP() external view returns (uint8)
 ```
 
 
 
-*Calldata prefix for retirement operations*
+*Calldata prefix for retirement operations associated with a single user*
 
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bytes32 | undefined |
-
-### encodeRetirementCalldata
-
-```solidity
-function encodeRetirementCalldata(address, bytes32) external pure returns (bytes)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-| _1 | bytes32 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes | undefined |
+| _0 | uint8 | undefined |
 
 
 

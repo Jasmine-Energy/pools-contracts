@@ -89,8 +89,8 @@ abstract contract JasmineFeePool is JasmineBasePool {
      * @param _eat Jasmine Energy Attribute Token address
      * @param _poolFactory Jasmine Pool Factory address
      */
-    constructor(address _eat, address _poolFactory) 
-        JasmineBasePool(_eat, _poolFactory)
+    constructor(address _eat, address _poolFactory, address _minter)
+        JasmineBasePool(_eat, _poolFactory, _minter)
     {
         
     }

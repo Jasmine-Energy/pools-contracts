@@ -244,6 +244,23 @@ function meetsPolicy(uint256 tokenId) external view returns (bool isEligible)
 |---|---|---|
 | isEligible | bool | undefined |
 
+### minter
+
+```solidity
+function minter() external view returns (contract JasmineMinter)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | contract JasmineMinter | undefined |
+
 ### name
 
 ```solidity

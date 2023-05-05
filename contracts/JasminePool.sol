@@ -50,8 +50,8 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     // Setup
     // ──────────────────────────────────────────────────────────────────────────────
 
-    constructor(address _eat, address _oracle, address _poolFactory)
-        JasmineFeePool(_eat, _poolFactory)
+    constructor(address _eat, address _oracle, address _poolFactory, address _minter)
+        JasmineFeePool(_eat, _poolFactory, _minter)
     {
         require(_oracle != address(0), "JasminePool: Oracle must be set");
 

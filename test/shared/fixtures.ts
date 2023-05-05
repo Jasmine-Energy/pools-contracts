@@ -77,7 +77,7 @@ export async function deployLibrariesFixture() {
 }
 
 export async function deployPoolImplementation() {
-  const { eat, oracle } = await loadFixture(deployCoreFixture);
+  const { eat, oracle, minter } = await loadFixture(deployCoreFixture);
   const { policyLibAddress, arrayUtilsLibAddress } = await loadFixture(
     deployLibrariesFixture
   );
@@ -99,7 +99,8 @@ export async function deployPoolImplementation() {
   const poolImplementation = await Pool.deploy(
     eat.address,
     oracle.address,
-    poolFactoryFutureAddress
+    poolFactoryFutureAddress,
+    minter.address
   );
   return poolImplementation as JasminePool;
 }
