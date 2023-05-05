@@ -39,6 +39,7 @@ import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Rec
 import { IERC1046 } from "../../interfaces/ERC/IERC1046.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
+import "hardhat/console.sol";
 
 /**
  * @title Jasmine Base Pool
@@ -91,6 +92,21 @@ abstract contract JasmineBasePool is
     event Withdraw(
         address indexed sender,
         address indexed receiver,
+        uint256 quantity
+    );
+
+    /**
+     * @notice emitted when tokens from a pool are retired
+     * 
+     * @dev must be accompanied by a token burn event
+     * 
+     * @param operator Initiator of retirement
+     * @param beneficiary Designate beneficiary of retirement
+     * @param quantity Number of tokens being retired
+     */
+    event Retirement(
+        address indexed operator,
+        address indexed beneficiary,
         uint256 quantity
     );
 
@@ -217,19 +233,25 @@ abstract contract JasmineBasePool is
         _burn(owner, cost);
 
         // 2. Select quantity of EATs to retire
+        console.log("Total deposits: ", _totalDeposits, " Rounded supply: ", Math.ceilDiv(totalSupply(), 10 ** DECIMALS));
         uint256 eatQuantity = _totalDeposits - Math.ceilDiv(totalSupply(), 10 ** DECIMALS);
+        console.log("Withdrawal quantity: ", eatQuantity);
 
         // 3. Select tokens to withdraw
         (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](0), new uint256[](0));
         (tokenIds, amounts) = _selectAnyTokens(eatQuantity);
+        console.log("Token length: ", tokenIds.length);
 
         // 4. If EAT quantity is greater than amount // TODO: Write comment
         if (eatQuantity > (amount / (10 ** DECIMALS))) {
             // TODO: Seperate one EAT from tokens to forward as fractional amount
+            console.log("Should withdraw fractional");
         } else {
             // TODO: Retire EATs
         }
 
+
+        emit Retirement(owner, beneficiary, amount);
     }
 
 

@@ -400,7 +400,33 @@ describe(Contracts.pool, function () {
     });
   });
 
-  describe("Retire", async function () {});
+  describe("Retire", async function () {
+    let tokenId: bigint;
+    let tokenAmount: bigint;
+
+    beforeEach(async function () {
+      const { id, amount } = await mintEat(owner.address, 5, FuelType.SOLAR);
+      tokenId = id;
+      tokenAmount = amount;
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        id,
+        amount,
+        []
+      );
+    });
+
+
+    it("Should allow retire exact", async function () {
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        tokenAmount,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement");
+    });
+  });
 
   describe("Transfer", async function () {});
 });

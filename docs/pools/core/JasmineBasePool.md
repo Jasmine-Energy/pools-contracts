@@ -772,6 +772,24 @@ event Initialized(uint8 version)
 |---|---|---|
 | version  | uint8 | undefined |
 
+### Retirement
+
+```solidity
+event Retirement(address indexed operator, address indexed beneficiary, uint256 quantity)
+```
+
+emitted when tokens from a pool are retired 
+
+*must be accompanied by a token burn event *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| operator `indexed` | address | Initiator of retirement |
+| beneficiary `indexed` | address | Designate beneficiary of retirement |
+| quantity  | uint256 | Number of tokens being retired |
+
 ### Transfer
 
 ```solidity
