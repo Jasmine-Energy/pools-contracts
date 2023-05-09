@@ -120,6 +120,22 @@ error Unqualified(uint256 tokenId)
 |---|---|---|
 | tokenId | uint256 | undefined |
 
+### UnsupportedMetadataVersion
+
+```solidity
+error UnsupportedMetadataVersion(uint8 metadataVersion)
+```
+
+
+
+*Emitted if contract does not support metadata version*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| metadataVersion | uint8 | undefined |
+
 ### ValidationFailed
 
 ```solidity

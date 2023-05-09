@@ -5,7 +5,7 @@ import { Contracts, Libraries, colouredLog } from '@/utils';
 const deployPoolImplementation: DeployFunction = async function (
     { ethers, deployments, network, run, hardhatArguments, getNamedAccounts }: HardhatRuntimeEnvironment
 ) {
-    colouredLog.yellow(`deploying dependencies to: ${network.name}`);
+    colouredLog.yellow(`deploying Pool implementation to: ${network.name}`);
 
     const { deploy, get } = deployments;
     const namedAccounts = await getNamedAccounts();

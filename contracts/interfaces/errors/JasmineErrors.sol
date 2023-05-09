@@ -23,6 +23,9 @@ interface JasmineErrors {
     /// @dev Emitted if internal validation failed
     error ValidationFailed();
 
+    /// @dev Emitted if contract does not support metadata version
+    error UnsupportedMetadataVersion(uint8 metadataVersion);
+
     //  ──────────────────────────  Access Control Errors  ──────────────────────────  \\
 
     /// @dev Emitted if access control check fails

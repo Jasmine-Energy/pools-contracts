@@ -964,42 +964,6 @@ event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
 
 ## Errors
 
-### ERC1155InsufficientApproval
-
-```solidity
-error ERC1155InsufficientApproval(address operator, uint256 tokenId)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| operator | address | undefined |
-| tokenId | uint256 | undefined |
-
-### ERC1155InsufficientBalance
-
-```solidity
-error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| sender | address | undefined |
-| balance | uint256 | undefined |
-| needed | uint256 | undefined |
-| tokenId | uint256 | undefined |
-
 ### ERC1155InvalidArrayLength
 
 ```solidity
@@ -1099,6 +1063,22 @@ error Unqualified(uint256 tokenId)
 | Name | Type | Description |
 |---|---|---|
 | tokenId | uint256 | undefined |
+
+### UnsupportedMetadataVersion
+
+```solidity
+error UnsupportedMetadataVersion(uint8 metadataVersion)
+```
+
+
+
+*Emitted if contract does not support metadata version*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| metadataVersion | uint8 | undefined |
 
 ### ValidationFailed
 

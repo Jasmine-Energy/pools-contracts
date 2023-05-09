@@ -349,21 +349,8 @@ abstract contract JasmineBasePool is
         returns (uint256 jltQuantity)
     {
         // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
-        try EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "") {
-            return _standardizeDecimal(amounts.sum());
-        } catch Error(string memory reason) {
-            // TODO Attempt to determine other failure reasons
-            if (tokenIds.length != amounts.length) {
-                revert ERC1155Errors.ERC1155InvalidArrayLength(
-                    tokenIds.length,
-                    amounts.length
-                );
-            } else {
-                revert(reason);
-            }
-        } catch {
-            revert("JasmineBasePool: Deposit failed");
-        }
+        EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
+        return _standardizeDecimal(amounts.sum());
     }
 
     /**
@@ -386,27 +373,9 @@ abstract contract JasmineBasePool is
         nonReentrant enforceDeposits
         returns (uint256 jltQuantity)
     {
-        // TODO: Remove try catch
         // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
-        try EAT.safeTransferFrom(from, address(this), tokenId, amount, "") {
-            return _standardizeDecimal(amount);
-        } catch Error(string memory reason) {
-            // If failed, attempt to determine cause, else return reason string
-            if (!EAT.isApprovedForAll(from, address(this))) {
-                revert ERC1155Errors.ERC1155InsufficientApproval(address(this), tokenId);
-            } else if (EAT.balanceOf(from, tokenId) < amount) {
-                revert ERC1155Errors.ERC1155InsufficientBalance(
-                    from,
-                    EAT.balanceOf(from, tokenId),
-                    amount,
-                    tokenId
-                );
-            } else {
-                revert(reason);
-            }
-        } catch {
-            revert("JasmineBasePool: Deposit failed");
-        }
+        EAT.safeTransferFrom(from, address(this), tokenId, amount, "");
+        return _standardizeDecimal(amount);
     }
 
 
@@ -591,7 +560,7 @@ abstract contract JasmineBasePool is
         external view virtual
         returns (bytes memory policy)
     {
-        require(metadataVersion == 1, "JasminePool: No policy for version");
+        if (metadataVersion != 1) revert JasmineErrors.UnsupportedMetadataVersion(metadataVersion);
         return abi.encode(
             EAT.exists.selector,
             EAT.frozen.selector
@@ -817,25 +786,10 @@ abstract contract JasmineBasePool is
         uint256 amount,
         bytes memory data
     ) internal {
-        try EAT.safeTransferFrom(address(this), to, tokenId, amount, data) {
-            if (EAT.balanceOf(address(this), tokenId) == 0) _holdings.remove(tokenId);
-            _totalDeposits -= amount;
-            emit Withdraw(address(this), to, amount);
-        } catch Error(string memory reason) {
-            // If failed, attempt to determine cause, else return reason string
-            if (EAT.balanceOf(address(this), tokenId) < amount) {
-                revert ERC1155Errors.ERC1155InsufficientBalance(
-                    address(this),
-                    EAT.balanceOf(address(this), tokenId),
-                    amount,
-                    tokenId
-                );
-            } else {
-                revert(reason);
-            }
-        } catch {
-            revert("JasmineBasePool: Send failed");
-        }
+        EAT.safeTransferFrom(address(this), to, tokenId, amount, data);
+        if (EAT.balanceOf(address(this), tokenId) == 0) _holdings.remove(tokenId);
+        _totalDeposits -= amount;
+        emit Withdraw(address(this), to, amount);
     }
 
     /**
@@ -852,20 +806,14 @@ abstract contract JasmineBasePool is
         uint256[] memory amounts,
         bytes memory data
     ) internal {
-        try EAT.safeBatchTransferFrom(address(this), to, tokenIds, amounts, data) {
-            uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
-            for (uint256 i = 0; i < balances.length; i++) {
-                if (balances[i] == 0) _holdings.remove(tokenIds[i]);
-            }
-            uint256 withdrawSum = amounts.sum();
-            _totalDeposits -= withdrawSum;
-            emit Withdraw(address(this), to, withdrawSum);
-        } catch Error(string memory reason) {
-            // TODO: Attempt to determine reason
-            revert(reason);
-        } catch {
-            revert("JasmineBasePool: Send failed");
+        EAT.safeBatchTransferFrom(address(this), to, tokenIds, amounts, data);
+        uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
+        for (uint256 i = 0; i < balances.length; i++) {
+            if (balances[i] == 0) _holdings.remove(tokenIds[i]);
         }
+        uint256 withdrawSum = amounts.sum();
+        _totalDeposits -= withdrawSum;
+        emit Withdraw(address(this), to, withdrawSum);
     }
 
     /**

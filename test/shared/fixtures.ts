@@ -78,7 +78,7 @@ export async function deployLibrariesFixture() {
 
 export async function deployPoolImplementation() {
   const { eat, oracle, minter } = await loadFixture(deployCoreFixture);
-  const { policyLibAddress, arrayUtilsLibAddress } = await loadFixture(
+  const { policyLibAddress, arrayUtilsLibAddress, calldataLibAddress } = await loadFixture(
     deployLibrariesFixture
   );
   const namedAccounts = await getNamedAccounts();
@@ -94,6 +94,7 @@ export async function deployPoolImplementation() {
     libraries: {
       PoolPolicy: policyLibAddress,
       ArrayUtils: arrayUtilsLibAddress,
+      Calldata: calldataLibAddress,
     },
   });
   const poolImplementation = await Pool.deploy(

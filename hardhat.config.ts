@@ -12,6 +12,7 @@ import "hardhat-abi-exporter";
 import "hardhat-contract-sizer";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
+import "hardhat-storage-layout";
 import "hardhat-tracer";
 import "hardhat-interact";
 import "@typechain/hardhat";
