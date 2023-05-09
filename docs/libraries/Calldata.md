@@ -61,6 +61,46 @@ function RETIREMENT_OP() external view returns (uint8)
 |---|---|---|
 | _0 | uint8 | undefined |
 
+### encodeFractionalRetirementCalldata
+
+```solidity
+function encodeFractionalRetirementCalldata() external pure returns (bytes retirementData)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| retirementData | bytes | undefined |
+
+### encodeRetirementCalldata
+
+```solidity
+function encodeRetirementCalldata(address beneficiary, uint256 quantity) external pure returns (bytes retirementData)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| beneficiary | address | undefined |
+| quantity | uint256 | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| retirementData | bytes | undefined |
+
 
 
 

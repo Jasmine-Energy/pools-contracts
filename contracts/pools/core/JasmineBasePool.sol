@@ -24,6 +24,7 @@ import { JasmineMinter } from "@jasmine-energy/contracts/src/JasmineMinter.sol";
 
 // Utility Libraries
 import { PoolPolicy } from "../../libraries/PoolPolicy.sol";
+import { Calldata } from "../../libraries/Calldata.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils } from "../../libraries/ArrayUtils.sol";
@@ -249,10 +250,26 @@ abstract contract JasmineBasePool is
         if (eatQuantity > (amount / (10 ** DECIMALS))) {
             // TODO: Seperate one EAT from tokens to forward as fractional amount
             console.log("Should withdraw fractional");
-        } else {
-            // TODO: Retire EATs
+            minter.burn(tokenIds[tokenIds.length-1], 1, Calldata.encodeFractionalRetirementCalldata());
+            if (amounts[amounts.length-1] == 1) {
+                if (amounts.length == 1) return; // TODO: Avoid this if then return. Will fail to emit event
+                assembly {
+                    mstore(tokenIds, sub(mload(tokenIds), 1))
+                    mstore(amounts, sub(mload(amounts), 1))
+                }
+            } else {
+                amounts[amounts.length-1]--;
+            }
         }
 
+        minter.burnBatch(tokenIds, amounts, Calldata.encodeRetirementCalldata(beneficiary, amounts.sum()));
+
+        uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
+        for (uint256 i = 0; i < balances.length; i++) {
+            if (balances[i] == 0) _holdings.remove(tokenIds[i]);
+        }
+        uint256 withdrawSum = amounts.sum();
+        _totalDeposits -= withdrawSum;
 
         emit Retirement(owner, beneficiary, amount);
     }

@@ -37,16 +37,16 @@ library Calldata {
         address beneficiary,
         uint256 quantity
     )
-        external
+        external pure
         returns (bytes memory retirementData)
     {
 
     }
 
     function encodeFractionalRetirementCalldata()
-        external
+        external pure
         returns (bytes memory retirementData)
     {
-
+        return abi.encodePacked("hello");
     }
 }
