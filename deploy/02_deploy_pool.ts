@@ -20,6 +20,7 @@ const deployPoolImplementation: DeployFunction = async function (
     // 1. Get deployements
     const policy = await get(Libraries.poolPolicy);
     const arrayUtils = await get(Libraries.arrayUtils);
+    const calldata = await get(Libraries.calldata);
     let eat: string;
     let minter: string;
     let oracle: string;
@@ -44,7 +45,8 @@ const deployPoolImplementation: DeployFunction = async function (
         ],
         libraries: {
             PoolPolicy: policy.address,
-            ArrayUtils: arrayUtils.address
+            ArrayUtils: arrayUtils.address,
+            Calldata: calldata.address
         },
         log: hardhatArguments.verbose
     });
