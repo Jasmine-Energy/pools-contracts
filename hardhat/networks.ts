@@ -3,7 +3,6 @@ import {
   HttpNetworkUserConfig,
   HardhatNetworkUserConfig,
 } from "hardhat/types";
-import * as tenderlyForks from "@/tenderly-forks.json";
 import { accounts, accountsForNetwork } from "./accounts";
 
 // Network definitions
@@ -12,15 +11,6 @@ const localhost: HttpNetworkUserConfig = {
   accounts, //: accountsForNetwork("localhost"),
   url: "http://127.0.0.1:8545",
   tags: ["local"],
-};
-
-const tenderly: HttpNetworkUserConfig = {
-  accounts, //: accountsForNetwork("tenderly"),
-  url: `https://rpc.tenderly.co/fork/${
-    tenderlyForks.forks[tenderlyForks.defaultFork].id ??
-    "20e808f7-4569-4778-933b-87706fac8e39"
-  }`,
-  tags: ["tenderly"],
 };
 
 const mumbai: HttpNetworkUserConfig = {
@@ -50,7 +40,6 @@ export const externalNetworks: {
   [networkName: string]: HttpNetworkUserConfig;
 } = {
   localhost,
-  tenderly,
   mumbai,
   polygon,
 };

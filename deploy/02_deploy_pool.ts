@@ -3,11 +3,10 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { Contracts, Libraries, colouredLog } from '@/utils';
 
 const deployPoolImplementation: DeployFunction = async function (
-    hre: HardhatRuntimeEnvironment
+    { ethers, deployments, network, run, hardhatArguments, getNamedAccounts }: HardhatRuntimeEnvironment
 ) {
-    colouredLog.yellow(`deploying dependencies to: ${hre.network.name}`);
+    colouredLog.yellow(`deploying dependencies to: ${network.name}`);
 
-    const { ethers, tenderly, deployments, network, getNamedAccounts } = hre;
     const { deploy, get } = deployments;
     const namedAccounts = await getNamedAccounts();
     const { owner } = namedAccounts;
@@ -47,17 +46,7 @@ const deployPoolImplementation: DeployFunction = async function (
             PoolPolicy: policy.address,
             ArrayUtils: arrayUtils.address
         },
-        log: hre.hardhatArguments.verbose
-    });
-
-    await tenderly.persistArtifacts({
-        name: Contracts.pool,
-        address: pool.address,
-        network: network.name,
-        libraries: {
-            PoolPolicy: policy.address,
-            ArrayUtils: arrayUtils.address
-        }
+        log: hardhatArguments.verbose
     });
 
     colouredLog.blue(`Deployed Pool impl to: ${pool.address}`);
@@ -66,7 +55,7 @@ const deployPoolImplementation: DeployFunction = async function (
     if (network.tags['public']) {
         // TODO: Verify on sourcify as well. Run "sourcify" command
         console.log('Verifyiyng on Etherscan...');
-        await hre.run('verify:verify', {
+        await run('verify:verify', {
             address: pool,
             constructorArguments: [
                 eat,
@@ -74,26 +63,6 @@ const deployPoolImplementation: DeployFunction = async function (
                 poolFactoryFutureAddress,
                 minter
             ],
-        });
-
-        await tenderly.verify({
-            name: Contracts.pool,
-            address: pool.address,
-            network: network.name,
-            libraries: {
-                PoolPolicy: policy.address,
-                ArrayUtils: arrayUtils.address
-            }
-        });
-    } else if (network.tags['tenderly']) {
-        await tenderly.verify({
-            name: Contracts.pool,
-            address: pool.address,
-            network: network.name,
-            libraries: {
-                PoolPolicy: policy.address,
-                ArrayUtils: arrayUtils.address
-            }
         });
     }
 };

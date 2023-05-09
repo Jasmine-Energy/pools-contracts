@@ -7,12 +7,11 @@ import { JasmineMinter } from '@/typechain';
 
 // TODO: Migrate this over to using Jasmine contract's deploy function - included via plugin
 const deployCore: DeployFunction = async function (
-    hre: HardhatRuntimeEnvironment
+    { ethers, upgrades, deployments, network, run, getNamedAccounts }: HardhatRuntimeEnvironment
 ) {
-    colouredLog.yellow(`deploying core contracts to: ${hre.network.name}`);
+    colouredLog.yellow(`deploying core contracts to: ${network.name}`);
 
     // 1. Setup
-    const { ethers, upgrades, deployments, tenderly, network, getNamedAccounts } = hre;
     const { save } = deployments;
     const { owner, bridge } = await getNamedAccounts();
     const ownerSigner = await ethers.getSigner(owner);
@@ -90,38 +89,19 @@ const deployCore: DeployFunction = async function (
         args: minterArgs,
         implementation: minterImplementationAddress
     });
-    const contracts = [
-        {
-            name: Contracts.eat,
-            address: eatImplementationAddress,
-            network: network.name
-        },
-        {
-            name: Contracts.oracle,
-            address: oracleImplementationAddress,
-            network: network.name
-        },
-        {
-            name: Contracts.minter,
-            address: minterImplementationAddress,
-            network: network.name
-        }
-    ];
-
-    await tenderly.persistArtifacts(...contracts);
   
     // 6. If on external network, verify contracts
     if (network.tags['public']) {
         console.log('Verifyiyng on Etherscan...');
-        await hre.run('verify:verify', {
+        await run('verify:verify', {
             address: eatImplementationAddress,
         });
 
-        await hre.run('verify:verify', {
+        await run('verify:verify', {
             address: oracleImplementationAddress,
         });
 
-        await hre.run('verify:verify', {
+        await run('verify:verify', {
             address: minterImplementationAddress,
             constructorArguments: [
                 Contracts.minter, 
@@ -130,10 +110,6 @@ const deployCore: DeployFunction = async function (
                 owner
             ],
         });
-
-        await tenderly.verify(...contracts);
-    } else if (network.tags['tenderly']) {
-        await tenderly.verify(...contracts);
     }
 };
 deployCore.skip = async function (
