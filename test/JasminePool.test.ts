@@ -426,6 +426,22 @@ describe(Contracts.pool, function () {
         [])).to.be.ok.and
         .to.emit(anyTechAnnualPool, "Retirement");
     });
+
+    it("Should retire accrued fractions", async function () {
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        2_500_000_000_000_000_000n,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement");
+
+        expect(await anyTechAnnualPool.retireExact(
+          owner.address, 
+          owner.address, 
+          2_500_000_000_000_000_000n,
+          [])).to.be.ok.and
+          .to.emit(anyTechAnnualPool, "Retirement");
+    });
   });
 
   describe("Transfer", async function () {});

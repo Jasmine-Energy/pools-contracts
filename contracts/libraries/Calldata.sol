@@ -26,6 +26,7 @@ library Calldata {
     /// @dev Calldata prefix for bridge-off operations
     uint8 public constant BRIDGE_OFF_OP = 10;
     
+    
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Utility Functions
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -40,7 +41,7 @@ library Calldata {
         external pure
         returns (bytes memory retirementData)
     {
-
+        return abi.encodePacked("hello");
     }
 
     function encodeFractionalRetirementCalldata()

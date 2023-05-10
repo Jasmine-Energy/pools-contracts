@@ -131,6 +131,7 @@ abstract contract JasmineBasePool is
 
     JasmineEAT public immutable EAT;
     JasmineMinter public immutable minter;
+    // QUESTION: Should prob standardize and make this a contract
     address public immutable poolFactory;
 
 
@@ -179,6 +180,8 @@ abstract contract JasmineBasePool is
     {
         _name = name_;
         _symbol = symbol_;
+
+        EAT.setApprovalForAll(address(minter), true);
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -245,6 +248,7 @@ abstract contract JasmineBasePool is
         (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](0), new uint256[](0));
         (tokenIds, amounts) = _selectAnyTokens(eatQuantity);
         console.log("Token length: ", tokenIds.length);
+        console.log("Amounts: ", amounts.sum());
 
         // 4. If EAT quantity is greater than amount // TODO: Write comment
         if (eatQuantity > (amount / (10 ** DECIMALS))) {
