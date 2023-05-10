@@ -268,6 +268,7 @@ abstract contract JasmineBasePool is
 
         minter.burnBatch(tokenIds, amounts, Calldata.encodeRetirementCalldata(beneficiary, amounts.sum()));
 
+        // TODO: Move to private function
         uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
         for (uint256 i = 0; i < balances.length; i++) {
             if (balances[i] == 0) _holdings.remove(tokenIds[i]);
