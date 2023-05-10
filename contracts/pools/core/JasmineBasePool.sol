@@ -11,6 +11,7 @@ pragma solidity >=0.8.17;
 import { IJasminePool } from "../../interfaces/IJasminePool.sol";
 
 // Implementation Contracts
+import { ERC1155Manager } from "../../implementations/ERC1155Manager.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC1155Holder } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -37,7 +38,6 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
 // Interfaces
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 import { IERC1046 } from "../../interfaces/ERC/IERC1046.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
@@ -53,7 +53,7 @@ abstract contract JasmineBasePool is
     ERC20,
     ERC20Permit,
     ERC1046,
-    ERC1155Holder,
+    ERC1155Manager,
     Initializable,
     ReentrancyGuard
 {
@@ -117,7 +117,6 @@ abstract contract JasmineBasePool is
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
 
-
     //  ─────────────────  Deposit & Retirement Management Fields  ──────────────────  \\
 
     /// @dev Convenience mapping to record EATs held by a given pool
@@ -156,6 +155,7 @@ abstract contract JasmineBasePool is
     constructor(address _eat, address _poolFactory, address _minter)
         ERC20("Jasmine Liquidity Token Base", "JLT")
         ERC20Permit("Jasmine Liquidity Token Base")
+        ERC1155Manager(_eat)
     {
         require(_eat != address(0), "JasminePool: EAT must be set");
         require(_poolFactory != address(0), "JasminePool: Pool factory must be set");
@@ -689,7 +689,6 @@ abstract contract JasmineBasePool is
         bytes4 interfaceId
     ) public view override returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId ||
-            interfaceId == type(IERC1155Receiver).interfaceId ||
             interfaceId == type(IJasminePool).interfaceId ||
             interfaceId == type(IERC1046).interfaceId ||
             super.supportsInterface(interfaceId);
@@ -700,75 +699,27 @@ abstract contract JasmineBasePool is
     //  Token Transfer Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    //  ──────────────────────  ERC-1155 Receiver Conformance  ──────────────────────  \\
+    //  ─────────────────────────  ERC-1155 Deposit Hooks  ──────────────────────────  \\
 
-    /// @inheritdoc IERC1155Receiver
-    function onERC1155Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        uint256 value,
-        bytes memory 
+    function beforeDeposit(
+        address,
+        uint256[] memory tokenIds,
+        uint256[] memory
     )
-        public virtual override
-        onlyEAT checkEligibility(tokenId)
-        returns (bytes4)
+        internal override
     {
-        // 1. Add token ID to holdings and increment total deposits
-        _holdings.add(tokenId);
-        _totalDeposits += value;
-
-        // 2. Mint Tokens
-        _mint(
-            from,
-            _standardizeDecimal(value)
-        );
-
-        // TODO: Call data
-
-        // 3. Emit Deposit and return onERC1155Received
-        emit Deposit(operator, from, value);
-        return this.onERC1155Received.selector;
+        _enforceEligibility(tokenIds);
     }
 
-    /// @inheritdoc IERC1155Receiver
-    function onERC1155BatchReceived(
-        address operator,
-        address from,
-        uint256[] memory tokenIds,
-        uint256[] memory values,
-        bytes memory 
-    )
-        public virtual override
-        onlyEAT checkEligibilities(tokenIds)
-        returns (bytes4)
-    {
-        // 1. Ensure tokens received are EATs
-        if (tokenIds.length != values.length)
-            revert ERC1155Errors.ERC1155InvalidArrayLength(
-                tokenIds.length,
-                values.length
-            );
-
-        // 2. Verify all tokens are eligible for pool, add to holdings and sum total EATs received
-        uint256 total;
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            total += values[i];
-            _holdings.add(tokenIds[i]);
-        }
-        _totalDeposits += total;
-
-        // 3. Authorize JLT mint
+    function afterDeposit(address from, uint256 quantity) internal override {
         _mint(
             from,
-            _standardizeDecimal(total)
+            _standardizeDecimal(quantity)
         );
 
-        // TODO: Call data
+        console.log("Deposit from: ", from, " quantity: ", quantity);
 
-        // 4. Emit Deposit and return onERC1155BatchReceived
-        emit Deposit(operator, from, total);
-        return this.onERC1155BatchReceived.selector;
+        emit Deposit(from, from, quantity);
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────

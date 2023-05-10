@@ -16,7 +16,7 @@ error InvalidTokenAddress(address received, address expected);
 error InsufficientDeposits();
 error WithdrawsLocked();
 
-contract ERC1155Manager is ERC1155Receiver {
+abstract contract ERC1155Manager is ERC1155Receiver {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
@@ -57,12 +57,19 @@ contract ERC1155Manager is ERC1155Receiver {
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
+    //  Hooks
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    function beforeDeposit(address from, uint256[] memory tokenIds, uint256[] memory values) internal virtual;
+    function afterDeposit(address from, uint256 quantity) internal virtual;
+
+    //  ─────────────────────────────────────────────────────────────────────────────
     //  ERC-1155 Deposit Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
     function onERC1155Received(
         address,
-        address,
+        address from,
         uint256 tokenId,
         uint256 value,
         bytes memory
@@ -71,13 +78,15 @@ contract ERC1155Manager is ERC1155Receiver {
         onlyToken
         returns (bytes4)
     {
+        beforeDeposit(from, new uint256[](tokenId), new uint256[](value));
         _addDeposit(tokenId, value);
+        afterDeposit(from, value);
         return this.onERC1155Received.selector;
     }
 
     function onERC1155BatchReceived(
         address,
-        address,
+        address from,
         uint256[] memory tokenIds,
         uint256[] memory values,
         bytes memory
@@ -86,7 +95,9 @@ contract ERC1155Manager is ERC1155Receiver {
         onlyToken
         returns (bytes4)
     {
-        _addDeposits(tokenIds, values);
+        beforeDeposit(from, tokenIds, values);
+        uint256 quantityDepositted = _addDeposits(tokenIds, values);
+        afterDeposit(from, quantityDepositted);
         return this.onERC1155BatchReceived.selector;
     }
 
@@ -112,8 +123,6 @@ contract ERC1155Manager is ERC1155Receiver {
         );
         _removeDeposits(tokenIds, values);
     }
-
-    // TODO: Add function to call withdrawing function
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  
@@ -173,13 +182,13 @@ contract ERC1155Manager is ERC1155Receiver {
         uint256[] memory values
     )
         private
+        returns (uint256 quantity)
     {
-        uint256 total;
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            total += values[i];
+            quantity += values[i];
             _holdings.add(tokenIds[i]);
         }
-        _totalDeposits += total;
+        _totalDeposits += quantity;
     }
 
     //  ────────────────────────────  Removing Deposits  ────────────────────────────  \\

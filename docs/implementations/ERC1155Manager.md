@@ -13,7 +13,7 @@
 ### onERC1155BatchReceived
 
 ```solidity
-function onERC1155BatchReceived(address, address, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
+function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
 ```
 
 
@@ -25,7 +25,7 @@ function onERC1155BatchReceived(address, address, uint256[] tokenIds, uint256[] 
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined |
-| _1 | address | undefined |
+| from | address | undefined |
 | tokenIds | uint256[] | undefined |
 | values | uint256[] | undefined |
 | _4 | bytes | undefined |
@@ -39,7 +39,7 @@ function onERC1155BatchReceived(address, address, uint256[] tokenIds, uint256[] 
 ### onERC1155Received
 
 ```solidity
-function onERC1155Received(address, address, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
+function onERC1155Received(address, address from, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
 ```
 
 
@@ -51,7 +51,7 @@ function onERC1155Received(address, address, uint256 tokenId, uint256 value, byt
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined |
-| _1 | address | undefined |
+| from | address | undefined |
 | tokenId | uint256 | undefined |
 | value | uint256 | undefined |
 | _4 | bytes | undefined |
