@@ -254,7 +254,7 @@ abstract contract JasmineBasePool is
         if (eatQuantity > (amount / (10 ** DECIMALS))) {
             // TODO: Seperate one EAT from tokens to forward as fractional amount
             console.log("Should withdraw fractional");
-            minter.burn(tokenIds[tokenIds.length-1], 1, Calldata.encodeFractionalRetirementCalldata());
+            minter.burn(tokenIds[tokenIds.length-1], 1, Calldata.encodeFractionalRetirementData());
             if (amounts[amounts.length-1] == 1) {
                 if (amounts.length == 1) return; // TODO: Avoid this if then return. Will fail to emit event
                 assembly {
@@ -266,7 +266,7 @@ abstract contract JasmineBasePool is
             }
         }
 
-        minter.burnBatch(tokenIds, amounts, Calldata.encodeRetirementCalldata(beneficiary, amounts.sum()));
+        minter.burnBatch(tokenIds, amounts, Calldata.encodeRetirementData(beneficiary));
 
         // TODO: Move to private function
         uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);

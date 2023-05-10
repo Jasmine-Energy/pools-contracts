@@ -26,7 +26,7 @@ library Calldata {
     /// @dev Calldata prefix for bridge-off operations
     uint8 public constant BRIDGE_OFF_OP = 10;
     
-    
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Utility Functions
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -34,20 +34,25 @@ library Calldata {
 
     //  ────────────────────────────────  Encoding  ────────────────────────────────  \\
 
-    function encodeRetirementCalldata(
-        address beneficiary,
-        uint256 quantity
-    )
+    // QUESTION: Do we want to optionally include memo hash?
+    function encodeRetirementData(address beneficiary)
         external pure
         returns (bytes memory retirementData)
     {
-        return abi.encodePacked("hello");
+        return abi.encodePacked(RETIREMENT_OP, beneficiary);
     }
 
-    function encodeFractionalRetirementCalldata()
+    function encodeFractionalRetirementData()
         external pure
         returns (bytes memory retirementData)
     {
-        return abi.encodePacked("hello");
+        return abi.encodePacked(RETIREMENT_FRACTIONAL_OP);
+    }
+
+    function encodeBridgeOffData(address recipient)
+        external pure
+        returns (bytes memory bridgeOffData)
+    {
+        return abi.encodePacked(BRIDGE_OFF_OP, recipient);
     }
 }
