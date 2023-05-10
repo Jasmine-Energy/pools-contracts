@@ -13,7 +13,7 @@
 ### onERC1155BatchReceived
 
 ```solidity
-function onERC1155BatchReceived(address, address, uint256[], uint256[], bytes) external nonpayable returns (bytes4)
+function onERC1155BatchReceived(address, address, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
 ```
 
 
@@ -26,8 +26,8 @@ function onERC1155BatchReceived(address, address, uint256[], uint256[], bytes) e
 |---|---|---|
 | _0 | address | undefined |
 | _1 | address | undefined |
-| _2 | uint256[] | undefined |
-| _3 | uint256[] | undefined |
+| tokenIds | uint256[] | undefined |
+| values | uint256[] | undefined |
 | _4 | bytes | undefined |
 
 #### Returns
@@ -39,7 +39,7 @@ function onERC1155BatchReceived(address, address, uint256[], uint256[], bytes) e
 ### onERC1155Received
 
 ```solidity
-function onERC1155Received(address, address, uint256, uint256, bytes) external nonpayable returns (bytes4)
+function onERC1155Received(address, address, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
 ```
 
 
@@ -52,8 +52,8 @@ function onERC1155Received(address, address, uint256, uint256, bytes) external n
 |---|---|---|
 | _0 | address | undefined |
 | _1 | address | undefined |
-| _2 | uint256 | undefined |
-| _3 | uint256 | undefined |
+| tokenId | uint256 | undefined |
+| value | uint256 | undefined |
 | _4 | bytes | undefined |
 
 #### Returns
@@ -85,5 +85,25 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 | _0 | bool | undefined |
 
 
+
+
+## Errors
+
+### InvalidTokenAddress
+
+```solidity
+error InvalidTokenAddress(address received, address expected)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| received | address | undefined |
+| expected | address | undefined |
 
 
