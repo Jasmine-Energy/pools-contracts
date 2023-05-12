@@ -78,7 +78,10 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         onlyToken
         returns (bytes4)
     {
-        beforeDeposit(from, new uint256[](tokenId), new uint256[](value));
+        (uint256[] memory tokenIds, uint256[] memory values) = (new uint256[](1), new uint256[](1));
+        tokenIds[0] = tokenId;
+        values[0] = value;
+        beforeDeposit(from, tokenIds, values);
         _addDeposit(tokenId, value);
         afterDeposit(from, value);
         return this.onERC1155Received.selector;
@@ -105,7 +108,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     //  Deposit Modifying Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function transferTo(
+    function _transferDeposits(
         address recipient,
         uint256[] memory tokenIds,
         uint256[] memory values,
@@ -125,7 +128,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
-    //  
+    //  Withdrawal Internal Utilities
     //  ─────────────────────────────────────────────────────────────────────────────
 
     function _selectWithdrawTokens(uint256 amount)
