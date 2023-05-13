@@ -244,23 +244,6 @@ function meetsPolicy(uint256 tokenId) external view returns (bool isEligible)
 |---|---|---|
 | isEligible | bool | undefined |
 
-### minter
-
-```solidity
-function minter() external view returns (contract JasmineMinter)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract JasmineMinter | undefined |
-
 ### name
 
 ```solidity
@@ -522,6 +505,23 @@ Cost of retiring JLTs from pool.
 | Name | Type | Description |
 |---|---|---|
 | cost | uint256 | Price of retiring in JLTs. |
+
+### retirementService
+
+```solidity
+function retirementService() external view returns (address)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
 
 ### supportsInterface
 

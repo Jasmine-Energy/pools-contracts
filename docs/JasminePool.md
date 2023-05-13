@@ -262,23 +262,6 @@ function meetsPolicy(uint256 tokenId) external view returns (bool isEligible)
 |---|---|---|
 | isEligible | bool | undefined |
 
-### minter
-
-```solidity
-function minter() external view returns (contract JasmineMinter)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract JasmineMinter | undefined |
-
 ### name
 
 ```solidity
@@ -574,6 +557,23 @@ Returns the pool&#39;s JLT retirement rate in basis points
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint96 | Retirement rate in basis points |
+
+### retirementService
+
+```solidity
+function retirementService() external view returns (address)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
 
 ### supportsInterface
 

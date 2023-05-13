@@ -13,7 +13,7 @@ Utility library encoding and decoding calldata between contracts
 ### BRIDGE_OFF_OP
 
 ```solidity
-function BRIDGE_OFF_OP() external view returns (uint8)
+function BRIDGE_OFF_OP() external view returns (bytes1)
 ```
 
 
@@ -25,12 +25,12 @@ function BRIDGE_OFF_OP() external view returns (uint8)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint8 | undefined |
+| _0 | bytes1 | undefined |
 
 ### RETIREMENT_FRACTIONAL_OP
 
 ```solidity
-function RETIREMENT_FRACTIONAL_OP() external view returns (uint8)
+function RETIREMENT_FRACTIONAL_OP() external view returns (bytes1)
 ```
 
 
@@ -42,12 +42,12 @@ function RETIREMENT_FRACTIONAL_OP() external view returns (uint8)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint8 | undefined |
+| _0 | bytes1 | undefined |
 
 ### RETIREMENT_OP
 
 ```solidity
-function RETIREMENT_OP() external view returns (uint8)
+function RETIREMENT_OP() external view returns (bytes1)
 ```
 
 
@@ -59,7 +59,7 @@ function RETIREMENT_OP() external view returns (uint8)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint8 | undefined |
+| _0 | bytes1 | undefined |
 
 ### encodeBridgeOffData
 
@@ -103,7 +103,7 @@ function encodeFractionalRetirementData() external pure returns (bytes retiremen
 ### encodeRetirementData
 
 ```solidity
-function encodeRetirementData(address beneficiary) external pure returns (bytes retirementData)
+function encodeRetirementData(address beneficiary, bool hasFractional) external pure returns (bytes retirementData)
 ```
 
 
@@ -115,6 +115,7 @@ function encodeRetirementData(address beneficiary) external pure returns (bytes 
 | Name | Type | Description |
 |---|---|---|
 | beneficiary | address | undefined |
+| hasFractional | bool | undefined |
 
 #### Returns
 
@@ -122,6 +123,65 @@ function encodeRetirementData(address beneficiary) external pure returns (bytes 
 |---|---|---|
 | retirementData | bytes | undefined |
 
+### isBridgeOffOperation
+
+```solidity
+function isBridgeOffOperation(bytes data) external pure returns (bool isBridgeOff)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| data | bytes | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| isBridgeOff | bool | undefined |
+
+### isRetirementOperation
+
+```solidity
+function isRetirementOperation(bytes data) external pure returns (bool isRetirement, bool hasFractional)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| data | bytes | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| isRetirement | bool | undefined |
+| hasFractional | bool | undefined |
+
+
+
+
+## Errors
+
+### InvalidInput
+
+```solidity
+error InvalidInput()
+```
+
+
+
+*Emitted if input is invalid*
 
 
 

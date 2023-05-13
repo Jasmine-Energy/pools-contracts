@@ -16,6 +16,14 @@ error InvalidTokenAddress(address received, address expected);
 error InsufficientDeposits();
 error WithdrawsLocked();
 
+
+/**
+ * @title ERC-1155 Manager
+ * @author Kai Aldag<kai.aldag@jasmine.energy>
+ * @notice Manages deposits of ERC-1155 tokens (from a single contract) and enables
+ *         interactions with the underlying deposits through explicit conventions.
+ * @custom:security-contact dev@jasmine.energy
+ */
 abstract contract ERC1155Manager is ERC1155Receiver {
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -117,14 +125,25 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         internal
         withdrawsUnlocked
     {
-        IERC1155(_tokenAddress).safeBatchTransferFrom(
-            address(this),
-            recipient,
-            tokenIds,
-            values,
-            data
-        );
-        _removeDeposits(tokenIds, values);
+        if (tokenIds.length == 1) {
+            IERC1155(_tokenAddress).safeTransferFrom(
+                address(this),
+                recipient,
+                tokenIds[0],
+                values[0],
+                data
+            );
+            _removeDeposit(tokenIds[0], values[0]);
+        } else {
+            IERC1155(_tokenAddress).safeBatchTransferFrom(
+                address(this),
+                recipient,
+                tokenIds,
+                values,
+                data
+            );
+            _removeDeposits(tokenIds, values);
+        }
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────

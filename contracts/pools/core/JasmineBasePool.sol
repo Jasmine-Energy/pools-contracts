@@ -21,7 +21,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 
 // External Contracts
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
-import { JasmineMinter } from "@jasmine-energy/contracts/src/JasmineMinter.sol";
+import { JasmineRetirementService } from "../../JasmineRetirementService.sol";
 
 // Utility Libraries
 import { PoolPolicy } from "../../libraries/PoolPolicy.sol";
@@ -120,7 +120,7 @@ abstract contract JasmineBasePool is
     //  ────────────────────────────────  Addresses  ────────────────────────────────  \\
 
     JasmineEAT public immutable EAT;
-    JasmineMinter public immutable minter;
+    address public immutable retirementService;
     // QUESTION: Should prob standardize and make this a contract
     address public immutable poolFactory;
 
@@ -140,7 +140,7 @@ abstract contract JasmineBasePool is
     /**
      * @dev
      */
-    constructor(address _eat, address _poolFactory, address _minter)
+    constructor(address _eat, address _poolFactory, address _retirementService)
         ERC20("Jasmine Liquidity Token Base", "JLT")
         ERC20Permit("Jasmine Liquidity Token Base")
         ERC1155Manager(_eat)
@@ -149,7 +149,7 @@ abstract contract JasmineBasePool is
         require(_poolFactory != address(0), "JasminePool: Pool factory must be set");
 
         EAT = JasmineEAT(_eat);
-        minter = JasmineMinter(_minter);
+        retirementService = _retirementService;
         poolFactory = _poolFactory;
     }
 
@@ -168,8 +168,6 @@ abstract contract JasmineBasePool is
     {
         _name = name_;
         _symbol = symbol_;
-
-        EAT.setApprovalForAll(address(minter), true);
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -232,38 +230,30 @@ abstract contract JasmineBasePool is
         uint256 eatQuantity = totalDeposits() - Math.ceilDiv(totalSupply(), 10 ** decimals());
         console.log("Withdrawal quantity: ", eatQuantity);
 
+        if (eatQuantity == 0) {
+            emit Retirement(owner, beneficiary, amount);
+            return;
+        }
+
         // 3. Select tokens to withdraw
         (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](0), new uint256[](0));
         (tokenIds, amounts) = _selectWithdrawTokens(eatQuantity);
         console.log("Token length: ", tokenIds.length);
         console.log("Amounts: ", amounts.sum());
 
-        // 4. If EAT quantity is greater than amount // TODO: Write comment
-        if (eatQuantity > (amount / (10 ** decimals()))) {
-            // TODO: Seperate one EAT from tokens to forward as fractional amount
-            console.log("Should withdraw fractional");
-            minter.burn(tokenIds[tokenIds.length-1], 1, Calldata.encodeFractionalRetirementData());
-            if (amounts[amounts.length-1] == 1) {
-                if (amounts.length == 1) return; // TODO: Avoid this if then return. Will fail to emit event
-                assembly {
-                    mstore(tokenIds, sub(mload(tokenIds), 1))
-                    mstore(amounts, sub(mload(amounts), 1))
-                }
-            } else {
-                amounts[amounts.length-1]--;
-            }
+        // 4. Encode transfer data
+        bool hasFractional = eatQuantity > (amount / (10 ** decimals()));
+        bytes memory retirementData;
+
+        // If it's a fractional retirement and only one EAT is to be retired, only encode fractional data
+        if (hasFractional && eatQuantity == 1) {
+            retirementData = Calldata.encodeFractionalRetirementData();
+        } else {
+            retirementData = Calldata.encodeRetirementData(beneficiary, hasFractional);
         }
 
-        minter.burnBatch(tokenIds, amounts, Calldata.encodeRetirementData(beneficiary));
-
-        // TODO: Move to private function
-        // uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
-        // for (uint256 i = 0; i < balances.length; i++) {
-        //     if (balances[i] == 0) _holdings.remove(tokenIds[i]);
-        // }
-        // uint256 withdrawSum = amounts.sum();
-        // _totalDeposits -= withdrawSum;
-
+        // 5. Send to retirement service and emit retirement event
+        _transferDeposits(retirementService, tokenIds, amounts, retirementData);
         emit Retirement(owner, beneficiary, amount);
     }
 
@@ -685,7 +675,7 @@ abstract contract JasmineBasePool is
         uint256[] memory tokenIds,
         uint256[] memory
     )
-        internal override
+        internal view override
     {
         _enforceEligibility(tokenIds);
     }
@@ -822,5 +812,4 @@ abstract contract JasmineBasePool is
         if (holder != _msgSender() && allowance(holder, _msgSender()) < quantity) revert JasmineErrors.Prohibited();
         _;
     }
-
 }

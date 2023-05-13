@@ -1,10 +1,10 @@
 # ERC1155Manager
 
+*Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
+> ERC-1155 Manager
 
-
-
-
+Manages deposits of ERC-1155 tokens (from a single contract) and enables         interactions with the underlying deposits through explicit conventions.
 
 
 

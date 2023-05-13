@@ -3,6 +3,12 @@
 pragma solidity >=0.8.17;
 
 
+//  ─────────────────────────────────────────────────────────────────────────────
+//  Imports
+//  ─────────────────────────────────────────────────────────────────────────────
+
+import { JasmineErrors } from "../interfaces/errors/JasmineErrors.sol";
+
 /**
  * @title Calldata
  * @author Kai Aldag<kai.aldag@jasmine.energy>
@@ -18,13 +24,13 @@ library Calldata {
     //  ─────────────────────────────  Operation Codes  ─────────────────────────────  \\
 
     /// @dev Calldata prefix for retirement operations associated with a single user
-    uint8 public constant RETIREMENT_OP = 0;
+    bytes1 public constant RETIREMENT_OP = 0x00;
 
     /// @dev Calldata prefix for fractional retirement operations
-    uint8 public constant RETIREMENT_FRACTIONAL_OP = 1;
+    bytes1 public constant RETIREMENT_FRACTIONAL_OP = 0x01;
 
     /// @dev Calldata prefix for bridge-off operations
-    uint8 public constant BRIDGE_OFF_OP = 10;
+    bytes1 public constant BRIDGE_OFF_OP = 0x10;
     
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -35,11 +41,11 @@ library Calldata {
     //  ────────────────────────────────  Encoding  ────────────────────────────────  \\
 
     // QUESTION: Do we want to optionally include memo hash?
-    function encodeRetirementData(address beneficiary)
+    function encodeRetirementData(address beneficiary, bool hasFractional)
         external pure
         returns (bytes memory retirementData)
     {
-        return abi.encodePacked(RETIREMENT_OP, beneficiary);
+        return abi.encodePacked(hasFractional ? RETIREMENT_FRACTIONAL_OP : RETIREMENT_OP, beneficiary);
     }
 
     function encodeFractionalRetirementData()
@@ -54,5 +60,29 @@ library Calldata {
         returns (bytes memory bridgeOffData)
     {
         return abi.encodePacked(BRIDGE_OFF_OP, recipient);
+    }
+
+
+    //  ────────────────────────────────  Decoding  ────────────────────────────────  \\
+
+    function isRetirementOperation(bytes memory data)
+        external pure
+        returns (bool isRetirement, bool hasFractional)
+    {
+        if (data.length == 0) revert JasmineErrors.InvalidInput();
+        (bytes1 opCode,) = abi.decode(data, (bytes1,bytes));
+        return (
+            opCode == RETIREMENT_OP || opCode == RETIREMENT_FRACTIONAL_OP,
+            opCode == RETIREMENT_FRACTIONAL_OP
+        );
+    }
+
+    function isBridgeOffOperation(bytes memory data)
+        external pure
+        returns (bool isBridgeOff)
+    {
+        if (data.length == 0) revert JasmineErrors.InvalidInput();
+        (bytes1 opCode,) = abi.decode(data, (bytes1,bytes));
+        return opCode == BRIDGE_OFF_OP;
     }
 }
