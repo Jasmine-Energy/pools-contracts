@@ -13,6 +13,7 @@ const Contracts = {
     // Pool Contracts
     pool: 'JasminePool',
     factory: 'JasminePoolFactory',
+    retirementService: 'JasmineRetirementService',
 
     // Core Contracts
     eat: 'JasmineEAT',

@@ -18,19 +18,17 @@ const deployPoolImplementation: DeployFunction = async function (
     });
 
     // 1. Get deployements
+    const retirer = await get(Contracts.retirementService);
     const policy = await get(Libraries.poolPolicy);
     const arrayUtils = await get(Libraries.arrayUtils);
     const calldata = await get(Libraries.calldata);
     let eat: string;
-    let minter: string;
     let oracle: string;
     try {
         eat = (await get(Contracts.eat)).address;
-        minter = (await get(Contracts.minter)).address;
         oracle = (await get(Contracts.oracle)).address;
     } catch {
         eat = namedAccounts.eat;
-        minter = namedAccounts.minter;
         oracle = namedAccounts.oracle;
     }
 
@@ -41,7 +39,7 @@ const deployPoolImplementation: DeployFunction = async function (
             eat,
             oracle,
             poolFactoryFutureAddress,
-            minter
+            retirer.address
         ],
         libraries: {
             PoolPolicy: policy.address,
@@ -63,7 +61,7 @@ const deployPoolImplementation: DeployFunction = async function (
                 eat,
                 oracle,
                 poolFactoryFutureAddress,
-                minter
+                retirer.address
             ],
         });
     }
