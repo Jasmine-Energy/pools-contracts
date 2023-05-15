@@ -631,10 +631,12 @@ contract JasminePoolFactory is
         if (!IERC165(poolImplementation).supportsInterface(type(IERC1155Receiver).interfaceId))
             revert JasmineErrors.InvalidConformance(type(IERC1155Receiver).interfaceId);
 
-        for (uint i = 0; i < _poolBeacons.length(); i++) {
+        for (uint i = 0; i < _poolBeacons.length();) {
             UpgradeableBeacon beacon = UpgradeableBeacon(_poolBeacons.at(i));
             if (beacon.implementation() == poolImplementation)
                 revert JasmineErrors.PoolExists(poolImplementation);
+            
+            unchecked { ++i; }
         }
     }
 

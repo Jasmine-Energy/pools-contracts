@@ -19,8 +19,10 @@ library ArrayUtils {
     function sum(
         uint256[] calldata inputs
     ) external pure returns (uint256 total) {
-        for (uint256 i = 0; i < inputs.length; i++) {
+        for (uint256 i = 0; i < inputs.length;) {
             total += inputs[i];
+
+            unchecked { ++i; }
         }
     }
 
@@ -37,8 +39,10 @@ library ArrayUtils {
         uint256 amount
     ) external pure returns (address[] memory filledArray) {
         filledArray = new address[](amount);
-        for (uint256 i = 0; i < amount; i++) {
+        for (uint256 i = 0; i < amount;) {
             filledArray[i] = repeatedAddress;
+
+            unchecked { ++i; }
         }
     }
 }

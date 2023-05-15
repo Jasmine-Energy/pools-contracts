@@ -760,8 +760,10 @@ abstract contract JasmineBasePool is
      * @param tokenIds EAT token IDs to check eligibility
      */
     function _enforceEligibility(uint256[] memory tokenIds) private view {
-        for (uint i = 0; i < tokenIds.length; i++) {
+        for (uint i = 0; i < tokenIds.length;) {
             _enforceEligibility(tokenIds[i]);
+
+            unchecked { ++i; }
         }
     }
 

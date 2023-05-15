@@ -210,9 +210,10 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         private
         returns (uint256 quantity)
     {
-        for (uint256 i = 0; i < tokenIds.length; i++) {
+        for (uint256 i = 0; i < tokenIds.length;) {
             quantity += values[i];
             _holdings.add(tokenIds[i]);
+            unchecked { ++i; }
         }
         _totalDeposits += quantity;
     }
@@ -239,9 +240,11 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint256[] memory balances = IERC1155(_tokenAddress).balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
 
         uint256 total;
-        for (uint256 i = 0; i < tokenIds.length; i++) {
+        for (uint256 i = 0; i < tokenIds.length;) {
             total += values[i];
             if (balances[i] == 0) _holdings.remove(tokenIds[i]);
+
+            unchecked { ++i; }
         }
         _totalDeposits -= total;
     }

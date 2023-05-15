@@ -94,8 +94,12 @@ contract JasmineRetirementService is ERC1155Receiver {
             // 2. Check if there is a fractional retirement included. If so, burn seperately
             (bool isRetirement, bool hasFractional) = Calldata.isRetirementOperation(data);
             if (isRetirement && hasFractional) {
-                // TODO: Implement
+                minter.burn(tokenIds[0], 1, Calldata.encodeFractionalRetirementData());
+                if (amounts[0] == 1) {
+                    // minter.burnBatch(tokenIds[1:tokenIds.length], amounts[1:amounts.length], Calldata.encodeRetirementData(from, false));
+                } else {
 
+                }
                 // minter.burn(tokenId, 1, Calldata.encodeFractionalRetirementData());
                 // if (amount == 1) return this.onERC1155BatchReceived.selector;
                 // data[0] = Calldata.RETIREMENT_OP;

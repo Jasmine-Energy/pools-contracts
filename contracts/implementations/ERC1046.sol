@@ -108,13 +108,14 @@ abstract contract ERC1046 is IERC1046, IERC20Metadata {
 
     function _encodeEntries() internal view returns (string memory) {
         string memory result = "";
-        for (uint256 i = 0; i < _metadataKeys.length; i++) {
+        for (uint256 i = 0; i < _metadataKeys.length;) {
             if (bytes(_metadataKeys[i]).length != 0) {
                 result = string(abi.encodePacked(result, 
                     '"', _metadataKeys[i], '": "', _metadataValues[keccak256(bytes(_metadataKeys[i]))], 
                     i != _metadataKeys.length ? '", ' : '"'
                 ));
             }
+            unchecked { ++i; }
         }
 
         return result;
@@ -122,8 +123,10 @@ abstract contract ERC1046 is IERC1046, IERC20Metadata {
 
     function _encodeArray(string[] memory list) internal pure returns (string memory) {
         string memory result = "[";
-        for (uint256 i = 0; i < list.length; i++) {
+        for (uint256 i = 0; i < list.length;) {
             result = string(abi.encodePacked(result, '"', list[i], i != list.length - 1 ? '", ' : '"'));
+
+            unchecked { ++i; }
         }
         result = string(abi.encodePacked(result, "]"));
 

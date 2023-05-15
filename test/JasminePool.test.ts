@@ -442,6 +442,24 @@ describe(Contracts.pool, function () {
           [])).to.be.ok.and
           .to.emit(anyTechAnnualPool, "Retirement");
     });
+
+    it("Should support retiring numerous token IDs", async function () {
+      const windDeposit = await mintEat(owner.address, 5, FuelType.WIND);
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        windDeposit.id,
+        windDeposit.amount,
+        []
+      );
+
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        tokenAmount + windDeposit.amount,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement");
+    });
   });
 
   describe("Transfer", async function () {});
