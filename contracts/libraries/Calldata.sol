@@ -70,7 +70,7 @@ library Calldata {
         returns (bool isRetirement, bool hasFractional)
     {
         if (data.length == 0) revert JasmineErrors.InvalidInput();
-        (bytes1 opCode,) = abi.decode(data, (bytes1,bytes));
+        bytes1 opCode = data[0];
         return (
             opCode == RETIREMENT_OP || opCode == RETIREMENT_FRACTIONAL_OP,
             opCode == RETIREMENT_FRACTIONAL_OP
@@ -82,7 +82,7 @@ library Calldata {
         returns (bool isBridgeOff)
     {
         if (data.length == 0) revert JasmineErrors.InvalidInput();
-        (bytes1 opCode,) = abi.decode(data, (bytes1,bytes));
+        bytes1 opCode = data[0];
         return opCode == BRIDGE_OFF_OP;
     }
 }
