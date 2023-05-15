@@ -148,7 +148,7 @@ function isBridgeOffOperation(bytes data) external pure returns (bool isBridgeOf
 ### isRetirementOperation
 
 ```solidity
-function isRetirementOperation(bytes data) external view returns (bool isRetirement, bool hasFractional)
+function isRetirementOperation(bytes data) external pure returns (bool isRetirement, bool hasFractional)
 ```
 
 

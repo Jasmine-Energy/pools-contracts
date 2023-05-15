@@ -579,6 +579,23 @@ Gets an ERC-721-like token URI
 |---|---|---|
 | _0 | string | undefined |
 
+### totalDeposits
+
+```solidity
+function totalDeposits() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
 ### totalSupply
 
 ```solidity

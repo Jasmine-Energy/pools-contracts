@@ -41,15 +41,19 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     uint256 private _totalDeposits;
     EnumerableSet.UintSet private _holdings;
 
-    uint256 private immutable WITHDRAWS_LOCK = 1;
-    uint256 private immutable WITHDRAWS_UNLOCKED = 2;
+    uint8 private immutable WITHDRAWS_LOCK = 1;
+    uint8 private immutable WITHDRAWS_UNLOCKED = 2;
 
-    uint256 private _isUnlocked;
+    uint8 private _isUnlocked;
 
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup Functions
     //  ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @param tokenAddress_ ERC-1155 contract to restrict deposits from
+     */
     constructor(address tokenAddress_) {
         _tokenAddress = tokenAddress_;
 
@@ -60,7 +64,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     //  Getters
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function totalDeposits() internal view returns (uint256) {
+    function totalDeposits() public view returns (uint256) {
         return _totalDeposits;
     }
 

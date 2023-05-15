@@ -41,7 +41,6 @@ import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadat
 import { IERC1046 } from "../../interfaces/ERC/IERC1046.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-import "hardhat/console.sol";
 
 /**
  * @title Jasmine Base Pool
@@ -226,9 +225,7 @@ abstract contract JasmineBasePool is
         _burn(owner, cost);
 
         // 2. Select quantity of EATs to retire
-        console.log("Total deposits: ", totalDeposits(), " Rounded supply: ", Math.ceilDiv(totalSupply(), 10 ** decimals()));
         uint256 eatQuantity = totalDeposits() - Math.ceilDiv(totalSupply(), 10 ** decimals());
-        console.log("Withdrawal quantity: ", eatQuantity);
 
         if (eatQuantity == 0) {
             emit Retirement(owner, beneficiary, amount);
@@ -238,8 +235,6 @@ abstract contract JasmineBasePool is
         // 3. Select tokens to withdraw
         (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](0), new uint256[](0));
         (tokenIds, amounts) = _selectWithdrawTokens(eatQuantity);
-        console.log("Token length: ", tokenIds.length);
-        console.log("Amounts: ", amounts.sum());
 
         // 4. Encode transfer data
         bool hasFractional = eatQuantity > (amount / (10 ** decimals()));
@@ -685,8 +680,6 @@ abstract contract JasmineBasePool is
             from,
             _standardizeDecimal(quantity)
         );
-
-        console.log("Deposit from: ", from, " quantity: ", quantity);
 
         emit Deposit(from, from, quantity);
     }
