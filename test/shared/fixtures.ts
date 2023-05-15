@@ -2,8 +2,8 @@ import { ethers, upgrades, getNamedAccounts } from "hardhat";
 import { Contracts, Libraries } from "@/utils";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import {
-  JasminePool,
-  JasmineEAT, JasmineOracle, JasmineMinter,
+  JasminePool, JasmineRetirementService,
+  JasmineEAT, JasmineOracle, JasmineMinter, 
 } from "@/typechain";
 
 
@@ -76,11 +76,30 @@ export async function deployLibrariesFixture() {
   };
 }
 
+export async function deployRetirementService() {
+  const { eat, minter } = await loadFixture(deployCoreFixture);
+  const { calldataLibAddress } = await loadFixture(
+    deployLibrariesFixture
+  );
+
+  const RetirementService = await ethers.getContractFactory(Contracts.retirementService, {
+    libraries: {
+      Calldata: calldataLibAddress,
+    }
+  });
+  const retirementService = await RetirementService.deploy(
+    minter.address,
+    eat.address,
+  );
+  return retirementService as JasmineRetirementService;
+}
+
 export async function deployPoolImplementation() {
-  const { eat, oracle, minter } = await loadFixture(deployCoreFixture);
+  const { eat, oracle } = await loadFixture(deployCoreFixture);
   const { policyLibAddress, arrayUtilsLibAddress, calldataLibAddress } = await loadFixture(
     deployLibrariesFixture
   );
+  const retirementService = await loadFixture(deployRetirementService);
   const namedAccounts = await getNamedAccounts();
   const owner = await ethers.getSigner(namedAccounts.owner);
 
@@ -101,7 +120,7 @@ export async function deployPoolImplementation() {
     eat.address,
     oracle.address,
     poolFactoryFutureAddress,
-    minter.address
+    retirementService.address
   );
   return poolImplementation as JasminePool;
 }

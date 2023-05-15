@@ -13,7 +13,7 @@ Utility library encoding and decoding calldata between contracts
 ### BRIDGE_OFF_OP
 
 ```solidity
-function BRIDGE_OFF_OP() external view returns (uint8)
+function BRIDGE_OFF_OP() external view returns (bytes1)
 ```
 
 
@@ -25,12 +25,12 @@ function BRIDGE_OFF_OP() external view returns (uint8)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint8 | undefined |
+| _0 | bytes1 | undefined |
 
 ### RETIREMENT_FRACTIONAL_OP
 
 ```solidity
-function RETIREMENT_FRACTIONAL_OP() external view returns (uint8)
+function RETIREMENT_FRACTIONAL_OP() external view returns (bytes1)
 ```
 
 
@@ -42,12 +42,12 @@ function RETIREMENT_FRACTIONAL_OP() external view returns (uint8)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint8 | undefined |
+| _0 | bytes1 | undefined |
 
 ### RETIREMENT_OP
 
 ```solidity
-function RETIREMENT_OP() external view returns (uint8)
+function RETIREMENT_OP() external view returns (bytes1)
 ```
 
 
@@ -59,12 +59,34 @@ function RETIREMENT_OP() external view returns (uint8)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint8 | undefined |
+| _0 | bytes1 | undefined |
 
-### encodeFractionalRetirementCalldata
+### encodeBridgeOffData
 
 ```solidity
-function encodeFractionalRetirementCalldata() external pure returns (bytes retirementData)
+function encodeBridgeOffData(address recipient) external pure returns (bytes bridgeOffData)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| recipient | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| bridgeOffData | bytes | undefined |
+
+### encodeFractionalRetirementData
+
+```solidity
+function encodeFractionalRetirementData() external pure returns (bytes retirementData)
 ```
 
 
@@ -78,10 +100,10 @@ function encodeFractionalRetirementCalldata() external pure returns (bytes retir
 |---|---|---|
 | retirementData | bytes | undefined |
 
-### encodeRetirementCalldata
+### encodeRetirementData
 
 ```solidity
-function encodeRetirementCalldata(address beneficiary, uint256 quantity) external pure returns (bytes retirementData)
+function encodeRetirementData(address beneficiary, bool hasFractional) external pure returns (bytes retirementData)
 ```
 
 
@@ -93,7 +115,7 @@ function encodeRetirementCalldata(address beneficiary, uint256 quantity) externa
 | Name | Type | Description |
 |---|---|---|
 | beneficiary | address | undefined |
-| quantity | uint256 | undefined |
+| hasFractional | bool | undefined |
 
 #### Returns
 
@@ -101,6 +123,65 @@ function encodeRetirementCalldata(address beneficiary, uint256 quantity) externa
 |---|---|---|
 | retirementData | bytes | undefined |
 
+### isBridgeOffOperation
+
+```solidity
+function isBridgeOffOperation(bytes data) external pure returns (bool isBridgeOff)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| data | bytes | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| isBridgeOff | bool | undefined |
+
+### isRetirementOperation
+
+```solidity
+function isRetirementOperation(bytes data) external pure returns (bool isRetirement, bool hasFractional)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| data | bytes | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| isRetirement | bool | undefined |
+| hasFractional | bool | undefined |
+
+
+
+
+## Errors
+
+### InvalidInput
+
+```solidity
+error InvalidInput()
+```
+
+
+
+*Emitted if input is invalid*
 
 
 

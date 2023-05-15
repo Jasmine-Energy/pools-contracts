@@ -10,10 +10,44 @@
 
 ## Methods
 
+### EAT
+
+```solidity
+function EAT() external view returns (contract JasmineEAT)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | contract JasmineEAT | undefined |
+
+### minter
+
+```solidity
+function minter() external view returns (contract JasmineMinter)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | contract JasmineMinter | undefined |
+
 ### onERC1155BatchReceived
 
 ```solidity
-function onERC1155BatchReceived(address, address, uint256[], uint256[], bytes) external pure returns (bytes4)
+function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint256[] amounts, bytes data) external nonpayable returns (bytes4)
 ```
 
 
@@ -25,10 +59,10 @@ function onERC1155BatchReceived(address, address, uint256[], uint256[], bytes) e
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined |
-| _1 | address | undefined |
-| _2 | uint256[] | undefined |
-| _3 | uint256[] | undefined |
-| _4 | bytes | undefined |
+| from | address | undefined |
+| tokenIds | uint256[] | undefined |
+| amounts | uint256[] | undefined |
+| data | bytes | undefined |
 
 #### Returns
 
@@ -39,7 +73,7 @@ function onERC1155BatchReceived(address, address, uint256[], uint256[], bytes) e
 ### onERC1155Received
 
 ```solidity
-function onERC1155Received(address, address, uint256, uint256, bytes) external pure returns (bytes4)
+function onERC1155Received(address, address from, uint256 tokenId, uint256 amount, bytes data) external nonpayable returns (bytes4)
 ```
 
 
@@ -51,71 +85,32 @@ function onERC1155Received(address, address, uint256, uint256, bytes) external p
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined |
-| _1 | address | undefined |
-| _2 | uint256 | undefined |
-| _3 | uint256 | undefined |
-| _4 | bytes | undefined |
+| from | address | undefined |
+| tokenId | uint256 | undefined |
+| amount | uint256 | undefined |
+| data | bytes | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
 | _0 | bytes4 | undefined |
-
-### registerRetirementRecipient
-
-```solidity
-function registerRetirementRecipient(address, address) external pure
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-| _1 | address | undefined |
-
-### requestResidualJLT
-
-```solidity
-function requestResidualJLT(address) external pure returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
 
 ### supportsInterface
 
 ```solidity
-function supportsInterface(bytes4) external pure returns (bool)
+function supportsInterface(bytes4 interfaceId) external view returns (bool)
 ```
 
 
 
-
+*See {IERC165-supportsInterface}.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bytes4 | undefined |
+| interfaceId | bytes4 | undefined |
 
 #### Returns
 
@@ -123,27 +118,20 @@ function supportsInterface(bytes4) external pure returns (bool)
 |---|---|---|
 | _0 | bool | undefined |
 
-### tokensReceived
+
+
+
+## Errors
+
+### Prohibited
 
 ```solidity
-function tokensReceived(address, address, address, uint256, bytes, bytes) external pure
+error Prohibited()
 ```
 
 
 
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-| _1 | address | undefined |
-| _2 | address | undefined |
-| _3 | uint256 | undefined |
-| _4 | bytes | undefined |
-| _5 | bytes | undefined |
-
+*Emitted for unauthorized actions*
 
 
 

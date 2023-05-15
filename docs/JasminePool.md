@@ -115,12 +115,12 @@ function balanceOf(address account) external view returns (uint256)
 ### decimals
 
 ```solidity
-function decimals() external pure returns (uint8)
+function decimals() external view returns (uint8)
 ```
 
 
 
-*See {IERC20Metadata-decimals}.*
+*Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5.05` (`505 / 10 ** 2`). Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the value {ERC20} uses, unless this function is overridden; NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}.*
 
 
 #### Returns
@@ -262,23 +262,6 @@ function meetsPolicy(uint256 tokenId) external view returns (bool isEligible)
 |---|---|---|
 | isEligible | bool | undefined |
 
-### minter
-
-```solidity
-function minter() external view returns (contract JasmineMinter)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract JasmineMinter | undefined |
-
 ### name
 
 ```solidity
@@ -321,54 +304,54 @@ function nonces(address owner) external view returns (uint256)
 ### onERC1155BatchReceived
 
 ```solidity
-function onERC1155BatchReceived(address operator, address from, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
+function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
 ```
 
 
 
-*Handles the receipt of a multiple ERC1155 token types. This function is called at the end of a `safeBatchTransferFrom` after the balances have been updated. NOTE: To accept the transfer(s), this must return `bytes4(keccak256(&quot;onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)&quot;))` (i.e. 0xbc197c81, or its own function selector).*
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator | address | The address which initiated the batch transfer (i.e. msg.sender) |
-| from | address | The address which previously owned the token |
+| _0 | address | undefined |
+| from | address | undefined |
 | tokenIds | uint256[] | undefined |
-| values | uint256[] | An array containing amounts of each token being transferred (order and length must match ids array) |
+| values | uint256[] | undefined |
 | _4 | bytes | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bytes4 | `bytes4(keccak256(&quot;onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)&quot;))` if transfer is allowed |
+| _0 | bytes4 | undefined |
 
 ### onERC1155Received
 
 ```solidity
-function onERC1155Received(address operator, address from, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
+function onERC1155Received(address, address from, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
 ```
 
 
 
-*Handles the receipt of a single ERC1155 token type. This function is called at the end of a `safeTransferFrom` after the balance has been updated. NOTE: To accept the transfer, this must return `bytes4(keccak256(&quot;onERC1155Received(address,address,uint256,uint256,bytes)&quot;))` (i.e. 0xf23a6e61, or its own function selector).*
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator | address | The address which initiated the transfer (i.e. msg.sender) |
-| from | address | The address which previously owned the token |
+| _0 | address | undefined |
+| from | address | undefined |
 | tokenId | uint256 | undefined |
-| value | uint256 | The amount of tokens being transferred |
+| value | uint256 | undefined |
 | _4 | bytes | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bytes4 | `bytes4(keccak256(&quot;onERC1155Received(address,address,uint256,uint256,bytes)&quot;))` if transfer is allowed |
+| _0 | bytes4 | undefined |
 
 ### operatorDeposit
 
@@ -575,6 +558,23 @@ Returns the pool&#39;s JLT retirement rate in basis points
 |---|---|---|
 | _0 | uint96 | Retirement rate in basis points |
 
+### retirementService
+
+```solidity
+function retirementService() external view returns (address)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
 ### supportsInterface
 
 ```solidity
@@ -630,6 +630,23 @@ Gets an ERC-721-like token URI
 | Name | Type | Description |
 |---|---|---|
 | _0 | string | undefined |
+
+### totalDeposits
+
+```solidity
+function totalDeposits() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
 
 ### totalSupply
 
@@ -1045,6 +1062,17 @@ error InbalancedDeposits()
 *Emitted if operation would cause inbalance in pool&#39;s EAT deposits*
 
 
+### InsufficientDeposits
+
+```solidity
+error InsufficientDeposits()
+```
+
+
+
+
+
+
 ### InvalidInput
 
 ```solidity
@@ -1055,6 +1083,23 @@ error InvalidInput()
 
 *Emitted if input is invalid*
 
+
+### InvalidTokenAddress
+
+```solidity
+error InvalidTokenAddress(address received, address expected)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| received | address | undefined |
+| expected | address | undefined |
 
 ### Prohibited
 
@@ -1099,15 +1144,15 @@ error Unqualified(uint256 tokenId)
 |---|---|---|
 | tokenId | uint256 | undefined |
 
-### ValidationFailed
+### WithdrawsLocked
 
 ```solidity
-error ValidationFailed()
+error WithdrawsLocked()
 ```
 
 
 
-*Emitted if internal validation failed*
+
 
 
 
