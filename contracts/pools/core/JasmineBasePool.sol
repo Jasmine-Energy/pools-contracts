@@ -164,7 +164,7 @@ abstract contract JasmineBasePool is
         string calldata symbol_
     )
         internal
-        initializer
+        onlyInitializing
     {
         _name = name_;
         _symbol = symbol_;
