@@ -164,24 +164,40 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     {
         uint256 sum = 0;
         uint256 i = 0;
-        tokenIds = new uint256[](1);
-        amounts  = new uint256[](1);
+        uint256 finalBalance;
+
         while (sum != amount) {
             if (i >= _holdings.length()) revert InsufficientDeposits();
-
             uint256 tokenId = _holdings.at(i);
             uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenId);
-
-            tokenIds[i] = tokenId;
-            if (sum + balance <= amount) {
-                amounts[i] = balance;
-                sum += balance;
-                i++;
+            if (sum + balance < amount) {
+                unchecked {
+                    sum += balance;
+                    i++;
+                }
                 continue;
             } else {
-                amounts[i] = amount - sum;
+                unchecked {
+                    finalBalance = amount - sum;
+                    i++;
+                }
                 break;
             }
+        }
+
+        if (i == 1) {
+            tokenIds = new uint256[](1);
+            tokenIds[0] = _holdings.at(0);
+            amounts = new uint256[](1);
+            amounts[0] = finalBalance;
+        } else {
+            tokenIds = new uint256[](i);
+            for (uint x = 0; x < i;) {
+                tokenIds[x] = _holdings.at(x);
+                unchecked { x++; }
+            }
+            amounts = IERC1155(_tokenAddress).balanceOfBatch(ArrayUtils.fill(address(this), i), tokenIds);
+            amounts[i-1] = finalBalance;
         }
 
         return (tokenIds, amounts);

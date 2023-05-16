@@ -78,13 +78,14 @@ export async function deployLibrariesFixture() {
 
 export async function deployRetirementService() {
   const { eat, minter } = await loadFixture(deployCoreFixture);
-  const { calldataLibAddress } = await loadFixture(
+  const { calldataLibAddress, arrayUtilsLibAddress } = await loadFixture(
     deployLibrariesFixture
   );
 
   const RetirementService = await ethers.getContractFactory(Contracts.retirementService, {
     libraries: {
       Calldata: calldataLibAddress,
+      ArrayUtils: arrayUtilsLibAddress,
     }
   });
   const retirementService = await RetirementService.deploy(

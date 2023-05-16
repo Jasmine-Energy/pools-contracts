@@ -3,7 +3,7 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { Contracts, Libraries, colouredLog } from '@/utils';
 
 const deployRetirementService: DeployFunction = async function (
-    { ethers, deployments, network, run, hardhatArguments, getNamedAccounts }: HardhatRuntimeEnvironment
+    { deployments, network, run, hardhatArguments, getNamedAccounts }: HardhatRuntimeEnvironment
 ) {
     colouredLog.yellow(`deploying Retirement Service to: ${network.name}`);
 
@@ -13,6 +13,7 @@ const deployRetirementService: DeployFunction = async function (
 
     // 1. Get deployements
     const calldata = await get(Libraries.calldata);
+    const arrayUtils = await get(Libraries.arrayUtils);
     let eat: string;
     let minter: string;
     let oracle: string;
@@ -34,7 +35,8 @@ const deployRetirementService: DeployFunction = async function (
             eat,
         ],
         libraries: {
-            Calldata: calldata.address
+            Calldata: calldata.address,
+            ArrayUtils: arrayUtils.address,
         },
         log: hardhatArguments.verbose
     });

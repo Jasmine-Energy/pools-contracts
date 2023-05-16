@@ -19,6 +19,7 @@ import { JasmineMinter } from "@jasmine-energy/contracts/src/JasmineMinter.sol";
 
 // Libraries
 import { Calldata } from "./libraries/Calldata.sol";
+import { ArrayUtils } from "./libraries/ArrayUtils.sol";
 import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 
@@ -96,7 +97,13 @@ contract JasmineRetirementService is ERC1155Receiver {
             if (isRetirement && hasFractional) {
                 minter.burn(tokenIds[0], 1, Calldata.encodeFractionalRetirementData());
                 if (amounts[0] == 1) {
-                    // minter.burnBatch(tokenIds[1:tokenIds.length], amounts[1:amounts.length], Calldata.encodeRetirementData(from, false));
+                    bytes memory slicedTokens = ArrayUtils.slice(abi.encode(tokenIds), 1, tokenIds.length-1);
+                    bytes memory slicedAmounts = ArrayUtils.slice(abi.encode(amounts), 1, amounts.length-1);
+                    minter.burnBatch(
+                        abi.decode(slicedTokens, (uint256[])),
+                        abi.decode(slicedAmounts, (uint256[])),
+                        Calldata.encodeRetirementData(from, false)
+                    );
                 } else {
 
                 }

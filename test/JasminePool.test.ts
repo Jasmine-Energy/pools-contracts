@@ -460,6 +460,33 @@ describe(Contracts.pool, function () {
         [])).to.be.ok.and
         .to.emit(anyTechAnnualPool, "Retirement");
     });
+
+    it("Should support retiring numerous token IDs with fractional", async function () {
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        3_500_000_000_000_000_000n,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement");
+
+      const windDeposit = await mintEat(owner.address, 5, FuelType.WIND);
+      const geoDeposit = await mintEat(owner.address, 10, FuelType.GEOTHERMAL);
+      await eat.safeBatchTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        [windDeposit.id, geoDeposit.id],
+        [windDeposit.amount, geoDeposit.amount],
+        []
+      );
+
+      const balance = await anyTechAnnualPool.balanceOf(owner.address);
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        balance,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement");
+    });
   });
 
   describe("Transfer", async function () {});
