@@ -1,0 +1,32 @@
+name: Slither Analysis
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - dev/*
+  pull_request:
+    branches:
+      - main
+      - dev
+      - dev/*
+  workflow_dispatch:
+jobs:
+  analyze:
+    runs-on: [self-hosted, factory]
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Slither
+        uses: crytic/slither-action@v0.3.0
+        id: slither
+        with:
+          sarif: results.sarif
+          fail-on: none
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ steps.slither.outputs.sarif }}

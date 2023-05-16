@@ -122,6 +122,17 @@ To run all unit tests in [`test`](./test/), simply run `npm run test`.
 
 To deploy contracts locally, run `npm run start`. This will deploy core contract, librariies, Jasmine Pool implementation contract and the Jasmine Pool Factory. From there, you can run `npx hardhat mint ADDRESS` to mint testing EATs. 
 
+## Static Analysis
+
+The project make use of [Slither](https://github.com/crytic/slither) to run static analysis on the contracts - using a docker container. To execute the static analysis, run:
+
+1. Pull docker image (only needs to be run on initial setup): `docker pull trailofbits/eth-security-toolbox`
+2. Run container with contracts: `docker run -it --rm -v $PWD:/home/ethsec/contracts trailofbits/eth-security-toolbox`
+3. Change directory to contracts: `cd contracts`
+4. Install and select solc version (within container): `solc-select install 0.8.17 && solc-select use 0.8.17`
+5. Run slither: `slither .`
+
+
 ## Utility Tasks
 
 1. **Minting EATs**: `npx hardhat mint ADDRESS` Default network is localhost (aka running hardhat chain)
