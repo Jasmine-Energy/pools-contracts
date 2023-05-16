@@ -105,12 +105,13 @@ contract JasmineRetirementService is ERC1155Receiver {
                         Calldata.encodeRetirementData(from, false)
                     );
                 } else {
-
+                    amounts[0]--;
+                    minter.burnBatch(
+                        tokenIds,
+                        amounts,
+                        Calldata.encodeRetirementData(from, false)
+                    );
                 }
-                // minter.burn(tokenId, 1, Calldata.encodeFractionalRetirementData());
-                // if (amount == 1) return this.onERC1155BatchReceived.selector;
-                // data[0] = Calldata.RETIREMENT_OP;
-                // minter.burn(tokenId, amount-1, data);
             } else {
                 minter.burnBatch(tokenIds, amounts, data);
             }
