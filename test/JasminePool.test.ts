@@ -367,7 +367,7 @@ describe(Contracts.pool, function () {
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Approval")
         .withArgs(owner.address, operator.address, ownerBalance);
       expect(
-        await operatorPool.operatorWithdraw(
+        await operatorPool.withdrawFrom(
           owner.address,
           operator.address,
           tokenAmount,
@@ -388,7 +388,7 @@ describe(Contracts.pool, function () {
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Approval")
         .withArgs(owner.address, allowed.address, balance);
       expect(
-        await allowedPool.operatorWithdraw(
+        await allowedPool.withdrawFrom(
           owner.address,
           allowed.address,
           tokenAmount,

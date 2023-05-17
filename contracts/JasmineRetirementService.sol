@@ -7,23 +7,31 @@ pragma solidity >=0.8.17;
 //  Imports
 //  ─────────────────────────────────────────────────────────────────────────────
 
+// Core Implementations
 import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
+import { IRetirementService } from "./interfaces/IRetirementService.sol";
+import { ERC1363Receiver } from "./implementations/ERC1363Receiver.sol";
 
 // Implemented Interfaces
-import { IRetirementService } from "./interfaces/IRetirementService.sol";
-import { IRetirementRecipient } from "./interfaces/IRetirementRecipient.sol";
+import { IERC1363Receiver } from "@openzeppelin/contracts/interfaces/IERC1363Receiver.sol";
 
 // External Contracts
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 import { JasmineMinter } from "@jasmine-energy/contracts/src/JasmineMinter.sol";
+import { IRetirementRecipient } from "./interfaces/IRetirementRecipient.sol";
 
 // Libraries
 import { Calldata } from "./libraries/Calldata.sol";
 import { ArrayUtils } from "./libraries/ArrayUtils.sol";
 import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
-
-contract JasmineRetirementService is ERC1155Receiver {
+/**
+ * @title Jasmine Retirement Service
+ * @author Kai Aldag<kai.aldag@jasmine.energy>
+ * @notice Facilitates retirements of EATs and JLTs in the Jasmine protocol
+ * @custom:security-contact dev@jasmine.energy
+ */
+contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC1363Receiver {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -46,7 +54,7 @@ contract JasmineRetirementService is ERC1155Receiver {
 
 
     //  ─────────────────────────────────────────────────────────────────────────────
-    //  ERC-1155 Deposit Functions
+    //  ERC-1155 Receiver Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
     function onERC1155Received(
@@ -120,6 +128,36 @@ contract JasmineRetirementService is ERC1155Receiver {
         }
 
         return this.onERC1155BatchReceived.selector;
+    }
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  ERC-1363 Receiver
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /// @inheritdoc IERC1363Receiver
+    function onTransferReceived(
+        address operator,
+        address from,
+        uint256 value,
+        bytes memory data
+    ) 
+        external override(ERC1363Receiver, IERC1363Receiver) 
+        returns (bytes4)
+    {
+        // TODO: Implement me
+
+        return this.onTransferReceived.selector;
+    }
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Retirement Notification Recipient
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    function registerRetirementRecipient(
+        address holder,
+        address recipient
+    ) external {
+        // TODO: Implement me
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────

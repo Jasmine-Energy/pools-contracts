@@ -9,6 +9,7 @@ pragma solidity >=0.8.17;
 
 // Core Implementations
 import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
+import { IJasmineFeeManager } from "./interfaces/IJasmineFeeManager.sol";
 import { Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
@@ -43,6 +44,7 @@ import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
  */
 contract JasminePoolFactory is 
     IJasminePoolFactory,
+    IJasmineFeeManager,
     Ownable2Step,
     AccessControl
 {
@@ -55,39 +57,6 @@ contract JasminePoolFactory is
     using EnumerableSet for EnumerableSet.AddressSet;
     using PoolPolicy for PoolPolicy.DepositPolicy;
     using Address for address;
-
-
-    // ──────────────────────────────────────────────────────────────────────────────
-    // Events
-    // ──────────────────────────────────────────────────────────────────────────────
-
-
-    //  ───────────────────────────────  Fee Events  ───────────────────────────────  \\
-    // TODO: Move to interface
-
-    /**
-     * @dev Emitted whenever fee manager updates withdrawal rate
-     * 
-     * @param withdrawRateBips New withdrawal rate in basis points
-     * @param beneficiary Address to receive fees
-     * @param specific Specifies whether new rate applies to specific or any withdrawals
-     */
-    event BaseWithdrawalFeeUpdate(
-        uint96 withdrawRateBips,
-        address indexed beneficiary,
-        bool indexed specific
-    );
-
-    /**
-     * @dev Emitted whenever fee manager updates retirement rate
-     * 
-     * @param retirementRateBips new retirement rate in basis points
-     * @param beneficiary Address to receive fees
-     */
-    event BaseRetirementFeeUpdate(
-        uint96 retirementRateBips,
-        address indexed beneficiary
-    );
 
 
     // ──────────────────────────────────────────────────────────────────────────────

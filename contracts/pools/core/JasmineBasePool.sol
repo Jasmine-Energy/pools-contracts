@@ -50,6 +50,7 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
  * @custom:security-contact dev@jasmine.energy
  */
 abstract contract JasmineBasePool is
+    IJasminePool,
     ERC20,
     ERC20Permit,
     ERC1046,
@@ -63,54 +64,6 @@ abstract contract JasmineBasePool is
 
     using EnumerableSet for EnumerableSet.UintSet;
     using ArrayUtils for uint256[];
-
-
-    // ──────────────────────────────────────────────────────────────────────────────
-    // Events
-    // ──────────────────────────────────────────────────────────────────────────────
-    
-    // TODO These are define in IEATBackedPool, importing here for now
-
-    /**
-     * @dev Emitted whenever EATs are deposited to the contract
-     * 
-     * @param operator Initiator of the deposit
-     * @param owner Token holder depositting to contract
-     * @param quantity Number of EATs deposited. Note: JLTs issued are 1-1 with EATs
-     */
-    event Deposit(
-        address indexed operator,
-        address indexed owner,
-        uint256 quantity
-    );
-
-    /**
-     * @dev Emitted whenever EATs are withdrawn from the contract
-     * 
-     * @param sender Initiator of the deposit
-     * @param receiver Token holder depositting to contract
-     * @param quantity Number of EATs withdrawn.
-     */
-    event Withdraw(
-        address indexed sender,
-        address indexed receiver,
-        uint256 quantity
-    );
-
-    /**
-     * @notice emitted when tokens from a pool are retired
-     * 
-     * @dev must be accompanied by a token burn event
-     * 
-     * @param operator Initiator of retirement
-     * @param beneficiary Designate beneficiary of retirement
-     * @param quantity Number of tokens being retired
-     */
-    event Retirement(
-        address indexed operator,
-        address indexed beneficiary,
-        uint256 quantity
-    );
 
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -296,7 +249,7 @@ abstract contract JasmineBasePool is
      * @return jltQuantity Number of JLTs issued
      * TODO: Rename from operator deposit
      */
-    function operatorDeposit(
+    function depositFrom(
         address from,
         uint256 tokenId,
         uint256 amount
@@ -363,7 +316,7 @@ abstract contract JasmineBasePool is
     /**
      * @notice Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw
      *         from an alternate address - that the caller's approved for - 
-     *         defer to operatorWithdraw.
+     *         defer to withdrawFrom.
      * 
      * @dev Requirements:
      *     - Caller must have sufficient JLTs
@@ -412,7 +365,7 @@ abstract contract JasmineBasePool is
      * @param amount Number of JLTs to burn and EATs to withdraw
      * @param data Optional calldata to forward to recipient
      */
-    function operatorWithdraw(
+    function withdrawFrom(
         address sender,
         address recipient,
         uint256 amount,

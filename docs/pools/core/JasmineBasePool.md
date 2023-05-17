@@ -199,6 +199,30 @@ function depositBatch(address from, uint256[] tokenIds, uint256[] amounts) exter
 |---|---|---|
 | jltQuantity | uint256 | Number of JLTs issued |
 
+### depositFrom
+
+```solidity
+function depositFrom(address from, uint256 tokenId, uint256 amount) external nonpayable returns (uint256 jltQuantity)
+```
+
+Used to deposit EATs on behalf of another address into the pool. 
+
+*Requirements:     - Pool must be an approved operator of from&#39;s EATs     - Caller must be an approved operator of from&#39;s EATs     - From account must hold tokenId and have balance greater than or equal to amount *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| from | address | Address from which EATs will be transfered |
+| tokenId | uint256 | ID of EAT to deposit into pool |
+| amount | uint256 | Number of EATs to deposit  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| jltQuantity | uint256 | Number of JLTs issued TODO: Rename from operator deposit |
+
 ### increaseAllowance
 
 ```solidity
@@ -221,6 +245,24 @@ function increaseAllowance(address spender, uint256 addedValue) external nonpaya
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined |
+
+### initialize
+
+```solidity
+function initialize(bytes policy, string name, string symbol) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| policy | bytes | undefined |
+| name | string | undefined |
+| symbol | string | undefined |
 
 ### meetsPolicy
 
@@ -335,56 +377,6 @@ function onERC1155Received(address, address from, uint256 tokenId, uint256 value
 |---|---|---|
 | _0 | bytes4 | undefined |
 
-### operatorDeposit
-
-```solidity
-function operatorDeposit(address from, uint256 tokenId, uint256 amount) external nonpayable returns (uint256 jltQuantity)
-```
-
-Used to deposit EATs on behalf of another address into the pool. 
-
-*Requirements:     - Pool must be an approved operator of from&#39;s EATs     - Caller must be an approved operator of from&#39;s EATs     - From account must hold tokenId and have balance greater than or equal to amount *
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| from | address | Address from which EATs will be transfered |
-| tokenId | uint256 | ID of EAT to deposit into pool |
-| amount | uint256 | Number of EATs to deposit  |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| jltQuantity | uint256 | Number of JLTs issued TODO: Rename from operator deposit |
-
-### operatorWithdraw
-
-```solidity
-function operatorWithdraw(address sender, address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
-```
-
-Used to convert JLTs from sender into EATs which are sent         to recipient. 
-
-*Requirements:     - Caller must be approved operator for sender     - Sender must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| sender | address | Account to which will have JLTs burned |
-| recipient | address | Address to receive EATs |
-| amount | uint256 | Number of JLTs to burn and EATs to withdraw |
-| data | bytes | Optional calldata to forward to recipient |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| tokenIds | uint256[] | undefined |
-| amounts | uint256[] | undefined |
-
 ### permit
 
 ```solidity
@@ -452,18 +444,18 @@ function poolFactory() external view returns (address)
 function retire(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
 ```
 
+Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;beneficiary&#39;. 
 
-
-
+*Internally, calls are routed to Retirement Service to facilitate the retirement. Emits a {Retirement} event. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - Owner cannot be zero address *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| owner | address | undefined |
-| beneficiary | address | undefined |
-| amount | uint256 | undefined |
-| data | bytes | undefined |
+| owner | address | JLT owner from which to burn tokens |
+| beneficiary | address | Address to receive retirement acknowledgment. If none, assume msg.sender |
+| amount | uint256 | Number of JLTs to withdraw |
+| data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |
 
 ### retireExact
 
@@ -666,7 +658,7 @@ function transferFrom(address from, address to, uint256 amount) external nonpaya
 function withdraw(address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
-Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         from an alternate address - that the caller&#39;s approved for -          defer to operatorWithdraw. 
+Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         from an alternate address - that the caller&#39;s approved for -          defer to withdrawFrom. 
 
 *Requirements:     - Caller must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
 
@@ -674,6 +666,32 @@ Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         
 
 | Name | Type | Description |
 |---|---|---|
+| recipient | address | Address to receive EATs |
+| amount | uint256 | Number of JLTs to burn and EATs to withdraw |
+| data | bytes | Optional calldata to forward to recipient |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| tokenIds | uint256[] | undefined |
+| amounts | uint256[] | undefined |
+
+### withdrawFrom
+
+```solidity
+function withdrawFrom(address sender, address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
+```
+
+Used to convert JLTs from sender into EATs which are sent         to recipient. 
+
+*Requirements:     - Caller must be approved operator for sender     - Sender must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender | address | Account to which will have JLTs burned |
 | recipient | address | Address to receive EATs |
 | amount | uint256 | Number of JLTs to burn and EATs to withdraw |
 | data | bytes | Optional calldata to forward to recipient |
@@ -780,15 +798,15 @@ event Deposit(address indexed operator, address indexed owner, uint256 quantity)
 
 
 
-*Emitted whenever EATs are deposited to the contract *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator `indexed` | address | Initiator of the deposit |
-| owner `indexed` | address | Token holder depositting to contract |
-| quantity  | uint256 | Number of EATs deposited. Note: JLTs issued are 1-1 with EATs |
+| operator `indexed` | address | undefined |
+| owner `indexed` | address | undefined |
+| quantity  | uint256 | undefined |
 
 ### Initialized
 
@@ -814,15 +832,15 @@ event Retirement(address indexed operator, address indexed beneficiary, uint256 
 
 emitted when tokens from a pool are retired 
 
-*must be accompanied by a token burn event *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator `indexed` | address | Initiator of retirement |
-| beneficiary `indexed` | address | Designate beneficiary of retirement |
-| quantity  | uint256 | Number of tokens being retired |
+| operator `indexed` | address | undefined |
+| beneficiary `indexed` | address | undefined |
+| quantity  | uint256 | undefined |
 
 ### Transfer
 
@@ -850,15 +868,15 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 
 
 
-*Emitted whenever EATs are withdrawn from the contract *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| sender `indexed` | address | Initiator of the deposit |
-| receiver `indexed` | address | Token holder depositting to contract |
-| quantity  | uint256 | Number of EATs withdrawn. |
+| sender `indexed` | address | undefined |
+| receiver `indexed` | address | undefined |
+| quantity  | uint256 | undefined |
 
 
 

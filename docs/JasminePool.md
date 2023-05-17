@@ -199,6 +199,30 @@ function depositBatch(address from, uint256[] tokenIds, uint256[] amounts) exter
 |---|---|---|
 | jltQuantity | uint256 | Number of JLTs issued |
 
+### depositFrom
+
+```solidity
+function depositFrom(address from, uint256 tokenId, uint256 amount) external nonpayable returns (uint256 jltQuantity)
+```
+
+Used to deposit EATs on behalf of another address into the pool. 
+
+*Requirements:     - Pool must be an approved operator of from&#39;s EATs     - Caller must be an approved operator of from&#39;s EATs     - From account must hold tokenId and have balance greater than or equal to amount *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| from | address | Address from which EATs will be transfered |
+| tokenId | uint256 | ID of EAT to deposit into pool |
+| amount | uint256 | Number of EATs to deposit  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| jltQuantity | uint256 | Number of JLTs issued TODO: Rename from operator deposit |
+
 ### increaseAllowance
 
 ```solidity
@@ -353,56 +377,6 @@ function onERC1155Received(address, address from, uint256 tokenId, uint256 value
 |---|---|---|
 | _0 | bytes4 | undefined |
 
-### operatorDeposit
-
-```solidity
-function operatorDeposit(address from, uint256 tokenId, uint256 amount) external nonpayable returns (uint256 jltQuantity)
-```
-
-Used to deposit EATs on behalf of another address into the pool. 
-
-*Requirements:     - Pool must be an approved operator of from&#39;s EATs     - Caller must be an approved operator of from&#39;s EATs     - From account must hold tokenId and have balance greater than or equal to amount *
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| from | address | Address from which EATs will be transfered |
-| tokenId | uint256 | ID of EAT to deposit into pool |
-| amount | uint256 | Number of EATs to deposit  |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| jltQuantity | uint256 | Number of JLTs issued TODO: Rename from operator deposit |
-
-### operatorWithdraw
-
-```solidity
-function operatorWithdraw(address sender, address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
-```
-
-Used to convert JLTs from sender into EATs which are sent         to recipient. 
-
-*Requirements:     - Caller must be approved operator for sender     - Sender must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| sender | address | Account to which will have JLTs burned |
-| recipient | address | Address to receive EATs |
-| amount | uint256 | Number of JLTs to burn and EATs to withdraw |
-| data | bytes | Optional calldata to forward to recipient |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| tokenIds | uint256[] | undefined |
-| amounts | uint256[] | undefined |
-
 ### oracle
 
 ```solidity
@@ -487,18 +461,18 @@ function poolFactory() external view returns (address)
 function retire(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
 ```
 
+Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;beneficiary&#39;. 
 
-
-
+*Internally, calls are routed to Retirement Service to facilitate the retirement. Emits a {Retirement} event. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - Owner cannot be zero address *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| owner | address | undefined |
-| beneficiary | address | undefined |
-| amount | uint256 | undefined |
-| data | bytes | undefined |
+| owner | address | JLT owner from which to burn tokens |
+| beneficiary | address | Address to receive retirement acknowledgment. If none, assume msg.sender |
+| amount | uint256 | Number of JLTs to withdraw |
+| data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |
 
 ### retireExact
 
@@ -750,7 +724,7 @@ Allows pool fee managers to update the withdrawal rate
 function withdraw(address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
-Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         from an alternate address - that the caller&#39;s approved for -          defer to operatorWithdraw. 
+Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         from an alternate address - that the caller&#39;s approved for -          defer to withdrawFrom. 
 
 *Requirements:     - Caller must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
 
@@ -758,6 +732,32 @@ Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         
 
 | Name | Type | Description |
 |---|---|---|
+| recipient | address | Address to receive EATs |
+| amount | uint256 | Number of JLTs to burn and EATs to withdraw |
+| data | bytes | Optional calldata to forward to recipient |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| tokenIds | uint256[] | undefined |
+| amounts | uint256[] | undefined |
+
+### withdrawFrom
+
+```solidity
+function withdrawFrom(address sender, address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
+```
+
+Used to convert JLTs from sender into EATs which are sent         to recipient. 
+
+*Requirements:     - Caller must be approved operator for sender     - Sender must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender | address | Account to which will have JLTs burned |
 | recipient | address | Address to receive EATs |
 | amount | uint256 | Number of JLTs to burn and EATs to withdraw |
 | data | bytes | Optional calldata to forward to recipient |

@@ -639,14 +639,14 @@ event BaseRetirementFeeUpdate(uint96 retirementRateBips, address indexed benefic
 
 
 
-*Emitted whenever fee manager updates retirement rate *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| retirementRateBips  | uint96 | new retirement rate in basis points |
-| beneficiary `indexed` | address | Address to receive fees |
+| retirementRateBips  | uint96 | undefined |
+| beneficiary `indexed` | address | undefined |
 
 ### BaseWithdrawalFeeUpdate
 
@@ -656,15 +656,15 @@ event BaseWithdrawalFeeUpdate(uint96 withdrawRateBips, address indexed beneficia
 
 
 
-*Emitted whenever fee manager updates withdrawal rate *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| withdrawRateBips  | uint96 | New withdrawal rate in basis points |
-| beneficiary `indexed` | address | Address to receive fees |
-| specific `indexed` | bool | Specifies whether new rate applies to specific or any withdrawals |
+| withdrawRateBips  | uint96 | undefined |
+| beneficiary `indexed` | address | undefined |
+| specific `indexed` | bool | undefined |
 
 ### OwnershipTransferStarted
 
