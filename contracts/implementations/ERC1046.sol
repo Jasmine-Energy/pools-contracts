@@ -8,8 +8,12 @@ pragma solidity >=0.8.17;
 //  Imports
 //  ─────────────────────────────────────────────────────────────────────────────
 
+// Interfaces
 import { IERC1046 } from "../interfaces/ERC/IERC1046.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { ERC165 } from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+
+// Libraries
 import { Base64 } from "@openzeppelin/contracts/utils/Base64.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -23,7 +27,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * 
  * NOTE: Alternate implementation that uses key values
  */
-abstract contract ERC1046 is IERC1046, IERC20Metadata {
+abstract contract ERC1046 is IERC1046, IERC20Metadata, ERC165 {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
@@ -99,6 +103,16 @@ abstract contract ERC1046 is IERC1046, IERC20Metadata {
                 i++;
             }
         }
+    }
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  ERC-165 Interface Support
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /// @inheritdoc ERC165
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IERC1046).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
 

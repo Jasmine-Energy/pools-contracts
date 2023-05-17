@@ -992,6 +992,17 @@ error UnsupportedMetadataVersion(uint8 metadataVersion)
 |---|---|---|
 | metadataVersion | uint8 | undefined |
 
+### ValidationFailed
+
+```solidity
+error ValidationFailed()
+```
+
+
+
+*Emitted if internal validation failed*
+
+
 ### WithdrawsLocked
 
 ```solidity

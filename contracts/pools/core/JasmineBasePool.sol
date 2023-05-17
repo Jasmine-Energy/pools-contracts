@@ -12,6 +12,7 @@ import { IJasminePool } from "../../interfaces/IJasminePool.sol";
 
 // Implementation Contracts
 import { ERC1155Manager } from "../../implementations/ERC1155Manager.sol";
+import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC1155Holder } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -41,7 +42,6 @@ import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadat
 import { IERC1046 } from "../../interfaces/ERC/IERC1046.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-import "hardhat/console.sol";
 
 /**
  * @title Jasmine Base Pool
@@ -138,15 +138,18 @@ abstract contract JasmineBasePool is
     // ──────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @dev
+     * @param _eat Address of the Jasmine Energy Attribution Token (EAT) contract
+     * @param _poolFactory Address of the Jasmine Pool Factory contract
+     * @param _retirementService Address of the Jasmine retirement service contract
      */
     constructor(address _eat, address _poolFactory, address _retirementService)
         ERC20("Jasmine Liquidity Token Base", "JLT")
         ERC20Permit("Jasmine Liquidity Token Base")
         ERC1155Manager(_eat)
     {
-        require(_eat != address(0), "JasminePool: EAT must be set");
-        require(_poolFactory != address(0), "JasminePool: Pool factory must be set");
+        if (_eat == address(0x0) || 
+            _poolFactory == address(0x0) || 
+            _retirementService == address(0x0)) revert JasmineErrors.ValidationFailed();
 
         EAT = JasmineEAT(_eat);
         retirementService = _retirementService;
@@ -227,7 +230,6 @@ abstract contract JasmineBasePool is
 
         // 2. Select quantity of EATs to retire
         uint256 eatQuantity = totalDeposits() - Math.ceilDiv(totalSupply(), 10 ** decimals());
-        console.log("Retire: ", eatQuantity);
         if (eatQuantity == 0) {
             emit Retirement(owner, beneficiary, amount);
             return;
@@ -236,7 +238,6 @@ abstract contract JasmineBasePool is
         // 3. Select tokens to withdraw
         (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](0), new uint256[](0));
         (tokenIds, amounts) = _selectWithdrawTokens(eatQuantity);
-        console.log("Token length: ", tokenIds.length);
 
         // 4. Encode transfer data
         bool hasFractional = eatQuantity > (amount / (10 ** decimals()));
@@ -653,10 +654,9 @@ abstract contract JasmineBasePool is
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override returns (bool) {
+    ) public view override(ERC1046, ERC1155Receiver) returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId ||
             interfaceId == type(IJasminePool).interfaceId ||
-            interfaceId == type(IERC1046).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 

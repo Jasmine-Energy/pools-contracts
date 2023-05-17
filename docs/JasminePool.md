@@ -1144,6 +1144,17 @@ error Unqualified(uint256 tokenId)
 |---|---|---|
 | tokenId | uint256 | undefined |
 
+### ValidationFailed
+
+```solidity
+error ValidationFailed()
+```
+
+
+
+*Emitted if internal validation failed*
+
+
 ### WithdrawsLocked
 
 ```solidity
