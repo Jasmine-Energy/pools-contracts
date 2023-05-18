@@ -18,6 +18,7 @@ import { IERC1363Receiver } from "@openzeppelin/contracts/interfaces/IERC1363Rec
 // External Contracts
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 import { JasmineMinter } from "@jasmine-energy/contracts/src/JasmineMinter.sol";
+import { IERC1820Registry } from "@openzeppelin/contracts/interfaces/IERC1820Registry.sol";
 import { IRetirementRecipient } from "./interfaces/IRetirementRecipient.sol";
 
 // Libraries
@@ -40,6 +41,7 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC136
     JasmineMinter public immutable minter;
     JasmineEAT public immutable EAT;
 
+    IERC1820Registry public constant ERC1820_REGISTRY = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Setup
@@ -71,17 +73,35 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC136
         // 1. If transfer has data, forward to minter to burn. Else, create retire data
         if (data.length != 0) {
             // 2. Check if there is a fractional retirement included. If so, burn seperately
+
+            // TODO: Need to clean this up
             (bool isRetirement, bool hasFractional) = Calldata.isRetirementOperation(data);
-            if (isRetirement && hasFractional) {
-                minter.burn(tokenId, 1, Calldata.encodeFractionalRetirementData());
-                if (amount == 1) return this.onERC1155Received.selector;
-                data[0] = Calldata.RETIREMENT_OP;
-                minter.burn(tokenId, amount-1, data);
+            if (isRetirement) {
+                (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](1), new uint256[](1));
+                tokenIds[0] = tokenId;
+
+                if (hasFractional) {
+                    minter.burn(tokenId, 1, Calldata.encodeFractionalRetirementData());
+                    if (amount == 1) return this.onERC1155Received.selector;
+                    data[0] = Calldata.RETIREMENT_OP;
+                    minter.burn(tokenId, amount-1, data);
+
+                    amounts[0] = amount-1;
+                } else {
+                    amounts[0] = amount;
+                }
+
+                _notifyRetirementRecipient(from, tokenIds, amounts);
             } else {
                 minter.burn(tokenId, amount, data);
             }
         } else {
             minter.burn(tokenId, amount, Calldata.encodeRetirementData(from, false));
+
+            (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](1), new uint256[](1));
+            tokenIds[0] = tokenId;
+            amounts[0] = amount;
+            _notifyRetirementRecipient(from, tokenIds, amounts);
         }
         
         return this.onERC1155Received.selector;
@@ -101,30 +121,39 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC136
         // 1. If transfer has data, forward to minter to burn. Else, create retire data
         if (data.length != 0) {
             // 2. Check if there is a fractional retirement included. If so, burn seperately
+
+            // TODO: Need to clean this up
             (bool isRetirement, bool hasFractional) = Calldata.isRetirementOperation(data);
-            if (isRetirement && hasFractional) {
-                minter.burn(tokenIds[0], 1, Calldata.encodeFractionalRetirementData());
-                if (amounts[0] == 1) {
-                    bytes memory slicedTokens = ArrayUtils.slice(abi.encode(tokenIds), 1, tokenIds.length-1);
-                    bytes memory slicedAmounts = ArrayUtils.slice(abi.encode(amounts), 1, amounts.length-1);
-                    minter.burnBatch(
-                        abi.decode(slicedTokens, (uint256[])),
-                        abi.decode(slicedAmounts, (uint256[])),
-                        Calldata.encodeRetirementData(from, false)
-                    );
+            if (isRetirement) {
+                if (hasFractional) {
+                    minter.burn(tokenIds[0], 1, Calldata.encodeFractionalRetirementData());
+                    if (amounts[0] == 1) {
+                        uint256[] memory slicedTokens  = abi.decode(ArrayUtils.slice(abi.encode(tokenIds), 1, tokenIds.length-1), (uint256[]));
+                        uint256[] memory slicedAmounts = abi.decode(ArrayUtils.slice(abi.encode(amounts), 1, amounts.length-1), (uint256[]));
+                        minter.burnBatch(
+                            slicedTokens,
+                            slicedAmounts,
+                            Calldata.encodeRetirementData(from, false)
+                        );
+                        _notifyRetirementRecipient(from, slicedTokens, slicedAmounts);
+                    } else {
+                        amounts[0]--;
+                        minter.burnBatch(
+                            tokenIds,
+                            amounts,
+                            Calldata.encodeRetirementData(from, false)
+                        );
+                        _notifyRetirementRecipient(from, tokenIds, amounts);
+                    }
                 } else {
-                    amounts[0]--;
-                    minter.burnBatch(
-                        tokenIds,
-                        amounts,
-                        Calldata.encodeRetirementData(from, false)
-                    );
+                    _notifyRetirementRecipient(from, tokenIds, amounts);
                 }
             } else {
                 minter.burnBatch(tokenIds, amounts, data);
             }
         } else {
             minter.burnBatch(tokenIds, amounts, Calldata.encodeRetirementData(from, false));
+            _notifyRetirementRecipient(from, tokenIds, amounts);
         }
 
         return this.onERC1155BatchReceived.selector;
@@ -157,12 +186,30 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC136
         address holder,
         address recipient
     ) external {
-        // TODO: Implement me
+        ERC1820_REGISTRY.setInterfaceImplementer(
+            holder == address(0x0) ? msg.sender : holder,
+            type(IRetirementRecipient).interfaceId, recipient
+        );
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
+
+    //  ────────────────────────────  Retirement Hooks  ─────────────────────────────  \\
+
+    function _notifyRetirementRecipient(
+        address retiree,
+        uint256[] memory tokenIds,
+        uint256[] memory quantities
+    ) private {
+        address implementer = ERC1820_REGISTRY.getInterfaceImplementer(retiree, type(IRetirementRecipient).interfaceId);
+        if (implementer != address(0x0)) {
+            IRetirementRecipient(implementer).onRetirement(retiree, tokenIds, quantities);
+        }
+    }
+
+    //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
 
     modifier onlyEAT() {
         if (msg.sender != address(EAT)) revert JasmineErrors.Prohibited();

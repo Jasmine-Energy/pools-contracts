@@ -1,10 +1,10 @@
 # JasmineRetirementService
 
+*Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
+> Jasmine Retirement Service
 
-
-
-
+Facilitates retirements of EATs and JLTs in the Jasmine protocol
 
 
 
@@ -26,6 +26,23 @@ function EAT() external view returns (contract JasmineEAT)
 | Name | Type | Description |
 |---|---|---|
 | _0 | contract JasmineEAT | undefined |
+
+### ERC1820_REGISTRY
+
+```solidity
+function ERC1820_REGISTRY() external view returns (contract IERC1820Registry)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | contract IERC1820Registry | undefined |
 
 ### minter
 
