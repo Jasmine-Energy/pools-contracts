@@ -45,21 +45,21 @@ library Calldata {
         external pure
         returns (bytes memory retirementData)
     {
-        return abi.encodePacked(hasFractional ? RETIREMENT_FRACTIONAL_OP : RETIREMENT_OP, beneficiary);
+        return abi.encode(hasFractional ? RETIREMENT_FRACTIONAL_OP : RETIREMENT_OP, beneficiary);
     }
 
     function encodeFractionalRetirementData()
         external pure
         returns (bytes memory retirementData)
     {
-        return abi.encodePacked(RETIREMENT_FRACTIONAL_OP);
+        return abi.encode(RETIREMENT_FRACTIONAL_OP);
     }
 
     function encodeBridgeOffData(address recipient)
         external pure
         returns (bytes memory bridgeOffData)
     {
-        return abi.encodePacked(BRIDGE_OFF_OP, recipient);
+        return abi.encode(BRIDGE_OFF_OP, recipient);
     }
 
 

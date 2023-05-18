@@ -141,19 +141,19 @@ Handle the receipt of ERC1363 tokens
 ### registerRetirementRecipient
 
 ```solidity
-function registerRetirementRecipient(address holder, address recipient) external nonpayable
+function registerRetirementRecipient(address account, address implementer) external nonpayable
 ```
 
-Allows user to designate an address to receive retirement hooks.
+Registers a smart contract to receive notifications on retirement events 
 
-*Contract must implement IRetirementRecipient&#39;s onRetirement function*
+*Requirements:      - Retirement service must be an approved ERC-1820 manager of account      - Implementer must support IRetirementRecipient interface via ERC-165 *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| holder | address | User address to notify recipient address of retirements |
-| recipient | address | Smart contract to receive retirement hooks. Address must implement IRetirementRecipient interface. |
+| account | address | Address to register retirement recipient for |
+| implementer | address | Smart contract address to register as retirement implementer |
 
 ### supportsInterface
 
@@ -181,6 +181,17 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 
 
 ## Errors
+
+### InvalidInput
+
+```solidity
+error InvalidInput()
+```
+
+
+
+*Emitted if input is invalid*
+
 
 ### Prohibited
 

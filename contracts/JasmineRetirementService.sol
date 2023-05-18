@@ -72,36 +72,16 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC136
     {
         // 1. If transfer has data, forward to minter to burn. Else, create retire data
         if (data.length != 0) {
-            // 2. Check if there is a fractional retirement included. If so, burn seperately
-
-            // TODO: Need to clean this up
+            // 2. Execute retirement if data encodes retirement op, else burn with given data
             (bool isRetirement, bool hasFractional) = Calldata.isRetirementOperation(data);
             if (isRetirement) {
-                (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](1), new uint256[](1));
-                tokenIds[0] = tokenId;
-
-                if (hasFractional) {
-                    minter.burn(tokenId, 1, Calldata.encodeFractionalRetirementData());
-                    if (amount == 1) return this.onERC1155Received.selector;
-                    data[0] = Calldata.RETIREMENT_OP;
-                    minter.burn(tokenId, amount-1, data);
-
-                    amounts[0] = amount-1;
-                } else {
-                    amounts[0] = amount;
-                }
-
-                _notifyRetirementRecipient(from, tokenIds, amounts);
+                _executeRetirement(from, tokenId, amount, hasFractional, data);
             } else {
                 minter.burn(tokenId, amount, data);
             }
         } else {
-            minter.burn(tokenId, amount, Calldata.encodeRetirementData(from, false));
-
-            (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](1), new uint256[](1));
-            tokenIds[0] = tokenId;
-            amounts[0] = amount;
-            _notifyRetirementRecipient(from, tokenIds, amounts);
+            // 3. If no data, defaut to retire operation
+            _executeRetirement(from, tokenId, amount, false, Calldata.encodeRetirementData(from, false));
         }
         
         return this.onERC1155Received.selector;
@@ -120,40 +100,16 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC136
     {
         // 1. If transfer has data, forward to minter to burn. Else, create retire data
         if (data.length != 0) {
-            // 2. Check if there is a fractional retirement included. If so, burn seperately
-
-            // TODO: Need to clean this up
+            // 2. Execute retirement if data encodes retirement op, else burn with given data
             (bool isRetirement, bool hasFractional) = Calldata.isRetirementOperation(data);
             if (isRetirement) {
-                if (hasFractional) {
-                    minter.burn(tokenIds[0], 1, Calldata.encodeFractionalRetirementData());
-                    if (amounts[0] == 1) {
-                        uint256[] memory slicedTokens  = abi.decode(ArrayUtils.slice(abi.encode(tokenIds), 1, tokenIds.length-1), (uint256[]));
-                        uint256[] memory slicedAmounts = abi.decode(ArrayUtils.slice(abi.encode(amounts), 1, amounts.length-1), (uint256[]));
-                        minter.burnBatch(
-                            slicedTokens,
-                            slicedAmounts,
-                            Calldata.encodeRetirementData(from, false)
-                        );
-                        _notifyRetirementRecipient(from, slicedTokens, slicedAmounts);
-                    } else {
-                        amounts[0]--;
-                        minter.burnBatch(
-                            tokenIds,
-                            amounts,
-                            Calldata.encodeRetirementData(from, false)
-                        );
-                        _notifyRetirementRecipient(from, tokenIds, amounts);
-                    }
-                } else {
-                    _notifyRetirementRecipient(from, tokenIds, amounts);
-                }
+                _executeRetirement(from, tokenIds, amounts, hasFractional, data);
             } else {
                 minter.burnBatch(tokenIds, amounts, data);
             }
         } else {
-            minter.burnBatch(tokenIds, amounts, Calldata.encodeRetirementData(from, false));
-            _notifyRetirementRecipient(from, tokenIds, amounts);
+            // 3. If no data, defaut to retire operation
+            _executeRetirement(from, tokenIds, amounts, false, Calldata.encodeRetirementData(from, false));
         }
 
         return this.onERC1155BatchReceived.selector;
@@ -182,13 +138,24 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC136
     //  Retirement Notification Recipient
     //  ─────────────────────────────────────────────────────────────────────────────
 
+    /**
+     * @notice Registers a smart contract to receive notifications on retirement events
+     * 
+     * @dev Requirements:
+     *      - Retirement service must be an approved ERC-1820 manager of account
+     *      - Implementer must support IRetirementRecipient interface via ERC-165
+     * 
+     * @param account Address to register retirement recipient for
+     * @param implementer Smart contract address to register as retirement implementer
+     */
     function registerRetirementRecipient(
-        address holder,
-        address recipient
+        address account,
+        address implementer
     ) external {
         ERC1820_REGISTRY.setInterfaceImplementer(
-            holder == address(0x0) ? msg.sender : holder,
-            type(IRetirementRecipient).interfaceId, recipient
+            account == address(0x0) ? msg.sender : account,
+            type(IRetirementRecipient).interfaceId,
+            implementer
         );
     }
 
@@ -196,21 +163,167 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC136
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
 
+    /**
+     * @dev Utility function to execute a retirement of EATs
+     * 
+     * @param beneficiary Address receiving retirement credit
+     * @param tokenId EAT token ID being retired
+     * @param amount Number of EATs being retired
+     * @param hasFractional Whether to retire a fractional EAT
+     * @param data Optional data to be emitted by retirement
+     */
+    function _executeRetirement(
+        address beneficiary,
+        uint256 tokenId,
+        uint256 amount,
+        bool hasFractional,
+        bytes memory data
+    )
+        private
+    {
+        if (amount == 0) revert JasmineErrors.InvalidInput();
+
+        // 1. Decode beneficiary from data if able, set otherwise
+        if (data.length >= 2) {
+            (,beneficiary) = abi.decode(data, (bytes1,address));
+        } else if (data.length == 1) {
+            data = abi.encodePacked(data, beneficiary);
+        } else if (data.length == 0) {
+            data = Calldata.encodeRetirementData(beneficiary, hasFractional);
+        }
+
+        // 2. If fractional, execute burn and decrement amount
+        if (hasFractional) {
+            _executeFractionalRetirement(tokenId);
+
+            if (amount == 1) return;
+
+            unchecked {
+                amount--;
+            }
+            data[0] = Calldata.RETIREMENT_OP;
+        }
+        
+        minter.burn(tokenId, amount, data);
+        _notifyRetirementRecipient(beneficiary, tokenId, amount);
+    }
+
+    /**
+     * @dev Utility function to execute a batch retirement of EATs
+     * 
+     * @param beneficiary Address receiving retirement credit
+     * @param tokenIds EAT token IDs being retired
+     * @param amounts Number of EATs being retired
+     * @param hasFractional Whether to retire a fractional EAT
+     * @param data Optional data to be emitted by retirement
+     */
+    function _executeRetirement(
+        address beneficiary,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        bool hasFractional,
+        bytes memory data
+    )
+        private
+    {
+        if (tokenIds.length != amounts.length || tokenIds.length == 0) revert JasmineErrors.InvalidInput();
+
+        // 1. Decode beneficiary from data if able, set otherwise
+        if (data.length >= 2) {
+            (,beneficiary) = abi.decode(data, (bytes1,address));
+        } else if (data.length == 1) {
+            data = abi.encodePacked(data, beneficiary);
+        } else if (data.length == 0) {
+            data = Calldata.encodeRetirementData(beneficiary, hasFractional);
+        }
+
+        // 2. If fractional, burn single and update tokens and data
+        if (hasFractional) {
+            _executeFractionalRetirement(tokenIds[0]);
+
+            data[0] = Calldata.RETIREMENT_OP;
+
+            // 2.1 If only one of first token, pop from tokenIds. Else decrement amount
+            if (amounts[0] == 1) {
+                tokenIds  = abi.decode(ArrayUtils.slice(abi.encode(tokenIds), 1, tokenIds.length-1), (uint256[]));
+                amounts = abi.decode(ArrayUtils.slice(abi.encode(amounts), 1, amounts.length-1), (uint256[]));
+
+                if (tokenIds.length == 0) return;
+            } else {
+                unchecked {
+                    amounts[0]--;
+                }
+            }
+        }
+
+        // 3. Burn and notify recipient
+        minter.burnBatch(
+            tokenIds,
+            amounts,
+            data
+        );
+        _notifyRetirementRecipient(beneficiary, tokenIds, amounts);
+    }
+
+    /**
+     * @dev Retires a single EAT for fractional purposes
+     * 
+     * @param tokenId EAT token ID to retire fraction of
+     */
+    function _executeFractionalRetirement(uint256 tokenId) private {
+        minter.burn(tokenId, 1, Calldata.encodeFractionalRetirementData());
+    }
+
     //  ────────────────────────────  Retirement Hooks  ─────────────────────────────  \\
 
+    /**
+     * @dev Checks if retiree has a Retirement Recipient set and notifies implementer
+     *      of retirement event if possible. Will not revert if implementer's 
+     *      onRetirement call fails.
+     * 
+     * @param retiree Account executing retirement
+     * @param tokenIds EAT token IDs being retired
+     * @param amounts Amount of EATs being retired
+     */
     function _notifyRetirementRecipient(
         address retiree,
         uint256[] memory tokenIds,
-        uint256[] memory quantities
+        uint256[] memory amounts
     ) private {
         address implementer = ERC1820_REGISTRY.getInterfaceImplementer(retiree, type(IRetirementRecipient).interfaceId);
         if (implementer != address(0x0)) {
-            IRetirementRecipient(implementer).onRetirement(retiree, tokenIds, quantities);
+            try IRetirementRecipient(implementer).onRetirement(retiree, tokenIds, amounts) { }
+            catch { }
+        }
+    }
+
+    /**
+     * @dev Checks if retiree has a Retirement Recipient set and notifies implementer
+     *      of retirement event if possible. Will not revert if implementer's 
+     *      onRetirement call fails.
+     * 
+     * @param retiree Account executing retirement
+     * @param tokenId EAT token ID being retired
+     * @param amount Amount of EATs being retired
+     */
+    function _notifyRetirementRecipient(
+        address retiree,
+        uint256 tokenId,
+        uint256 amount
+    ) private {
+        address implementer = ERC1820_REGISTRY.getInterfaceImplementer(retiree, type(IRetirementRecipient).interfaceId);
+        if (implementer != address(0x0)) {
+            (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](1), new uint256[](1));
+            tokenIds[0] = tokenId;
+            amounts[0] = amount;
+            try IRetirementRecipient(implementer).onRetirement(retiree, tokenIds, amounts) { }
+            catch { }
         }
     }
 
     //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
 
+    /// @dev Enforces caller is EAT contract
     modifier onlyEAT() {
         if (msg.sender != address(EAT)) revert JasmineErrors.Prohibited();
         _;
