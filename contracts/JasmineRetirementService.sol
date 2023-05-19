@@ -26,6 +26,8 @@ import { Calldata } from "./libraries/Calldata.sol";
 import { ArrayUtils } from "./libraries/ArrayUtils.sol";
 import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
+// TODO: Make Retirement Service UUPS upgradeable
+
 /**
  * @title Jasmine Retirement Service
  * @author Kai Aldag<kai.aldag@jasmine.energy>
