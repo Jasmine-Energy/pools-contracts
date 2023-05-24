@@ -3,7 +3,7 @@ import { Contracts, Libraries } from "@/utils";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import {
   JasminePool, JasmineRetirementService,
-  JasmineEAT, JasmineOracle, JasmineMinter, 
+  JasmineEAT, JasmineOracle, JasmineMinter, JasminePoolFactory, 
 } from "@/typechain";
 
 
@@ -124,4 +124,19 @@ export async function deployPoolImplementation() {
     retirementService.address
   );
   return poolImplementation as JasminePool;
+}
+
+export async function deployPoolFactory() {
+  const { owner, uniswapPoolFactory, USDC } = await getNamedAccounts();
+  const poolImplementation = await loadFixture(deployPoolImplementation);
+
+  const PoolFactory = await ethers.getContractFactory(Contracts.factory);
+
+  const poolFactory = await PoolFactory.deploy(
+    poolImplementation.address,
+    owner,
+    uniswapPoolFactory,
+    USDC
+  );
+  return poolFactory as JasminePoolFactory;
 }

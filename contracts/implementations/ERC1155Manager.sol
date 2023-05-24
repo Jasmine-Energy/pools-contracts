@@ -41,8 +41,8 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     uint256 private _totalDeposits;
     EnumerableSet.UintSet private _holdings;
 
-    uint8 private immutable WITHDRAWS_LOCK = 1;
-    uint8 private immutable WITHDRAWS_UNLOCKED = 2;
+    uint8 private constant WITHDRAWS_LOCK = 1;
+    uint8 private constant WITHDRAWS_UNLOCKED = 2;
 
     uint8 private _isUnlocked;
 

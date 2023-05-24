@@ -33,7 +33,8 @@ const deployFactory: DeployFunction = async function (
         console.log('Verifyiyng on Etherscan...');
         await run('verify:verify', {
             address: factory,
-            constructorArguments: [pool.address],
+            constructorArguments: [pool.address, feeBeneficiary, uniswapPoolFactory, USDC],
+            // TODO: link libraries
         });
     }
 

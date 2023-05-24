@@ -181,12 +181,49 @@ contract JasminePoolFactory is
         return computePoolAddress(_pools.at(index));
     }
 
-    // TODO Implement me
-    function eligiblePoolsForToken(uint256)
-        external pure
-        returns (address[] memory)
+    /**
+     * @notice Gets a list of Jasmine pool addresses that an EAT is eligible
+     *         to be deposited into.
+     * 
+     * @dev Runs in O(n) with respect to number of pools and does not support
+     *      a max count. This should only be used by off-chain services and
+     *      should not be called by other smart contracts due to the potentially
+     *      unlimited gas that may be spent.
+     * 
+     * @param tokenId EAT token ID to check for eligible pools
+     * 
+     * @return pools List of pool addresses token meets eligibility criteria
+     */
+    function eligiblePoolsForToken(uint256 tokenId)
+        external view
+        returns (address[] memory pools)
     {
-        revert("JasminePoolFactory: Unimplemented");
+        address[] memory eligiblePools = new address[](_pools.length());
+        uint256 eligiblePoolsCount = 0;
+
+        for (uint256 i; i < _pools.length();) {
+            address poolAddress = computePoolAddress(_pools.at(i));
+            if (IJasminePool(poolAddress).meetsPolicy(tokenId)) {
+                eligiblePools[eligiblePoolsCount] = poolAddress;
+                eligiblePoolsCount++;
+            }
+
+            unchecked {
+                i++;
+            }
+        }
+
+        pools = new address[](eligiblePoolsCount);
+
+        for (uint256 i; i < eligiblePoolsCount;) {
+            pools[i] = eligiblePools[i];
+
+            unchecked {
+                i++;
+            }
+        }
+
+        return pools;
     }
 
 
@@ -525,7 +562,7 @@ contract JasminePoolFactory is
         returns (address pool)
     {
         (address token0, address token1) = JLTPool < USDC ? (JLTPool, USDC) : (USDC, JLTPool);
-        require(token0 < token1);
+        if (token0 > token1) revert JasmineErrors.ValidationFailed();
         
         pool = IUniswapV3Factory(UniswapFactory).getPool(token0, token1, defaultUniswapFee);
 

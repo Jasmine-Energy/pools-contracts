@@ -254,24 +254,24 @@ Deploys a new pool from list of pool implementations
 ### eligiblePoolsForToken
 
 ```solidity
-function eligiblePoolsForToken(uint256) external pure returns (address[])
+function eligiblePoolsForToken(uint256 tokenId) external view returns (address[] pools)
 ```
 
+Gets a list of Jasmine pool addresses that an EAT is eligible         to be deposited into. 
 
-
-
+*Runs in O(n) with respect to number of pools and does not support      a max count. This should only be used by off-chain services and      should not be called by other smart contracts due to the potentially      unlimited gas that may be spent. *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined |
+| tokenId | uint256 | EAT token ID to check for eligible pools  |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address[] | undefined |
+| pools | address[] | List of pool addresses token meets eligibility criteria |
 
 ### feeBeneficiary
 
@@ -900,5 +900,16 @@ error RequiresRole(bytes32 role)
 | Name | Type | Description |
 |---|---|---|
 | role | bytes32 | undefined |
+
+### ValidationFailed
+
+```solidity
+error ValidationFailed()
+```
+
+
+
+*Emitted if internal validation failed*
+
 
 

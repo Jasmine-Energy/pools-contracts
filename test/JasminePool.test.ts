@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers, getNamedAccounts } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contracts } from "@/utils";
+import { DEFAULT_DECIMAL } from "@/utils/constants";
 import {
   JasminePool,
   JasminePoolFactory,
@@ -9,7 +10,7 @@ import {
   JasmineOracle,
   JasmineMinter,
 } from "@/typechain";
-import { deployPoolImplementation, deployCoreFixture } from "./shared/fixtures";
+import { deployPoolImplementation, deployCoreFixture, deployPoolFactory } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
@@ -21,12 +22,9 @@ import {
   mintFunctionType,
 } from "./shared/utilities";
 import {
-  CertificateEndorsement,
-  CertificateRegistry,
-  EnergyCertificateType,
   FuelType,
 } from "@/types/energy-certificate.types";
-import { DEFAULT_DECIMAL } from "@/utils/constants";
+
 
 describe(Contracts.pool, function () {
   let owner: SignerWithAddress;
@@ -54,7 +52,6 @@ describe(Contracts.pool, function () {
     owner = await ethers.getSigner(namedAccounts.owner);
     bridge = await ethers.getSigner(namedAccounts.bridge);
     accounts = await ethers.getSigners();
-    const { uniswapPoolFactory, USDC } = namedAccounts;
 
     const coreContract = await loadFixture(deployCoreFixture);
     eat = coreContract.eat;
@@ -65,15 +62,7 @@ describe(Contracts.pool, function () {
 
     poolImplementation = await loadFixture(deployPoolImplementation);
 
-    const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-    // NOTE: This errors when no deployment folder's been created
-    // TODO: Fix above requirement of having deploy
-    poolFactory = (await PoolFactory.deploy(
-      poolImplementation.address,
-      owner.address,
-      uniswapPoolFactory,
-      USDC
-    )) as JasminePoolFactory;
+    poolFactory = await loadFixture(deployPoolFactory);
   });
 
   async function deployPoolsFixture() {
@@ -234,6 +223,20 @@ describe(Contracts.pool, function () {
           await eat.balanceOf(owner.address, ownerTokens.windToken.id)
         ).to.be.eq(initalEATtBal);
       });
+
+      it("Should reject tokens depositted to implementation contract", async function () {
+        await expect(
+          eat.safeTransferFrom(
+            owner.address,
+            poolImplementation.address,
+            ownerTokens.solarToken.id,
+            ownerTokens.solarToken.amount,
+            []
+          )
+        ).to.be.revertedWith(
+          "ERC1155: transfer to non-ERC1155Receiver implementer"
+        );
+      });
     });
 
     describe("#onERC1155BatchReceived", async function () {
@@ -316,6 +319,20 @@ describe(Contracts.pool, function () {
             [ownerTokens.solarToken.id, ownerTokens.windToken.id]
           )
         ).to.deep.equal(initalEatBal);
+      });
+
+      it("Should reject tokens depositted to implementation contract", async function () {
+        await expect(
+          eat.safeBatchTransferFrom(
+            owner.address,
+            poolImplementation.address,
+            [ownerTokens.solarToken.id, ownerTokens.windToken.id],
+            [ownerTokens.solarToken.amount, ownerTokens.windToken.amount],
+            []
+          )
+        ).to.be.revertedWith(
+          "ERC1155: transfer to non-ERC1155Receiver implementer"
+        );
       });
     });
   });

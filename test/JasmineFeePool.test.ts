@@ -9,7 +9,7 @@ import {
   JasmineOracle,
   JasmineMinter,
 } from "@/typechain";
-import { deployPoolImplementation, deployCoreFixture } from "./shared/fixtures";
+import { deployPoolImplementation, deployCoreFixture, deployPoolFactory } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
@@ -49,7 +49,6 @@ describe("Fee Pool", function () {
     owner = await ethers.getSigner(namedAccounts.owner);
     bridge = await ethers.getSigner(namedAccounts.bridge);
     accounts = await ethers.getSigners();
-    const { uniswapPoolFactory, USDC } = namedAccounts;
 
     const coreContract = await loadFixture(deployCoreFixture);
     eat = coreContract.eat;
@@ -60,15 +59,7 @@ describe("Fee Pool", function () {
 
     poolImplementation = await loadFixture(deployPoolImplementation);
 
-    const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-    // NOTE: This errors when no deployment folder's been created
-    // TODO: Fix above requirement of having deploy
-    poolFactory = (await PoolFactory.deploy(
-      poolImplementation.address,
-      owner.address,
-      uniswapPoolFactory,
-      USDC
-    )) as JasminePoolFactory;
+    poolFactory = await loadFixture(deployPoolFactory);
   });
 
   async function deployPoolsFixture() {
