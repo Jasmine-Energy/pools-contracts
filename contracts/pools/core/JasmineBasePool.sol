@@ -11,6 +11,8 @@ pragma solidity >=0.8.17;
 import { IJasminePool } from "../../interfaces/IJasminePool.sol";
 
 // Implementation Contracts
+import { ERC1155Manager } from "../../implementations/ERC1155Manager.sol";
+import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC1155Holder } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -20,10 +22,13 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 
 // External Contracts
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
+import { JasmineRetirementService } from "../../JasmineRetirementService.sol";
 
 // Utility Libraries
 import { PoolPolicy } from "../../libraries/PoolPolicy.sol";
+import { Calldata } from "../../libraries/Calldata.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils } from "../../libraries/ArrayUtils.sol";
 import { 
     ERC20Errors,
@@ -34,7 +39,6 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
 // Interfaces
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 import { IERC1046 } from "../../interfaces/ERC/IERC1046.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
@@ -46,10 +50,11 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
  * @custom:security-contact dev@jasmine.energy
  */
 abstract contract JasmineBasePool is
+    IJasminePool,
     ERC20,
     ERC20Permit,
     ERC1046,
-    ERC1155Holder,
+    ERC1155Manager,
     Initializable,
     ReentrancyGuard
 {
@@ -62,53 +67,14 @@ abstract contract JasmineBasePool is
 
 
     // ──────────────────────────────────────────────────────────────────────────────
-    // Events
-    // ──────────────────────────────────────────────────────────────────────────────
-    
-    // TODO These are define in IEATBackedPool, importing here for now
-
-    /**
-     * @dev Emitted whenever EATs are deposited to the contract
-     * 
-     * @param operator Initiator of the deposit
-     * @param owner Token holder depositting to contract
-     * @param quantity Number of EATs deposited. Note: JLTs issued are 1-1 with EATs
-     */
-    event Deposit(
-        address indexed operator,
-        address indexed owner,
-        uint256 quantity
-    );
-
-    /**
-     * @dev Emitted whenever EATs are withdrawn from the contract
-     * 
-     * @param sender Initiator of the deposit
-     * @param receiver Token holder depositting to contract
-     * @param quantity Number of EATs withdrawn.
-     */
-    event Withdraw(
-        address indexed sender,
-        address indexed receiver,
-        uint256 quantity
-    );
-
-
-    // ──────────────────────────────────────────────────────────────────────────────
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
 
-
-    //  ────────────────────────  Deposit Management Fields  ────────────────────────  \\
-
-    /// @dev Convenience mapping to record EATs held by a given pool
-    EnumerableSet.UintSet internal _holdings;
-
-
     //  ────────────────────────────────  Addresses  ────────────────────────────────  \\
 
-    // solhint-disable-next-line var-name-mixedcase
     JasmineEAT public immutable EAT;
+    address public immutable retirementService;
+    // QUESTION: Should prob standardize and make this a contract
     address public immutable poolFactory;
 
 
@@ -118,8 +84,6 @@ abstract contract JasmineBasePool is
     string private _name;
     /// @notice Token Symbol - per ERC-20
     string private _symbol;
-    /// @notice JLT's decimal precision - per ERC-20
-    uint8 private constant DECIMALS = 18;
 
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -127,16 +91,21 @@ abstract contract JasmineBasePool is
     // ──────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @dev
+     * @param _eat Address of the Jasmine Energy Attribution Token (EAT) contract
+     * @param _poolFactory Address of the Jasmine Pool Factory contract
+     * @param _retirementService Address of the Jasmine retirement service contract
      */
-    constructor(address _eat, address _poolFactory) 
+    constructor(address _eat, address _poolFactory, address _retirementService)
         ERC20("Jasmine Liquidity Token Base", "JLT")
         ERC20Permit("Jasmine Liquidity Token Base")
+        ERC1155Manager(_eat)
     {
-        require(_eat != address(0), "JasminePool: EAT must be set");
-        require(_poolFactory != address(0), "JasminePool: Pool factory must be set");
+        if (_eat == address(0x0) || 
+            _poolFactory == address(0x0) || 
+            _retirementService == address(0x0)) revert JasmineErrors.ValidationFailed();
 
         EAT = JasmineEAT(_eat);
+        retirementService = _retirementService;
         poolFactory = _poolFactory;
     }
 
@@ -166,17 +135,79 @@ abstract contract JasmineBasePool is
     // @inheritdoc {IRetireablePool}
     // TODO: Once pool conforms to IJasminePool again, add above line to natspec
     function retire(
-        address sender,
-        address,
-        uint256 amount,
-        bytes calldata
+        address owner, 
+        address beneficiary, 
+        uint256 amount, 
+        bytes calldata data
     )
         external virtual
-        nonReentrant onlyAllowed(sender, _standardizeDecimal(amount))
+        onlyAllowed(owner, amount)
+        nonReentrant enforceDeposits
     {
-        // TODO: Implement me
-        revert("JasmineBasePool: Unimplemented");
+        // 1. Burn JLTs from owner
+        _burn(owner, amount);
+
+        // 2. Select quantity of EATs to retire
+        uint256 oneEATCost = _standardizeDecimal(1);
+        if (amount < oneEATCost) {
+
+        }
+
+        // 3. Select tokens to withdraw
+        (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](0), new uint256[](0));
+        (tokenIds, amounts) = _selectWithdrawTokens(amount);
     }
+
+    /**
+     * @notice Retires an exact amount of JLTs. If fees or other conversions are set,
+     *         cost of retirement will be greater than amount.
+     * 
+     * @param owner JLT holder to retire from
+     * @param beneficiary Address to receive retirement attestation
+     * @param amount Exact number of JLTs to retire
+     * @param data Optional calldata to relay to retirement service via onERC1155Received
+     */
+    function retireExact(
+        address owner, 
+        address beneficiary, 
+        uint256 amount, 
+        bytes calldata data
+    )
+        external virtual
+        onlyAllowed(owner, amount)
+        withdrawal enforceDeposits nonReentrant
+    {
+        // 1. Burn JLTs from owner
+        uint256 cost = retirementCost(amount);
+        _burn(owner, cost);
+
+        // 2. Select quantity of EATs to retire
+        uint256 eatQuantity = totalDeposits() - Math.ceilDiv(totalSupply(), 10 ** decimals());
+        if (eatQuantity == 0) {
+            emit Retirement(owner, beneficiary, amount);
+            return;
+        }
+
+        // 3. Select tokens to withdraw
+        (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](0), new uint256[](0));
+        (tokenIds, amounts) = _selectWithdrawTokens(eatQuantity);
+
+        // 4. Encode transfer data
+        bool hasFractional = eatQuantity > (amount / (10 ** decimals()));
+        bytes memory retirementData;
+
+        // If it's a fractional retirement and only one EAT is to be retired, only encode fractional data
+        if (hasFractional && eatQuantity == 1) {
+            retirementData = Calldata.encodeFractionalRetirementData();
+        } else {
+            retirementData = Calldata.encodeRetirementData(beneficiary, hasFractional);
+        }
+
+        // 5. Send to retirement service and emit retirement event
+        _transferDeposits(retirementService, tokenIds, amounts, retirementData);
+        emit Retirement(owner, beneficiary, amount);
+    }
+
 
     //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
 
@@ -197,7 +228,7 @@ abstract contract JasmineBasePool is
         uint256 amount
     )
         external virtual
-        nonReentrant checkEligibility(tokenId)
+        checkEligibility(tokenId)
         returns (uint256 jltQuantity)
     {
         return _deposit(_msgSender(), tokenId, amount);
@@ -218,13 +249,13 @@ abstract contract JasmineBasePool is
      * @return jltQuantity Number of JLTs issued
      * TODO: Rename from operator deposit
      */
-    function operatorDeposit(
+    function depositFrom(
         address from,
         uint256 tokenId,
         uint256 amount
     )
         external virtual
-        nonReentrant onlyEATApproved(from) checkEligibility(tokenId)
+        onlyEATApproved(from) checkEligibility(tokenId)
         returns (uint256 jltQuantity)
     {
         return _deposit(from, tokenId, amount);
@@ -247,25 +278,12 @@ abstract contract JasmineBasePool is
         uint256[] calldata amounts
     )
         external virtual
-        nonReentrant onlyEATApproved(from) checkEligibilities(tokenIds)
+        onlyEATApproved(from) checkEligibilities(tokenIds)
+        nonReentrant enforceDeposits
         returns (uint256 jltQuantity)
     {
-        // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
-        try EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "") {
-            return amounts.sum();
-        } catch Error(string memory reason) {
-            // TODO Attempt to determine other failure reasons
-            if (tokenIds.length != amounts.length) {
-                revert ERC1155Errors.ERC1155InvalidArrayLength(
-                    tokenIds.length,
-                    amounts.length
-                );
-            } else {
-                revert(reason);
-            }
-        } catch {
-            revert("JasmineBasePool: Deposit failed");
-        }
+        EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
+        return _standardizeDecimal(amounts.sum());
     }
 
     /**
@@ -285,29 +303,11 @@ abstract contract JasmineBasePool is
         uint256 amount
     )
         internal virtual
+        nonReentrant enforceDeposits
         returns (uint256 jltQuantity)
     {
-        // TODO: Remove try catch
-        // NOTE: JLTs are minted and _holdings updated upon ERC-1155 receipt
-        try EAT.safeTransferFrom(from, address(this), tokenId, amount, "") {
-            return amount;
-        } catch Error(string memory reason) {
-            // If failed, attempt to determine cause, else return reason string
-            if (!EAT.isApprovedForAll(from, address(this))) {
-                revert ERC1155Errors.ERC1155InsufficientApproval(address(this), tokenId);
-            } else if (EAT.balanceOf(from, tokenId) < amount) {
-                revert ERC1155Errors.ERC1155InsufficientBalance(
-                    from,
-                    EAT.balanceOf(from, tokenId),
-                    amount,
-                    tokenId
-                );
-            } else {
-                revert(reason);
-            }
-        } catch {
-            revert("JasmineBasePool: Deposit failed");
-        }
+        EAT.safeTransferFrom(from, address(this), tokenId, amount, "");
+        return _standardizeDecimal(amount);
     }
 
 
@@ -316,7 +316,7 @@ abstract contract JasmineBasePool is
     /**
      * @notice Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw
      *         from an alternate address - that the caller's approved for - 
-     *         defer to operatorWithdraw.
+     *         defer to withdrawFrom.
      * 
      * @dev Requirements:
      *     - Caller must have sufficient JLTs
@@ -332,13 +332,14 @@ abstract contract JasmineBasePool is
         bytes calldata data
     )
         external virtual
+        withdrawal
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
         (tokenIds, amounts) = (new uint256[](0), new uint256[](0));
-        (tokenIds, amounts) = _selectAnyTokens(amount);
+        (tokenIds, amounts) = _selectWithdrawTokens(amount);
         _withdraw(
             _msgSender(),
             recipient,
@@ -364,21 +365,21 @@ abstract contract JasmineBasePool is
      * @param amount Number of JLTs to burn and EATs to withdraw
      * @param data Optional calldata to forward to recipient
      */
-    function operatorWithdraw(
+    function withdrawFrom(
         address sender,
         address recipient,
         uint256 amount,
         bytes calldata data
     )
         external virtual
-        onlyAllowed(sender, _standardizeDecimal(amount))
+        withdrawal onlyAllowed(sender, _standardizeDecimal(amount))
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
         (tokenIds, amounts) = (new uint256[](0), new uint256[](0));
-        (tokenIds, amounts) = _selectAnyTokens(amount);
+        (tokenIds, amounts) = _selectWithdrawTokens(amount);
         _withdraw(
             sender,
             recipient,
@@ -415,7 +416,7 @@ abstract contract JasmineBasePool is
         bytes calldata data
     ) 
         external virtual
-        onlyAllowed(sender, _standardizeDecimal(amounts.sum()))
+        withdrawal onlyAllowed(sender, _standardizeDecimal(amounts.sum()))
     {
         _withdraw(
             sender,
@@ -446,7 +447,7 @@ abstract contract JasmineBasePool is
         bytes memory data
     ) 
         internal virtual
-        nonReentrant
+        enforceDeposits nonReentrant
     {
         // 1. Ensure sender has sufficient JLTs and lengths match
         if (balanceOf(sender) < cost)
@@ -465,7 +466,7 @@ abstract contract JasmineBasePool is
         _burn(sender, cost);
 
         // 3. Transfer Select Tokens
-        _sendBatchEAT(recipient, tokenIds, amounts, data);
+        _transferDeposits(recipient, tokenIds, amounts, data);
     }
 
 
@@ -490,7 +491,7 @@ abstract contract JasmineBasePool is
         external view virtual
         returns (bytes memory policy)
     {
-        require(metadataVersion == 1, "JasminePool: No policy for version");
+        if (metadataVersion != 1) revert JasmineErrors.UnsupportedMetadataVersion(metadataVersion);
         return abi.encode(
             EAT.exists.selector,
             EAT.frozen.selector
@@ -544,6 +545,22 @@ abstract contract JasmineBasePool is
         return _standardizeDecimal(amount);
     }
 
+    /**
+     * @notice Cost of retiring JLTs from pool.
+     * 
+     * @param amount Amount of JLTs to retire.
+     * 
+     * @return cost Price of retiring in JLTs.
+     */
+    function retirementCost(
+        uint256 amount
+    )
+        public view virtual
+        returns (uint256 cost)
+    {
+        return amount;
+    }
+
     // ──────────────────────────────────────────────────────────────────────────────
     // Overrides
     // ──────────────────────────────────────────────────────────────────────────────
@@ -580,13 +597,7 @@ abstract contract JasmineBasePool is
         return _symbol;
     }
 
-    /**
-     * @inheritdoc IERC20Metadata
-     * @dev See {IERC20Metadata-decimals}.
-     */
-    function decimals() public pure override(ERC20, IERC20Metadata) returns (uint8) {
-        return DECIMALS;
-    }
+
 
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
@@ -596,11 +607,9 @@ abstract contract JasmineBasePool is
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override returns (bool) {
+    ) public view override(ERC1046, ERC1155Receiver) returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId ||
-            interfaceId == type(IERC1155Receiver).interfaceId ||
             interfaceId == type(IJasminePool).interfaceId ||
-            interfaceId == type(IERC1046).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
@@ -609,184 +618,30 @@ abstract contract JasmineBasePool is
     //  Token Transfer Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    //  ──────────────────────  ERC-1155 Receiver Conformance  ──────────────────────  \\
+    //  ─────────────────────────  ERC-1155 Deposit Hooks  ──────────────────────────  \\
 
-    /// @inheritdoc IERC1155Receiver
-    function onERC1155Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        uint256 value,
-        bytes memory 
+    function beforeDeposit(
+        address,
+        uint256[] memory tokenIds,
+        uint256[] memory
     )
-        public virtual override
-        onlyEAT checkEligibility(tokenId)
-        returns (bytes4)
+        internal view override
     {
-        // 1. Add token ID to holdings
-        _holdings.add(tokenId);
-
-        // 2. Mint Tokens
-        _mint(
-            from,
-            _standardizeDecimal(value)
-        );
-
-        // TODO: Call data
-
-        // 3. Emit Deposit and return onERC1155Received
-        emit Deposit(operator, from, value);
-        return this.onERC1155Received.selector;
+        _enforceEligibility(tokenIds);
     }
 
-    /// @inheritdoc IERC1155Receiver
-    function onERC1155BatchReceived(
-        address operator,
-        address from,
-        uint256[] memory tokenIds,
-        uint256[] memory values,
-        bytes memory 
-    )
-        public virtual override
-        onlyEAT checkEligibilities(tokenIds)
-        returns (bytes4)
-    {
-        // 1. Ensure tokens received are EATs
-        if (tokenIds.length != values.length)
-            revert ERC1155Errors.ERC1155InvalidArrayLength(
-                tokenIds.length,
-                values.length
-            );
-
-        // 2. Verify all tokens are eligible for pool, add to holdings and sum total EATs received
-        uint256 total;
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            total += values[i];
-            _holdings.add(tokenIds[i]);
-        }
-
-        // 3. Authorize JLT mint
+    function afterDeposit(address from, uint256 quantity) internal override {
         _mint(
             from,
-            _standardizeDecimal(total)
+            _standardizeDecimal(quantity)
         );
 
-        // TODO: Call data
-
-        // 4. Emit Deposit and return onERC1155BatchReceived
-        emit Deposit(operator, from, total);
-        return this.onERC1155BatchReceived.selector;
+        emit Deposit(from, from, quantity);
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
-
-    //  ─────────────────────────  EAT Transfer Utilities  ──────────────────────────  \\
-
-    /**
-     * @dev Internal method for sending EAT out of contract and updating holdings
-     * 
-     * @param to Address to receive EAT
-     * @param tokenId EAT token ID to send
-     * @param amount Number of EAT to send
-     * @param data Calldata to forward to `to` during ERC-1155 `safeTransferFrom`
-     */
-    function _sendEAT(
-        address to,
-        uint256 tokenId,
-        uint256 amount,
-        bytes calldata data
-    ) internal {
-        try EAT.safeTransferFrom(address(this), to, tokenId, amount, data) {
-            if (EAT.balanceOf(address(this), tokenId) == 0) _holdings.remove(tokenId);
-            emit Withdraw(address(this), to, amount);
-        } catch Error(string memory reason) {
-            // If failed, attempt to determine cause, else return reason string
-            if (EAT.balanceOf(address(this), tokenId) < amount) {
-                revert ERC1155Errors.ERC1155InsufficientBalance(
-                    address(this),
-                    EAT.balanceOf(address(this), tokenId),
-                    amount,
-                    tokenId
-                );
-            } else {
-                revert(reason);
-            }
-        } catch {
-            revert("JasmineBasePool: Send failed");
-        }
-    }
-
-    /**
-     * @dev Internal method for sending batch of EATs out of contract and updating holdings
-     * 
-     * @param to Address to receive EAT
-     * @param tokenIds EAT token IDs to send
-     * @param amounts Number of EATs to send
-     * @param data Calldata to forward to `to` during ERC-1155 `safeTransferFrom`
-     */
-    function _sendBatchEAT(
-        address to,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts,
-        bytes memory data
-    ) internal {
-        try EAT.safeBatchTransferFrom(address(this), to, tokenIds, amounts, data) {
-            uint256[] memory balances = EAT.balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
-            for (uint256 i = 0; i < balances.length; i++) {
-                if (balances[i] == 0) _holdings.remove(tokenIds[i]);
-            }
-            emit Withdraw(address(this), to, amounts.sum());
-        } catch Error(string memory reason) {
-            // TODO: Attempt to determine reason
-            revert(reason);
-        } catch {
-            revert("JasmineBasePool: Send failed");
-        }
-    }
-
-    /**
-     * @dev Used to select an `amout` of tokens to withdraw if unspecified by user
-     * 
-     * @param amount The numer of EATs to select from holdings
-     * 
-     * @return tokenIds List of EAT IDs to withdraw
-     * @return amounts Number of EATs to withdraw, corresponding to same index in tokenIds
-     */
-    function _selectAnyTokens(
-        uint256 amount
-    )
-        internal virtual view
-        returns (
-            uint256[] memory tokenIds,
-            uint256[] memory amounts
-        )
-    {
-        uint256 sum = 0;
-        uint256 i = 0;
-        tokenIds = new uint256[](1);
-        amounts  = new uint256[](1);
-        while (sum != amount) {
-            if (i >= _holdings.length()) revert JasmineErrors.ValidationFailed();
-
-            uint256 tokenId = _holdings.at(i);
-            uint256 balance = EAT.balanceOf(address(this), tokenId);
-
-            tokenIds[i] = tokenId;
-            if (sum + balance <= amount) {
-                amounts[i] = balance;
-                sum += balance;
-                i++;
-                continue;
-            } else {
-                amounts[i] = amount - sum;
-                break;
-            }
-        }
-
-        return (tokenIds, amounts);
-    }
 
     /**
      * @dev Used to check a token exists and is not frozen
@@ -809,13 +664,21 @@ abstract contract JasmineBasePool is
      * @return value Decimal value of input per pool's decimal specificity
      */
     function _standardizeDecimal(uint256 input) 
-        internal pure
+        internal view
         returns (uint256 value)
     {
-        return input * (10 ** DECIMALS);
+        return input * (10 ** decimals());
     }
 
     //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
+
+    /**
+     * @dev Enforce the pool holds more in deposit reserves than outstanding supply
+     */
+    modifier enforceDeposits() {
+        _;
+        if (_standardizeDecimal(totalDeposits()) < totalSupply()) revert JasmineErrors.InbalancedDeposits();
+    }
 
     /**
      * @dev Enforce token ID meets pool's policy
@@ -852,8 +715,10 @@ abstract contract JasmineBasePool is
      * @param tokenIds EAT token IDs to check eligibility
      */
     function _enforceEligibility(uint256[] memory tokenIds) private view {
-        for (uint i = 0; i < tokenIds.length; i++) {
+        for (uint i = 0; i < tokenIds.length;) {
             _enforceEligibility(tokenIds[i]);
+
+            unchecked { ++i; }
         }
     }
 
@@ -897,5 +762,4 @@ abstract contract JasmineBasePool is
         if (holder != _msgSender() && allowance(holder, _msgSender()) < quantity) revert JasmineErrors.Prohibited();
         _;
     }
-
 }

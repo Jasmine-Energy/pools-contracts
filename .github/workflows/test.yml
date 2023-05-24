@@ -1,16 +1,5 @@
 name: test
-on:
-  push:
-    branches:
-      - main
-      - dev
-      - dev/*
-  pull_request:
-    branches:
-      - main
-      - dev
-      - dev/*
-  workflow_dispatch:
+on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
   packages: read
@@ -29,7 +18,7 @@ jobs:
       - name: Install packages
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: "18.x"
       - run: npm install
         shell: bash
         env:

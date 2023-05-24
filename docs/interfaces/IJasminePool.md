@@ -98,10 +98,10 @@ function decimals() external view returns (uint8)
 ### deposit
 
 ```solidity
-function deposit(address from, uint256 tokenId, uint256 quantity) external nonpayable returns (bool success, uint256 jltQuantity)
+function deposit(uint256 tokenId, uint256 quantity) external nonpayable returns (uint256 jltQuantity)
 ```
 
-Used to deposit EATs into the pool to receive JLTs.
+Used to deposit EATs into the pool to receive JLTs. 
 
 *Requirements:     - Pool must be an approved operator of from address *
 
@@ -109,7 +109,6 @@ Used to deposit EATs into the pool to receive JLTs.
 
 | Name | Type | Description |
 |---|---|---|
-| from | address | Address from which to transfer EATs to pool |
 | tokenId | uint256 | EAT token ID to deposit |
 | quantity | uint256 | Number of EATs for given tokenId to deposit  |
 
@@ -117,13 +116,12 @@ Used to deposit EATs into the pool to receive JLTs.
 
 | Name | Type | Description |
 |---|---|---|
-| success | bool | If deposit operation was successful, true will be returned |
 | jltQuantity | uint256 | Number of JLTs issued for deposit  Emits a {Deposit} event. |
 
 ### depositBatch
 
 ```solidity
-function depositBatch(address from, uint256[] tokenIds, uint256[] quantities) external nonpayable returns (bool success, uint256 jltQuantity)
+function depositBatch(address from, uint256[] tokenIds, uint256[] quantities) external nonpayable returns (uint256 jltQuantity)
 ```
 
 Used to deposit numerous EATs of different IDs into the pool to receive JLTs. 
@@ -142,7 +140,30 @@ Used to deposit numerous EATs of different IDs into the pool to receive JLTs.
 
 | Name | Type | Description |
 |---|---|---|
-| success | bool | If deposit operation was successful, true will be returned |
+| jltQuantity | uint256 | Number of JLTs issued for deposit  Emits a {Deposit} event. |
+
+### depositFrom
+
+```solidity
+function depositFrom(address from, uint256 tokenId, uint256 quantity) external nonpayable returns (uint256 jltQuantity)
+```
+
+Used to deposit EATs from another account into the pool to receive JLTs. 
+
+*Requirements:     - Pool must be an approved operator of from address     - msg.sender must be approved for the user&#39;s tokens *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| from | address | Address from which to transfer EATs to pool |
+| tokenId | uint256 | EAT token ID to deposit |
+| quantity | uint256 | Number of EATs for given tokenId to deposit  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
 | jltQuantity | uint256 | Number of JLTs issued for deposit  Emits a {Deposit} event. |
 
 ### initialize
@@ -227,12 +248,12 @@ function policyForVersion(uint8 metadataVersion) external view returns (bytes po
 ### retire
 
 ```solidity
-function retire(address owner, address beneficiary, uint256 quantity, bytes data) external nonpayable returns (bool success)
+function retire(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
 ```
 
 Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;beneficiary&#39;. 
 
-*Internally, calls are routed to Retirement Service to facilitate the retirement. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - Owner cannot be zero address *
+*Internally, calls are routed to Retirement Service to facilitate the retirement. Emits a {Retirement} event. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - Owner cannot be zero address *
 
 #### Parameters
 
@@ -240,14 +261,8 @@ Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;bene
 |---|---|---|
 | owner | address | JLT owner from which to burn tokens |
 | beneficiary | address | Address to receive retirement acknowledgment. If none, assume msg.sender |
-| quantity | uint256 | Number of JLTs to withdraw |
+| amount | uint256 | Number of JLTs to withdraw |
 | data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| success | bool | If retirement operation was successful, true will be returned  Emits a {Retirement} event. |
 
 ### symbol
 
@@ -333,12 +348,37 @@ function transferFrom(address from, address to, uint256 amount) external nonpaya
 ### withdraw
 
 ```solidity
-function withdraw(address owner, address recipient, uint256 quantity, bytes data) external nonpayable returns (bool success)
+function withdraw(address recipient, uint256 quantity, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
 Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#39;. 
 
-*Pool will automatically select EATs to withdraw. Defer to {withdrawSpecific}      if selecting specific EATs to withdraw is important. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - If recipient is a contract, it must implement onERC1155Received &amp; onERC1155BatchReceived     - Owner and Recipient cannot be zero address *
+*Pool will automatically select EATs to withdraw. Defer to {withdrawSpecific}      if selecting specific EATs to withdraw is important. Requirements:     - msg.sender must have sufficient JLTs     - If recipient is a contract, it must implement onERC1155Received &amp; onERC1155BatchReceived *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| recipient | address | Address to receive withdrawn EATs |
+| quantity | uint256 | Number of JLTs to withdraw |
+| data | bytes | Optional calldata to relay to recipient via onERC1155Received  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| tokenIds | uint256[] | Token IDs withdrawn from the pool |
+| amounts | uint256[] | Number of tokens withdraw, per ID, from the pool  Emits a {Withdraw} event. |
+
+### withdrawFrom
+
+```solidity
+function withdrawFrom(address owner, address recipient, uint256 quantity, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
+```
+
+Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#39;. 
+
+*Pool will automatically select EATs to withdraw. Defer to {withdrawSpecific}      if selecting specific EATs to withdraw is important. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - If recipient is a contract, it must implement onERC1155Received &amp; onERC1155BatchReceived *
 
 #### Parameters
 
@@ -353,12 +393,13 @@ Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#3
 
 | Name | Type | Description |
 |---|---|---|
-| success | bool | If withdraw operation was successful, true will be returned  Emits a {Withdraw} event. |
+| tokenIds | uint256[] | Token IDs withdrawn from the pool |
+| amounts | uint256[] | Number of tokens withdraw, per ID, from the pool  Emits a {Withdraw} event. |
 
 ### withdrawSpecific
 
 ```solidity
-function withdrawSpecific(address owner, address recipient, uint256[] tokenIds, uint256[] quantities, bytes data) external nonpayable returns (bool success)
+function withdrawSpecific(address owner, address recipient, uint256[] tokenIds, uint256[] quantities, bytes data) external nonpayable
 ```
 
 Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in JLTs from &#39;owner&#39;. 
@@ -373,13 +414,7 @@ Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in J
 | recipient | address | Address to receive withdrawn EATs |
 | tokenIds | uint256[] | EAT token IDs to withdraw from pool |
 | quantities | uint256[] | Number of EATs for tokenId at same index to deposit |
-| data | bytes | Optional calldata to relay to recipient via onERC1155Received  |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| success | bool | If withdraw operation was successful, true will be returned  Emits a {Withdraw} event. |
+| data | bytes | Optional calldata to relay to recipient via onERC1155Received  Emits a {Withdraw} event. |
 
 
 

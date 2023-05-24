@@ -9,6 +9,7 @@ pragma solidity >=0.8.17;
 
 // Core Implementations
 import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
+import { IJasmineFeeManager } from "./interfaces/IJasmineFeeManager.sol";
 import { Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
@@ -43,6 +44,7 @@ import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
  */
 contract JasminePoolFactory is 
     IJasminePoolFactory,
+    IJasmineFeeManager,
     Ownable2Step,
     AccessControl
 {
@@ -55,39 +57,6 @@ contract JasminePoolFactory is
     using EnumerableSet for EnumerableSet.AddressSet;
     using PoolPolicy for PoolPolicy.DepositPolicy;
     using Address for address;
-
-
-    // ──────────────────────────────────────────────────────────────────────────────
-    // Events
-    // ──────────────────────────────────────────────────────────────────────────────
-
-
-    //  ───────────────────────────────  Fee Events  ───────────────────────────────  \\
-    // TODO: Move to interface
-
-    /**
-     * @dev Emitted whenever fee manager updates withdrawal rate
-     * 
-     * @param withdrawRateBips New withdrawal rate in basis points
-     * @param beneficiary Address to receive fees
-     * @param specific Specifies whether new rate applies to specific or any withdrawals
-     */
-    event BaseWithdrawalFeeUpdate(
-        uint96 withdrawRateBips,
-        address indexed beneficiary,
-        bool indexed specific
-    );
-
-    /**
-     * @dev Emitted whenever fee manager updates retirement rate
-     * 
-     * @param retirementRateBips new retirement rate in basis points
-     * @param beneficiary Address to receive fees
-     */
-    event BaseRetirementFeeUpdate(
-        uint96 retirementRateBips,
-        address indexed beneficiary
-    );
 
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -212,12 +181,49 @@ contract JasminePoolFactory is
         return computePoolAddress(_pools.at(index));
     }
 
-    // TODO Implement me
-    function eligiblePoolsForToken(uint256)
-        external pure
-        returns (address[] memory)
+    /**
+     * @notice Gets a list of Jasmine pool addresses that an EAT is eligible
+     *         to be deposited into.
+     * 
+     * @dev Runs in O(n) with respect to number of pools and does not support
+     *      a max count. This should only be used by off-chain services and
+     *      should not be called by other smart contracts due to the potentially
+     *      unlimited gas that may be spent.
+     * 
+     * @param tokenId EAT token ID to check for eligible pools
+     * 
+     * @return pools List of pool addresses token meets eligibility criteria
+     */
+    function eligiblePoolsForToken(uint256 tokenId)
+        external view
+        returns (address[] memory pools)
     {
-        revert("JasminePoolFactory: Unimplemented");
+        address[] memory eligiblePools = new address[](_pools.length());
+        uint256 eligiblePoolsCount = 0;
+
+        for (uint256 i; i < _pools.length();) {
+            address poolAddress = computePoolAddress(_pools.at(i));
+            if (IJasminePool(poolAddress).meetsPolicy(tokenId)) {
+                eligiblePools[eligiblePoolsCount] = poolAddress;
+                eligiblePoolsCount++;
+            }
+
+            unchecked {
+                i++;
+            }
+        }
+
+        pools = new address[](eligiblePoolsCount);
+
+        for (uint256 i; i < eligiblePoolsCount;) {
+            pools[i] = eligiblePools[i];
+
+            unchecked {
+                i++;
+            }
+        }
+
+        return pools;
     }
 
 
@@ -556,7 +562,7 @@ contract JasminePoolFactory is
         returns (address pool)
     {
         (address token0, address token1) = JLTPool < USDC ? (JLTPool, USDC) : (USDC, JLTPool);
-        require(token0 < token1);
+        if (token0 > token1) revert JasmineErrors.ValidationFailed();
         
         pool = IUniswapV3Factory(UniswapFactory).getPool(token0, token1, defaultUniswapFee);
 
@@ -631,10 +637,12 @@ contract JasminePoolFactory is
         if (!IERC165(poolImplementation).supportsInterface(type(IERC1155Receiver).interfaceId))
             revert JasmineErrors.InvalidConformance(type(IERC1155Receiver).interfaceId);
 
-        for (uint i = 0; i < _poolBeacons.length(); i++) {
+        for (uint i = 0; i < _poolBeacons.length();) {
             UpgradeableBeacon beacon = UpgradeableBeacon(_poolBeacons.at(i));
             if (beacon.implementation() == poolImplementation)
                 revert JasmineErrors.PoolExists(poolImplementation);
+            
+            unchecked { ++i; }
         }
     }
 

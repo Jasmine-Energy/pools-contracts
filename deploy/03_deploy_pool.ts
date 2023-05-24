@@ -3,11 +3,10 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { Contracts, Libraries, colouredLog } from '@/utils';
 
 const deployPoolImplementation: DeployFunction = async function (
-    hre: HardhatRuntimeEnvironment
+    { ethers, deployments, network, run, hardhatArguments, getNamedAccounts }: HardhatRuntimeEnvironment
 ) {
-    colouredLog.yellow(`deploying dependencies to: ${hre.network.name}`);
+    colouredLog.yellow(`deploying Pool implementation to: ${network.name}`);
 
-    const { ethers, tenderly, deployments, network, getNamedAccounts } = hre;
     const { deploy, get } = deployments;
     const namedAccounts = await getNamedAccounts();
     const { owner } = namedAccounts;
@@ -19,8 +18,10 @@ const deployPoolImplementation: DeployFunction = async function (
     });
 
     // 1. Get deployements
+    const retirer = await get(Contracts.retirementService);
     const policy = await get(Libraries.poolPolicy);
     const arrayUtils = await get(Libraries.arrayUtils);
+    const calldata = await get(Libraries.calldata);
     let eat: string;
     let oracle: string;
     try {
@@ -37,23 +38,15 @@ const deployPoolImplementation: DeployFunction = async function (
         args: [
             eat,
             oracle,
-            poolFactoryFutureAddress
+            poolFactoryFutureAddress,
+            retirer.address
         ],
         libraries: {
             PoolPolicy: policy.address,
-            ArrayUtils: arrayUtils.address
+            ArrayUtils: arrayUtils.address,
+            Calldata: calldata.address
         },
-        log: hre.hardhatArguments.verbose
-    });
-
-    await tenderly.persistArtifacts({
-        name: Contracts.pool,
-        address: pool.address,
-        network: network.name,
-        libraries: {
-            PoolPolicy: policy.address,
-            ArrayUtils: arrayUtils.address
-        }
+        log: hardhatArguments.verbose
     });
 
     colouredLog.blue(`Deployed Pool impl to: ${pool.address}`);
@@ -62,33 +55,14 @@ const deployPoolImplementation: DeployFunction = async function (
     if (network.tags['public']) {
         // TODO: Verify on sourcify as well. Run "sourcify" command
         console.log('Verifyiyng on Etherscan...');
-        await hre.run('verify:verify', {
+        await run('verify:verify', {
             address: pool,
             constructorArguments: [
                 eat,
                 oracle,
-                poolFactoryFutureAddress
+                poolFactoryFutureAddress,
+                retirer.address
             ],
-        });
-
-        await tenderly.verify({
-            name: Contracts.pool,
-            address: pool.address,
-            network: network.name,
-            libraries: {
-                PoolPolicy: policy.address,
-                ArrayUtils: arrayUtils.address
-            }
-        });
-    } else if (network.tags['tenderly']) {
-        await tenderly.verify({
-            name: Contracts.pool,
-            address: pool.address,
-            network: network.name,
-            libraries: {
-                PoolPolicy: policy.address,
-                ArrayUtils: arrayUtils.address
-            }
         });
     }
 };

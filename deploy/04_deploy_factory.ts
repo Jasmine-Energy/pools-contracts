@@ -5,11 +5,10 @@ import { JasminePoolFactory } from '@/typechain';
 import { AnyField } from '@/utils/constants';
 
 const deployFactory: DeployFunction = async function (
-    hre: HardhatRuntimeEnvironment
+    { ethers, deployments, network, run, hardhatArguments, getNamedAccounts }: HardhatRuntimeEnvironment
 ) {
-    colouredLog.yellow(`deploying Pool Factory to: ${hre.network.name}`);
+    colouredLog.yellow(`deploying Pool Factory to: ${network.name}`);
 
-    const { ethers, tenderly, deployments, network, getNamedAccounts } = hre;
     const { deploy } = deployments;
     const { owner, feeBeneficiary, uniswapPoolFactory, USDC } = await getNamedAccounts();
 
@@ -24,16 +23,7 @@ const deployFactory: DeployFunction = async function (
         libraries: {
             PoolPolicy: policy.address
         },
-        log: hre.hardhatArguments.verbose
-    });
-
-    await tenderly.persistArtifacts({
-        name: Contracts.factory,
-        address: factory.address,
-        network: network.name,
-        libraries: {
-            PoolPolicy: policy.address
-        }
+        log: hardhatArguments.verbose
     });
 
     colouredLog.blue(`Deployed factory to: ${factory.address}`);
@@ -41,26 +31,10 @@ const deployFactory: DeployFunction = async function (
     // 3. If on external network, verify contracts
     if (network.tags['public']) {
         console.log('Verifyiyng on Etherscan...');
-        await hre.run('verify:verify', {
+        await run('verify:verify', {
             address: factory,
-            constructorArguments: [pool.address],
-        });
-        await tenderly.verify({
-            name: Contracts.factory,
-            address: factory.address,
-            network: network.name,
-            libraries: {
-                PoolPolicy: policy.address
-            }
-        });
-    } else if (network.tags['tenderly']) {
-        await tenderly.verify({
-            name: Contracts.factory,
-            address: factory.address,
-            network: network.name,
-            libraries: {
-                PoolPolicy: policy.address
-            }
+            constructorArguments: [pool.address, feeBeneficiary, uniswapPoolFactory, USDC],
+            // TODO: link libraries
         });
     }
 

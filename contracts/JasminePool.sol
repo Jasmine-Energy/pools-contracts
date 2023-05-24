@@ -50,8 +50,8 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     // Setup
     // ──────────────────────────────────────────────────────────────────────────────
 
-    constructor(address _eat, address _oracle, address _poolFactory)
-        JasmineFeePool(_eat, _poolFactory)
+    constructor(address _eat, address _oracle, address _poolFactory, address _minter)
+        JasmineFeePool(_eat, _poolFactory, _minter)
     {
         require(_oracle != address(0), "JasminePool: Oracle must be set");
 
@@ -135,6 +135,16 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         returns (uint256 cost)
     {
         return super.withdrawalCost(amount);
+    }
+
+    /// @inheritdoc JasmineFeePool
+    function retirementCost(
+        uint256 amount
+    )
+        public view override(JasmineBasePool, JasmineFeePool)
+        returns (uint256 cost)
+    {
+        return super.retirementCost(amount);
     }
 
     /// @inheritdoc JasmineBasePool

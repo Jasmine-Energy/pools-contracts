@@ -1,6 +1,5 @@
 import { HDAccountsUserConfig, HttpNetworkAccountsUserConfig } from "hardhat/types";
 import { forkNetworkName } from "./networks";
-import * as tenderlyForks from "@/tenderly-forks.json";
 import { PERMIT2_ADDRESS } from "@uniswap/permit2-sdk";
 
 const mnemonic =
@@ -55,9 +54,6 @@ export const namedAccounts = {
     get hardhat() { 
       return this[forkNetworkName as 'polygon' | 'mumbai'];
     },
-    get tenderly() {
-      return this[tenderlyForks.forks[tenderlyForks.defaultFork].forked as 'polygon' | 'mumbai'];
-    },
   },
   minter: {
     polygon: "0x5e71fa178f3b8ca0fc4736b8a85a1b669c042dde",
@@ -68,9 +64,6 @@ export const namedAccounts = {
     get hardhat() { 
       return this[forkNetworkName as 'polygon' | 'mumbai'];
     },
-    get tenderly() {
-      return this[tenderlyForks.forks[tenderlyForks.defaultFork].forked as 'polygon' | 'mumbai'];
-    },
   },
   oracle: {
     polygon: "0x954f12ab1e40fbd7c28f2ab5285d3c74ba6faf6f",
@@ -80,9 +73,6 @@ export const namedAccounts = {
     },
     get hardhat() { 
       return this[forkNetworkName as 'polygon' | 'mumbai'];
-    },
-    get tenderly() {
-      return this[tenderlyForks.forks[tenderlyForks.defaultFork].forked as 'polygon' | 'mumbai'];
     },
   },
   // Tokens
@@ -95,9 +85,6 @@ export const namedAccounts = {
     get hardhat() { 
       return this[forkNetworkName as 'polygon' | 'mumbai'];
     },
-    get tenderly() {
-      return this[tenderlyForks.forks[tenderlyForks.defaultFork].forked as 'polygon' | 'mumbai'];
-    },
   },
   WMATIC: {
     polygon: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
@@ -107,9 +94,6 @@ export const namedAccounts = {
     },
     get hardhat() { 
       return this[forkNetworkName as 'polygon' | 'mumbai'];
-    },
-    get tenderly() {
-      return this[tenderlyForks.forks[tenderlyForks.defaultFork].forked as 'polygon' | 'mumbai'];
     },
   },
   // UniSwap contracts
@@ -121,9 +105,6 @@ export const namedAccounts = {
     },
     get hardhat() { 
       return this[forkNetworkName as 'polygon' | 'mumbai'];
-    },
-    get tenderly() {
-      return this[tenderlyForks.forks[tenderlyForks.defaultFork].forked as 'polygon' | 'mumbai'];
     },
   },
   uniswapPoolFactory: {

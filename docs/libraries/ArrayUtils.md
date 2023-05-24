@@ -33,6 +33,30 @@ function fill(address repeatedAddress, uint256 amount) external pure returns (ad
 |---|---|---|
 | filledArray | address[] | Array of length `amount` containing `repeatedAddress` |
 
+### slice
+
+```solidity
+function slice(bytes _bytes, uint256 _start, uint256 _length) external pure returns (bytes)
+```
+
+
+
+*Slices an array.  Copied from [Bytes Utils](https://github.com/GNSPS/solidity-bytes-utils/blob/master/contracts/BytesLib.sol). *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _bytes | bytes | Input array to slice |
+| _start | uint256 | Start index to slice from |
+| _length | uint256 | Length of slice |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes | undefined |
+
 ### sum
 
 ```solidity

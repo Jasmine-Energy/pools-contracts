@@ -2,8 +2,8 @@ import { ethers, upgrades, getNamedAccounts } from "hardhat";
 import { Contracts, Libraries } from "@/utils";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import {
-  JasminePool,
-  JasmineEAT, JasmineOracle, JasmineMinter,
+  JasminePool, JasmineRetirementService,
+  JasmineEAT, JasmineOracle, JasmineMinter, JasminePoolFactory, 
 } from "@/typechain";
 
 
@@ -76,11 +76,31 @@ export async function deployLibrariesFixture() {
   };
 }
 
-export async function deployPoolImplementation() {
-  const { eat, oracle } = await loadFixture(deployCoreFixture);
-  const { policyLibAddress, arrayUtilsLibAddress } = await loadFixture(
+export async function deployRetirementService() {
+  const { eat, minter } = await loadFixture(deployCoreFixture);
+  const { calldataLibAddress, arrayUtilsLibAddress } = await loadFixture(
     deployLibrariesFixture
   );
+
+  const RetirementService = await ethers.getContractFactory(Contracts.retirementService, {
+    libraries: {
+      Calldata: calldataLibAddress,
+      ArrayUtils: arrayUtilsLibAddress,
+    }
+  });
+  const retirementService = await RetirementService.deploy(
+    minter.address,
+    eat.address,
+  );
+  return retirementService as JasmineRetirementService;
+}
+
+export async function deployPoolImplementation() {
+  const { eat, oracle } = await loadFixture(deployCoreFixture);
+  const { policyLibAddress, arrayUtilsLibAddress, calldataLibAddress } = await loadFixture(
+    deployLibrariesFixture
+  );
+  const retirementService = await loadFixture(deployRetirementService);
   const namedAccounts = await getNamedAccounts();
   const owner = await ethers.getSigner(namedAccounts.owner);
 
@@ -94,12 +114,29 @@ export async function deployPoolImplementation() {
     libraries: {
       PoolPolicy: policyLibAddress,
       ArrayUtils: arrayUtilsLibAddress,
+      Calldata: calldataLibAddress,
     },
   });
   const poolImplementation = await Pool.deploy(
     eat.address,
     oracle.address,
-    poolFactoryFutureAddress
+    poolFactoryFutureAddress,
+    retirementService.address
   );
   return poolImplementation as JasminePool;
+}
+
+export async function deployPoolFactory() {
+  const { owner, uniswapPoolFactory, USDC } = await getNamedAccounts();
+  const poolImplementation = await loadFixture(deployPoolImplementation);
+
+  const PoolFactory = await ethers.getContractFactory(Contracts.factory);
+
+  const poolFactory = await PoolFactory.deploy(
+    poolImplementation.address,
+    owner,
+    uniswapPoolFactory,
+    USDC
+  );
+  return poolFactory as JasminePoolFactory;
 }

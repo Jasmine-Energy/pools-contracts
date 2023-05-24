@@ -51,23 +51,42 @@ interface IEATBackedPool {
 
     /**
      * @notice Used to deposit EATs into the pool to receive JLTs.
+     * 
      * @dev Requirements:
      *     - Pool must be an approved operator of from address
      * 
-     * @param from Address from which to transfer EATs to pool
      * @param tokenId EAT token ID to deposit
      * @param quantity Number of EATs for given tokenId to deposit
      * 
-     * @return success If deposit operation was successful, true will be returned
      * @return jltQuantity Number of JLTs issued for deposit
      * 
      * Emits a {Deposit} event.
      */
     function deposit(
+        uint256 tokenId, 
+        uint256 quantity
+    ) external returns (uint256 jltQuantity);
+
+    /**
+     * @notice Used to deposit EATs from another account into the pool to receive JLTs.
+     * 
+     * @dev Requirements:
+     *     - Pool must be an approved operator of from address
+     *     - msg.sender must be approved for the user's tokens
+     * 
+     * @param from Address from which to transfer EATs to pool
+     * @param tokenId EAT token ID to deposit
+     * @param quantity Number of EATs for given tokenId to deposit
+     * 
+     * @return jltQuantity Number of JLTs issued for deposit
+     * 
+     * Emits a {Deposit} event.
+     */
+    function depositFrom(
         address from, 
         uint256 tokenId, 
         uint256 quantity
-    ) external returns (bool success, uint256 jltQuantity);
+    ) external returns (uint256 jltQuantity);
 
     /**
      * @notice Used to deposit numerous EATs of different IDs
@@ -81,7 +100,6 @@ interface IEATBackedPool {
      * @param tokenIds EAT token IDs to deposit
      * @param quantities Number of EATs for tokenId at same index to deposit
      * 
-     * @return success If deposit operation was successful, true will be returned
      * @return jltQuantity Number of JLTs issued for deposit
      * 
      * Emits a {Deposit} event.
@@ -90,8 +108,33 @@ interface IEATBackedPool {
         address from, 
         uint256[] calldata tokenIds, 
         uint256[] calldata quantities
-    ) external returns (bool success, uint256 jltQuantity);
+    ) external returns (uint256 jltQuantity);
 
+
+    /**
+     * @notice Withdraw EATs from pool by burning 'quantity' of JLTs from 'owner'.
+     * 
+     * @dev Pool will automatically select EATs to withdraw. Defer to {withdrawSpecific}
+     *      if selecting specific EATs to withdraw is important.
+     * 
+     * @dev Requirements:
+     *     - msg.sender must have sufficient JLTs
+     *     - If recipient is a contract, it must implement onERC1155Received & onERC1155BatchReceived
+     * 
+     * @param recipient Address to receive withdrawn EATs
+     * @param quantity Number of JLTs to withdraw
+     * @param data Optional calldata to relay to recipient via onERC1155Received
+     * 
+     * @return tokenIds Token IDs withdrawn from the pool
+     * @return amounts Number of tokens withdraw, per ID, from the pool
+     * 
+     * Emits a {Withdraw} event.
+     */
+    function withdraw(
+        address recipient, 
+        uint256 quantity, 
+        bytes calldata data
+    ) external returns (uint256[] memory tokenIds, uint256[] memory amounts);
 
     /**
      * @notice Withdraw EATs from pool by burning 'quantity' of JLTs from 'owner'.
@@ -103,23 +146,23 @@ interface IEATBackedPool {
      *     - msg.sender must be approved for owner's JLTs
      *     - Owner must have sufficient JLTs
      *     - If recipient is a contract, it must implement onERC1155Received & onERC1155BatchReceived
-     *     - Owner and Recipient cannot be zero address
      * 
      * @param owner JLT owner from which to burn tokens
      * @param recipient Address to receive withdrawn EATs
      * @param quantity Number of JLTs to withdraw
      * @param data Optional calldata to relay to recipient via onERC1155Received
      * 
-     * @return success If withdraw operation was successful, true will be returned
+     * @return tokenIds Token IDs withdrawn from the pool
+     * @return amounts Number of tokens withdraw, per ID, from the pool
      * 
      * Emits a {Withdraw} event.
      */
-    function withdraw(
+    function withdrawFrom(
         address owner, 
         address recipient, 
         uint256 quantity, 
         bytes calldata data
-    ) external returns (bool success);
+    ) external returns (uint256[] memory tokenIds, uint256[] memory amounts);
 
     /**
      * @notice Withdraw specific EATs from pool by burning the sum of 'quantities' in JLTs from 'owner'.
@@ -137,8 +180,6 @@ interface IEATBackedPool {
      * @param quantities Number of EATs for tokenId at same index to deposit
      * @param data Optional calldata to relay to recipient via onERC1155Received
      * 
-     * @return success If withdraw operation was successful, true will be returned
-     * 
      * Emits a {Withdraw} event.
      */
     function withdrawSpecific(
@@ -147,6 +188,6 @@ interface IEATBackedPool {
         uint256[] calldata tokenIds, 
         uint256[] calldata quantities, 
         bytes calldata data
-    ) external returns (bool success);
+    ) external;
 
 }

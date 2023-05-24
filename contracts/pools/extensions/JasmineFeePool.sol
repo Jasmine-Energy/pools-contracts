@@ -89,8 +89,8 @@ abstract contract JasmineFeePool is JasmineBasePool {
      * @param _eat Jasmine Energy Attribute Token address
      * @param _poolFactory Jasmine Pool Factory address
      */
-    constructor(address _eat, address _poolFactory) 
-        JasmineBasePool(_eat, _poolFactory)
+    constructor(address _eat, address _poolFactory, address _minter)
+        JasmineBasePool(_eat, _poolFactory, _minter)
     {
         
     }
@@ -274,6 +274,31 @@ abstract contract JasmineFeePool is JasmineBasePool {
             );
         } else {
             return super.withdrawalCost(amount);
+        }
+    }
+
+    /**
+     * @notice Cost of retiring JLTs from pool including retirement fees.
+     * 
+     * @param amount Amount of JLTs to retire.
+     * 
+     * @return cost Price of retiring in JLTs.
+     */
+    function retirementCost(
+        uint256 amount
+    )
+        public view virtual override
+        returns (uint256 cost)
+    {
+        // NOTE: If no feeBeneficiary is set, fees may not be collected
+        if (JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0)) {
+            return Math.mulDiv(
+                super.retirementCost(amount), 
+                (retirementRate() + 10_000), 
+                10_000
+            );
+        } else {
+            return super.retirementCost(amount);
         }
     }
 

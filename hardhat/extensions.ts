@@ -17,8 +17,4 @@ export const extensions = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
-  tenderly: {
-    project: "reference-pools",
-    username: "Jasmine",
-  },
 };

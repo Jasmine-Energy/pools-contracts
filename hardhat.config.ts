@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 
 import { HardhatUserConfig } from "hardhat/config";
-import * as tenderly from "@tenderly/hardhat-tenderly";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-network-helpers";
@@ -13,7 +12,7 @@ import "hardhat-abi-exporter";
 import "hardhat-contract-sizer";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
-import "hardhat-deploy-tenderly";
+import "hardhat-storage-layout";
 import "hardhat-tracer";
 import "hardhat-interact";
 import "@typechain/hardhat";
@@ -30,7 +29,6 @@ import {
 import "./tasks";
 
 dotenv.config();
-tenderly.setup();
 
 
 const config: HardhatUserConfig = {

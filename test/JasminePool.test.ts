@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers, getNamedAccounts } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contracts } from "@/utils";
+import { DEFAULT_DECIMAL } from "@/utils/constants";
 import {
   JasminePool,
   JasminePoolFactory,
@@ -9,7 +10,7 @@ import {
   JasmineOracle,
   JasmineMinter,
 } from "@/typechain";
-import { deployPoolImplementation, deployCoreFixture } from "./shared/fixtures";
+import { deployPoolImplementation, deployCoreFixture, deployPoolFactory } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
@@ -21,12 +22,9 @@ import {
   mintFunctionType,
 } from "./shared/utilities";
 import {
-  CertificateEndorsement,
-  CertificateRegistry,
-  EnergyCertificateType,
   FuelType,
 } from "@/types/energy-certificate.types";
-import { DEFAULT_DECIMAL } from "@/utils/constants";
+
 
 describe(Contracts.pool, function () {
   let owner: SignerWithAddress;
@@ -54,7 +52,6 @@ describe(Contracts.pool, function () {
     owner = await ethers.getSigner(namedAccounts.owner);
     bridge = await ethers.getSigner(namedAccounts.bridge);
     accounts = await ethers.getSigners();
-    const { uniswapPoolFactory, USDC } = namedAccounts;
 
     const coreContract = await loadFixture(deployCoreFixture);
     eat = coreContract.eat;
@@ -65,15 +62,7 @@ describe(Contracts.pool, function () {
 
     poolImplementation = await loadFixture(deployPoolImplementation);
 
-    const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-    // NOTE: This errors when no deployment folder's been created
-    // TODO: Fix above requirement of having deploy
-    poolFactory = (await PoolFactory.deploy(
-      poolImplementation.address,
-      owner.address,
-      uniswapPoolFactory,
-      USDC
-    )) as JasminePoolFactory;
+    poolFactory = await loadFixture(deployPoolFactory);
   });
 
   async function deployPoolsFixture() {
@@ -234,6 +223,20 @@ describe(Contracts.pool, function () {
           await eat.balanceOf(owner.address, ownerTokens.windToken.id)
         ).to.be.eq(initalEATtBal);
       });
+
+      it("Should reject tokens depositted to implementation contract", async function () {
+        await expect(
+          eat.safeTransferFrom(
+            owner.address,
+            poolImplementation.address,
+            ownerTokens.solarToken.id,
+            ownerTokens.solarToken.amount,
+            []
+          )
+        ).to.be.revertedWith(
+          "ERC1155: transfer to non-ERC1155Receiver implementer"
+        );
+      });
     });
 
     describe("#onERC1155BatchReceived", async function () {
@@ -317,6 +320,20 @@ describe(Contracts.pool, function () {
           )
         ).to.deep.equal(initalEatBal);
       });
+
+      it("Should reject tokens depositted to implementation contract", async function () {
+        await expect(
+          eat.safeBatchTransferFrom(
+            owner.address,
+            poolImplementation.address,
+            [ownerTokens.solarToken.id, ownerTokens.windToken.id],
+            [ownerTokens.solarToken.amount, ownerTokens.windToken.amount],
+            []
+          )
+        ).to.be.revertedWith(
+          "ERC1155: transfer to non-ERC1155Receiver implementer"
+        );
+      });
     });
   });
 
@@ -367,7 +384,7 @@ describe(Contracts.pool, function () {
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Approval")
         .withArgs(owner.address, operator.address, ownerBalance);
       expect(
-        await operatorPool.operatorWithdraw(
+        await operatorPool.withdrawFrom(
           owner.address,
           operator.address,
           tokenAmount,
@@ -388,7 +405,7 @@ describe(Contracts.pool, function () {
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Approval")
         .withArgs(owner.address, allowed.address, balance);
       expect(
-        await allowedPool.operatorWithdraw(
+        await allowedPool.withdrawFrom(
           owner.address,
           allowed.address,
           tokenAmount,
@@ -400,7 +417,94 @@ describe(Contracts.pool, function () {
     });
   });
 
-  describe("Retire", async function () {});
+  describe("Retire", async function () {
+    let tokenId: bigint;
+    let tokenAmount: bigint;
+
+    beforeEach(async function () {
+      const { id, amount } = await mintEat(owner.address, 5, FuelType.SOLAR);
+      tokenId = id;
+      tokenAmount = amount;
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        id,
+        amount,
+        []
+      );
+    });
+
+
+    it("Should allow retire exact", async function () {
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        tokenAmount,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement");
+    });
+
+    it("Should retire accrued fractions", async function () {
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        2_500_000_000_000_000_000n,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement");
+
+        expect(await anyTechAnnualPool.retireExact(
+          owner.address, 
+          owner.address, 
+          2_500_000_000_000_000_000n,
+          [])).to.be.ok.and
+          .to.emit(anyTechAnnualPool, "Retirement");
+    });
+
+    it("Should support retiring numerous token IDs", async function () {
+      const windDeposit = await mintEat(owner.address, 5, FuelType.WIND);
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        windDeposit.id,
+        windDeposit.amount,
+        []
+      );
+
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        tokenAmount + windDeposit.amount,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement");
+    });
+
+    it("Should support retiring numerous token IDs with fractional", async function () {
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        3_500_000_000_000_000_000n,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement");
+
+      const windDeposit = await mintEat(owner.address, 5, FuelType.WIND);
+      const geoDeposit = await mintEat(owner.address, 10, FuelType.GEOTHERMAL);
+      await eat.safeBatchTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        [windDeposit.id, geoDeposit.id],
+        [windDeposit.amount, geoDeposit.amount],
+        []
+      );
+
+      const balance = await anyTechAnnualPool.balanceOf(owner.address);
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        balance,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement");
+    });
+  });
 
   describe("Transfer", async function () {});
 });

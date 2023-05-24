@@ -115,12 +115,12 @@ function balanceOf(address account) external view returns (uint256)
 ### decimals
 
 ```solidity
-function decimals() external pure returns (uint8)
+function decimals() external view returns (uint8)
 ```
 
 
 
-*See {IERC20Metadata-decimals}.*
+*Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5.05` (`505 / 10 ** 2`). Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the value {ERC20} uses, unless this function is overridden; NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}.*
 
 
 #### Returns
@@ -199,6 +199,30 @@ function depositBatch(address from, uint256[] tokenIds, uint256[] amounts) exter
 |---|---|---|
 | jltQuantity | uint256 | Number of JLTs issued |
 
+### depositFrom
+
+```solidity
+function depositFrom(address from, uint256 tokenId, uint256 amount) external nonpayable returns (uint256 jltQuantity)
+```
+
+Used to deposit EATs on behalf of another address into the pool. 
+
+*Requirements:     - Pool must be an approved operator of from&#39;s EATs     - Caller must be an approved operator of from&#39;s EATs     - From account must hold tokenId and have balance greater than or equal to amount *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| from | address | Address from which EATs will be transfered |
+| tokenId | uint256 | ID of EAT to deposit into pool |
+| amount | uint256 | Number of EATs to deposit  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| jltQuantity | uint256 | Number of JLTs issued TODO: Rename from operator deposit |
+
 ### increaseAllowance
 
 ```solidity
@@ -221,6 +245,24 @@ function increaseAllowance(address spender, uint256 addedValue) external nonpaya
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined |
+
+### initialize
+
+```solidity
+function initialize(bytes policy, string name, string symbol) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| policy | bytes | undefined |
+| name | string | undefined |
+| symbol | string | undefined |
 
 ### meetsPolicy
 
@@ -286,104 +328,54 @@ function nonces(address owner) external view returns (uint256)
 ### onERC1155BatchReceived
 
 ```solidity
-function onERC1155BatchReceived(address operator, address from, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
+function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
 ```
 
 
 
-*Handles the receipt of a multiple ERC1155 token types. This function is called at the end of a `safeBatchTransferFrom` after the balances have been updated. NOTE: To accept the transfer(s), this must return `bytes4(keccak256(&quot;onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)&quot;))` (i.e. 0xbc197c81, or its own function selector).*
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator | address | The address which initiated the batch transfer (i.e. msg.sender) |
-| from | address | The address which previously owned the token |
+| _0 | address | undefined |
+| from | address | undefined |
 | tokenIds | uint256[] | undefined |
-| values | uint256[] | An array containing amounts of each token being transferred (order and length must match ids array) |
+| values | uint256[] | undefined |
 | _4 | bytes | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bytes4 | `bytes4(keccak256(&quot;onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)&quot;))` if transfer is allowed |
+| _0 | bytes4 | undefined |
 
 ### onERC1155Received
 
 ```solidity
-function onERC1155Received(address operator, address from, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
+function onERC1155Received(address, address from, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
 ```
 
 
 
-*Handles the receipt of a single ERC1155 token type. This function is called at the end of a `safeTransferFrom` after the balance has been updated. NOTE: To accept the transfer, this must return `bytes4(keccak256(&quot;onERC1155Received(address,address,uint256,uint256,bytes)&quot;))` (i.e. 0xf23a6e61, or its own function selector).*
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator | address | The address which initiated the transfer (i.e. msg.sender) |
-| from | address | The address which previously owned the token |
+| _0 | address | undefined |
+| from | address | undefined |
 | tokenId | uint256 | undefined |
-| value | uint256 | The amount of tokens being transferred |
+| value | uint256 | undefined |
 | _4 | bytes | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bytes4 | `bytes4(keccak256(&quot;onERC1155Received(address,address,uint256,uint256,bytes)&quot;))` if transfer is allowed |
-
-### operatorDeposit
-
-```solidity
-function operatorDeposit(address from, uint256 tokenId, uint256 amount) external nonpayable returns (uint256 jltQuantity)
-```
-
-Used to deposit EATs on behalf of another address into the pool. 
-
-*Requirements:     - Pool must be an approved operator of from&#39;s EATs     - Caller must be an approved operator of from&#39;s EATs     - From account must hold tokenId and have balance greater than or equal to amount *
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| from | address | Address from which EATs will be transfered |
-| tokenId | uint256 | ID of EAT to deposit into pool |
-| amount | uint256 | Number of EATs to deposit  |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| jltQuantity | uint256 | Number of JLTs issued TODO: Rename from operator deposit |
-
-### operatorWithdraw
-
-```solidity
-function operatorWithdraw(address sender, address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
-```
-
-Used to convert JLTs from sender into EATs which are sent         to recipient. 
-
-*Requirements:     - Caller must be approved operator for sender     - Sender must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| sender | address | Account to which will have JLTs burned |
-| recipient | address | Address to receive EATs |
-| amount | uint256 | Number of JLTs to burn and EATs to withdraw |
-| data | bytes | Optional calldata to forward to recipient |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| tokenIds | uint256[] | undefined |
-| amounts | uint256[] | undefined |
+| _0 | bytes4 | undefined |
 
 ### permit
 
@@ -449,10 +441,29 @@ function poolFactory() external view returns (address)
 ### retire
 
 ```solidity
-function retire(address sender, address, uint256 amount, bytes) external nonpayable
+function retire(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
 ```
 
+Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;beneficiary&#39;. 
 
+*Internally, calls are routed to Retirement Service to facilitate the retirement. Emits a {Retirement} event. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - Owner cannot be zero address *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| owner | address | JLT owner from which to burn tokens |
+| beneficiary | address | Address to receive retirement acknowledgment. If none, assume msg.sender |
+| amount | uint256 | Number of JLTs to withdraw |
+| data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |
+
+### retireExact
+
+```solidity
+function retireExact(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
+```
+
+Retires an exact amount of JLTs. If fees or other conversions are set,         cost of retirement will be greater than amount. 
 
 
 
@@ -460,10 +471,32 @@ function retire(address sender, address, uint256 amount, bytes) external nonpaya
 
 | Name | Type | Description |
 |---|---|---|
-| sender | address | undefined |
-| _1 | address | undefined |
-| amount | uint256 | undefined |
-| _3 | bytes | undefined |
+| owner | address | JLT holder to retire from |
+| beneficiary | address | Address to receive retirement attestation |
+| amount | uint256 | Exact number of JLTs to retire |
+| data | bytes | Optional calldata to relay to retirement service via onERC1155Received |
+
+### retirementCost
+
+```solidity
+function retirementCost(uint256 amount) external view returns (uint256 cost)
+```
+
+Cost of retiring JLTs from pool including retirement fees. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| amount | uint256 | Amount of JLTs to retire.  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| cost | uint256 | Price of retiring in JLTs. |
 
 ### retirementRate
 
@@ -481,6 +514,23 @@ Returns the pool&#39;s JLT retirement rate in basis points
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint96 | Retirement rate in basis points |
+
+### retirementService
+
+```solidity
+function retirementService() external view returns (address)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
 
 ### supportsInterface
 
@@ -537,6 +587,23 @@ Gets an ERC-721-like token URI
 | Name | Type | Description |
 |---|---|---|
 | _0 | string | undefined |
+
+### totalDeposits
+
+```solidity
+function totalDeposits() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
 
 ### totalSupply
 
@@ -640,7 +707,7 @@ Allows pool fee managers to update the withdrawal rate
 function withdraw(address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
-Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         from an alternate address - that the caller&#39;s approved for -          defer to operatorWithdraw. 
+Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         from an alternate address - that the caller&#39;s approved for -          defer to withdrawFrom. 
 
 *Requirements:     - Caller must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
 
@@ -648,6 +715,32 @@ Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         
 
 | Name | Type | Description |
 |---|---|---|
+| recipient | address | Address to receive EATs |
+| amount | uint256 | Number of JLTs to burn and EATs to withdraw |
+| data | bytes | Optional calldata to forward to recipient |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| tokenIds | uint256[] | undefined |
+| amounts | uint256[] | undefined |
+
+### withdrawFrom
+
+```solidity
+function withdrawFrom(address sender, address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
+```
+
+Used to convert JLTs from sender into EATs which are sent         to recipient. 
+
+*Requirements:     - Caller must be approved operator for sender     - Sender must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender | address | Account to which will have JLTs burned |
 | recipient | address | Address to receive EATs |
 | amount | uint256 | Number of JLTs to burn and EATs to withdraw |
 | data | bytes | Optional calldata to forward to recipient |
@@ -814,6 +907,24 @@ event Initialized(uint8 version)
 |---|---|---|
 | version  | uint8 | undefined |
 
+### Retirement
+
+```solidity
+event Retirement(address indexed operator, address indexed beneficiary, uint256 quantity)
+```
+
+emitted when tokens from a pool are retired 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| operator `indexed` | address | undefined |
+| beneficiary `indexed` | address | undefined |
+| quantity  | uint256 | undefined |
+
 ### RetirementRateUpdate
 
 ```solidity
@@ -888,42 +999,6 @@ event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
 
 ## Errors
 
-### ERC1155InsufficientApproval
-
-```solidity
-error ERC1155InsufficientApproval(address operator, uint256 tokenId)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| operator | address | undefined |
-| tokenId | uint256 | undefined |
-
-### ERC1155InsufficientBalance
-
-```solidity
-error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| sender | address | undefined |
-| balance | uint256 | undefined |
-| needed | uint256 | undefined |
-| tokenId | uint256 | undefined |
-
 ### ERC1155InvalidArrayLength
 
 ```solidity
@@ -959,6 +1034,28 @@ error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)
 | balance | uint256 | undefined |
 | needed | uint256 | undefined |
 
+### InbalancedDeposits
+
+```solidity
+error InbalancedDeposits()
+```
+
+
+
+*Emitted if operation would cause inbalance in pool&#39;s EAT deposits*
+
+
+### InsufficientDeposits
+
+```solidity
+error InsufficientDeposits()
+```
+
+
+
+
+
+
 ### InvalidInput
 
 ```solidity
@@ -969,6 +1066,23 @@ error InvalidInput()
 
 *Emitted if input is invalid*
 
+
+### InvalidTokenAddress
+
+```solidity
+error InvalidTokenAddress(address received, address expected)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| received | address | undefined |
+| expected | address | undefined |
 
 ### Prohibited
 
@@ -1013,6 +1127,22 @@ error Unqualified(uint256 tokenId)
 |---|---|---|
 | tokenId | uint256 | undefined |
 
+### UnsupportedMetadataVersion
+
+```solidity
+error UnsupportedMetadataVersion(uint8 metadataVersion)
+```
+
+
+
+*Emitted if contract does not support metadata version*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| metadataVersion | uint8 | undefined |
+
 ### ValidationFailed
 
 ```solidity
@@ -1022,6 +1152,17 @@ error ValidationFailed()
 
 
 *Emitted if internal validation failed*
+
+
+### WithdrawsLocked
+
+```solidity
+error WithdrawsLocked()
+```
+
+
+
+
 
 
 

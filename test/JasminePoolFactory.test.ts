@@ -2,12 +2,21 @@ import { expect } from "chai";
 import { ethers, getNamedAccounts } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contracts } from "@/utils";
-import { JasminePool, JasminePoolFactory } from "@/typechain";
-import { deployPoolImplementation } from "./shared/fixtures";
-
+import { JasminePool, JasminePoolFactory, JasmineMinter } from "@/typechain";
+import { deployCoreFixture, deployLibrariesFixture, deployPoolFactory, deployPoolImplementation } from "./shared/fixtures";
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs"
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
 import { DEFAULT_ADMIN_ROLE, FEE_MANAGER_ROLE } from "@/utils/constants";
+import { FuelType } from "@/types/energy-certificate.types";
+import {
+  createAnyTechAnnualPolicy,
+  createSolarPolicy,
+  createWindPolicy,
+  makeMintFunction,
+  mintFunctionType,
+} from "./shared/utilities";
+
 
 describe(Contracts.factory, function () {
   let owner: SignerWithAddress;
@@ -20,12 +29,21 @@ describe(Contracts.factory, function () {
 
   let poolFactory: JasminePoolFactory;
   let poolImplementation: JasminePool;
+  
+  let minter: JasmineMinter;
+
+  let mintEat: mintFunctionType;
 
   before(async function () {
     await disableLogging();
   });
 
   before(async function () {
+    const coreContract = await loadFixture(deployCoreFixture);
+    minter = coreContract.minter;
+
+    mintEat = makeMintFunction(minter);
+
     poolImplementation = await loadFixture(deployPoolImplementation);
 
     const namedAccounts = await getNamedAccounts();
@@ -36,13 +54,7 @@ describe(Contracts.factory, function () {
     USDC = namedAccounts.USDC;
     uniswapPoolFactory = namedAccounts.uniswapPoolFactory;
 
-    const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-    poolFactory = (await PoolFactory.deploy(
-      poolImplementation.address,
-      feeBeneficiary.address,
-      uniswapPoolFactory,
-      USDC
-    )) as JasminePoolFactory;
+    poolFactory = await loadFixture(deployPoolFactory);
   });
 
   describe("Setup", async function () {
@@ -128,16 +140,7 @@ describe(Contracts.factory, function () {
 
   describe("Pool Creation", async function () {
     it("Should allow owner to deploy new base pool", async function () {
-      const newPolicy = {
-        vintagePeriod: [
-          Math.ceil(new Date().valueOf() / 1_000),
-          Math.ceil(new Date().valueOf() + 100_000 / 1_000),
-        ] as [number, number],
-        techType: 1,
-        registry: 0,
-        certification: 0,
-        endorsement: 0,
-      };
+      const newPolicy = createSolarPolicy();
 
       // Check Pool creation was ok and emitted PoolCreated
       expect(
@@ -147,7 +150,8 @@ describe(Contracts.factory, function () {
           "a23JLT"
         )
       )
-        .to.be.ok.and.to.emit(poolFactory, "PoolCreated") // TODO: add .withArgs() to ensure correct emission
+        .to.be.ok.and.to.emit(poolFactory, "PoolCreated")
+        .withArgs(newPolicy, anyValue, "Solar Tech '23", "a23JLT")
         .and.to.emit(poolFactory, "Initialized")
         .withArgs(1);
 
@@ -161,16 +165,7 @@ describe(Contracts.factory, function () {
 
     it("Should correcly predict the new pool's address from policy", async function () {
       // TODO: Predict client side via ethers.utils.getCreate2Address
-      const newPolicy = {
-        vintagePeriod: [
-          Math.ceil(new Date().valueOf() / 1_000),
-          Math.ceil(new Date().valueOf() + 100_000 / 1_000),
-        ] as [number, number],
-        techType: 2,
-        registry: 0,
-        certification: 0,
-        endorsement: 0,
-      };
+      const newPolicy = createWindPolicy();
       const hashedPolicy = ethers.utils.solidityKeccak256(
         ["uint256[2]", "uint256", "uint256", "uint256", "uint256"],
         [
@@ -188,11 +183,18 @@ describe(Contracts.factory, function () {
       expect(
         await poolFactory.deployNewBasePool(
           newPolicy,
-          "Solar Tech '23",
-          "a23JLT"
+          "Wind Tech '23",
+          "w23JLT"
         )
       ).to.be.ok;
       expect(await poolFactory.getPoolAtIndex(1)).to.be.eq(predictedAddress);
+    });
+
+    it("Should return eligible pools for token", async function () {
+      const solarTokens = await mintEat(owner.address, 5, FuelType.SOLAR);
+      const solarPool = await poolFactory.getPoolAtIndex(0);
+      
+      expect(await poolFactory.eligiblePoolsForToken(solarTokens.id)).to.eql([solarPool]);
     });
   });
 

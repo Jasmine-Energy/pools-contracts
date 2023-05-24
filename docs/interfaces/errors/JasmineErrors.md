@@ -12,6 +12,17 @@ Convenience interface for errors omitted by Jasmine&#39;s smart contracts
 
 ## Errors
 
+### InbalancedDeposits
+
+```solidity
+error InbalancedDeposits()
+```
+
+
+
+*Emitted if operation would cause inbalance in pool&#39;s EAT deposits*
+
+
 ### InvalidConformance
 
 ```solidity
@@ -108,6 +119,22 @@ error Unqualified(uint256 tokenId)
 | Name | Type | Description |
 |---|---|---|
 | tokenId | uint256 | undefined |
+
+### UnsupportedMetadataVersion
+
+```solidity
+error UnsupportedMetadataVersion(uint8 metadataVersion)
+```
+
+
+
+*Emitted if contract does not support metadata version*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| metadataVersion | uint8 | undefined |
 
 ### ValidationFailed
 

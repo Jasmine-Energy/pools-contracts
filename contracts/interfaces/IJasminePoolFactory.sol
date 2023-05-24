@@ -4,6 +4,7 @@ pragma solidity >=0.8.0;
 
 import { PoolPolicy } from "../libraries/PoolPolicy.sol";
 
+
 /**
  * @title Jasmine Pool Factory Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>

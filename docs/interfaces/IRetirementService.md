@@ -62,6 +62,31 @@ function onERC1155Received(address operator, address from, uint256 id, uint256 v
 |---|---|---|
 | _0 | bytes4 | `bytes4(keccak256(&quot;onERC1155Received(address,address,uint256,uint256,bytes)&quot;))` if transfer is allowed |
 
+### onTransferReceived
+
+```solidity
+function onTransferReceived(address operator, address from, uint256 value, bytes data) external nonpayable returns (bytes4)
+```
+
+Handle the receipt of ERC1363 tokens
+
+*Any ERC1363 smart contract calls this function on the recipient after a `transfer` or a `transferFrom`. This function MAY throw to revert and reject the transfer. Return of other than the magic value MUST result in the transaction being reverted. Note: the token contract address is always the message sender.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| operator | address | address The address which called `transferAndCall` or `transferFromAndCall` function |
+| from | address | address The address which are token transferred from |
+| value | uint256 | uint256 The amount of tokens transferred |
+| data | bytes | bytes Additional data with no specified format |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes4 | `bytes4(keccak256(&quot;onTransferReceived(address,address,uint256,bytes)&quot;))`  unless throwing |
+
 ### registerRetirementRecipient
 
 ```solidity
@@ -78,28 +103,6 @@ Allows user to designate an address to receive retirement hooks.
 |---|---|---|
 | holder | address | User address to notify recipient address of retirements |
 | recipient | address | Smart contract to receive retirement hooks. Address must implement IRetirementRecipient interface. |
-
-### requestResidualJLT
-
-```solidity
-function requestResidualJLT(address pool) external nonpayable returns (bool success)
-```
-
-
-
-*Called by pools for fractional retirements*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| pool | address | address of pool requesting residual JLTs |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| success | bool | True if residual JLTs sent, false if ineligible |
 
 ### supportsInterface
 
@@ -122,27 +125,6 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined |
-
-### tokensReceived
-
-```solidity
-function tokensReceived(address operator, address from, address to, uint256 amount, bytes userData, bytes operatorData) external nonpayable
-```
-
-
-
-*Called by an {IERC777} token contract whenever tokens are being moved or created into a registered account (`to`). The type of operation is conveyed by `from` being the zero address or not. This call occurs _after_ the token contract&#39;s state is updated, so {IERC777-balanceOf}, etc., can be used to query the post-operation state. This function may revert to prevent the operation from being executed.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| operator | address | undefined |
-| from | address | undefined |
-| to | address | undefined |
-| amount | uint256 | undefined |
-| userData | bytes | undefined |
-| operatorData | bytes | undefined |
 
 
 

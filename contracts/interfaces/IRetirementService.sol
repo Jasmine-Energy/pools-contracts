@@ -3,9 +3,9 @@
 pragma solidity >=0.8.0;
 
 
-import { IERC777Recipient } from "@openzeppelin/contracts/interfaces/IERC777Recipient.sol";
-// ERC-1155 support (for EAT receipt)
 import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
+import { IERC1363Receiver } from "@openzeppelin/contracts/interfaces/IERC1363Receiver.sol";
+
 
 /**
  * @title Retirement Service Interface
@@ -13,7 +13,7 @@ import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Rec
  * @notice 
  * @custom:security-contact dev@jasmine.energy
  */
-interface IRetirementService is IERC777Recipient, IERC1155Receiver {
+interface IRetirementService is IERC1155Receiver, IERC1363Receiver {
 
     /**
      * @notice Allows user to designate an address to receive retirement hooks.
@@ -23,12 +23,5 @@ interface IRetirementService is IERC777Recipient, IERC1155Receiver {
      * must implement IRetirementRecipient interface.
      */
     function registerRetirementRecipient(address holder, address recipient) external;
-
-    /**
-     * @dev Called by pools for fractional retirements
-     * @param pool address of pool requesting residual JLTs
-     * @return success True if residual JLTs sent, false if ineligible
-     */
-    function requestResidualJLT(address pool) external returns (bool success);
 
 }
