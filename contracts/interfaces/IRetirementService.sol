@@ -4,7 +4,6 @@ pragma solidity >=0.8.0;
 
 
 import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
-import { IERC1363Receiver } from "@openzeppelin/contracts/interfaces/IERC1363Receiver.sol";
 
 
 /**
@@ -13,7 +12,7 @@ import { IERC1363Receiver } from "@openzeppelin/contracts/interfaces/IERC1363Rec
  * @notice 
  * @custom:security-contact dev@jasmine.energy
  */
-interface IRetirementService is IERC1155Receiver, IERC1363Receiver {
+interface IRetirementService is IERC1155Receiver {
 
     /**
      * @notice Allows user to designate an address to receive retirement hooks.

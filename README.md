@@ -57,7 +57,7 @@ Lastly, the *Pool Factory* is responsible for storing shared state across the pr
 
 *Jasmine Reference Pools* are contracts which are able to receive *Energy Attribute Tokens* (EATs) as deposits and issue pool specific *Jasmine Liquidity Tokens* (JLTs) in exchange. JLT holders are able to withdraw EATs from the issuing pool by burning their JLTs - and may also retire JLTs directly.
 
-*Jasmine Reference Pools* implement [ERC-777](https://docs.openzeppelin.com/contracts/4.x/api/token/erc777) (which extends [ERC-20](https://eips.ethereum.org/EIPS/eip-20)) as well as the [ERC-2612 Permit Extension](https://eips.ethereum.org/EIPS/eip-2612), [ERC-1046 TokenURI Interoperability](https://eips.ethereum.org/EIPS/eip-1046) and [ERC-1363 Payable Token](https://eips.ethereum.org/EIPS/eip-1363) standards.
+*Jasmine Reference Pools* implement [ERC-20](https://eips.ethereum.org/EIPS/eip-20) as well as the [ERC-2612 Permit Extension](https://eips.ethereum.org/EIPS/eip-2612), [ERC-1046 TokenURI Interoperability](https://eips.ethereum.org/EIPS/eip-1046) and [ERC-1363 Payable Token](https://eips.ethereum.org/EIPS/eip-1363) standards.
 
 ### **Reference Pools Design Pattern**
 

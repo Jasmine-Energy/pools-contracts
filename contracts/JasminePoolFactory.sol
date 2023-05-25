@@ -26,7 +26,6 @@ import { BeaconProxy } from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.so
 // Interfaces
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
-import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 
 // Utility Libraries
 import { PoolPolicy } from "./libraries/PoolPolicy.sol";
@@ -529,7 +528,6 @@ contract JasminePoolFactory is
      * @dev Requirements:
      *     - Caller must have fee manager role
      *     - New beneficiary cannot be zero address
-     *     - If new beneficiary is a contract, must support IERC777Recipient interface
      * 
      * @dev emits BaseWithdrawalFeeUpdate & BaseRetirementFeeUpdate
      * 
@@ -647,25 +645,17 @@ contract JasminePoolFactory is
     }
 
     /**
-     * @dev Checks if a given address is valid to receive JLT fees. Address cannot be zero and if
-     *      address is a contract, must support IERC777Recipient interface via ERC-165
+     * @dev Checks if a given address is valid to receive JLT fees. Address cannot be zero.
      * 
      * @param newFeeBeneficiary Address to validate
      */
     function _validateFeeReceiver(address newFeeBeneficiary)
-        internal view
+        internal pure
     {
         require(
             newFeeBeneficiary != address(0x0),
             "JasminePoolFactory: Fee beneficiary must be set"
         );
-        if (newFeeBeneficiary.isContract()) {
-            require(
-                // TODO: ERC777 support dropped. Change this line
-                IERC165(newFeeBeneficiary).supportsInterface(type(IERC777Recipient).interfaceId),
-                "JasminePoolFactory: Fee beneficiary must support IERC777Recipient interface"
-            );
-        }
     }
 
     //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\

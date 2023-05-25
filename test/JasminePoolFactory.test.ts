@@ -90,20 +90,6 @@ describe(Contracts.factory, function () {
         )
       ).to.be.revertedWith("JasminePoolFactory: Fee beneficiary must be set");
     });
-
-    it("Should revert if fee beneficiary is a contract which doesn't support IERC777Recipient", async function () {
-      const PoolFactory = await ethers.getContractFactory(Contracts.factory);
-      await expect(
-        PoolFactory.deploy(
-          poolImplementation.address,
-          await poolImplementation.EAT(),
-          uniswapPoolFactory,
-          USDC
-        )
-      ).to.be.revertedWith(
-        "JasminePoolFactory: Fee beneficiary must support IERC777Recipient interface"
-      );
-    });
   });
 
   describe("Pool Implementation Management", async function () {
