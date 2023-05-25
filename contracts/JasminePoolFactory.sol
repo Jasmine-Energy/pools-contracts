@@ -38,7 +38,8 @@ import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 /**
  * @title Jasmine Pool Factory
  * @author Kai Aldag<kai.aldag@jasmine.energy>
- * @notice 
+ * @notice Deploys new Jasmine Reference Pools, manages pool implementations and
+ *         controls fees across the Jasmine protocol
  * @custom:security-contact dev@jasmine.energy
  */
 contract JasminePoolFactory is 
@@ -324,10 +325,7 @@ contract JasminePoolFactory is
         );
 
         // 4. Ensure new pool matches expected
-        require(
-            _predictDeploymentAddress(policyHash, version) == address(poolProxy),
-            "JasminePoolFactory: Pool address does not match expected"
-        );
+        if (_predictDeploymentAddress(policyHash, version) != address(poolProxy)) revert JasmineErrors.ValidationFailed();
 
         // 5. Initialize pool, add to pools and emit creation event
         Address.functionCall(address(poolProxy), abi.encodePacked(initSelector, abi.encode(initData, name, symbol)));
@@ -640,7 +638,7 @@ contract JasminePoolFactory is
             if (beacon.implementation() == poolImplementation)
                 revert JasmineErrors.PoolExists(poolImplementation);
             
-            unchecked { ++i; }
+            unchecked { i++; }
         }
     }
 

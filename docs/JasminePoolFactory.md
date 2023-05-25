@@ -4,7 +4,7 @@
 
 > Jasmine Pool Factory
 
-
+Deploys new Jasmine Reference Pools, manages pool implementations and         controls fees across the Jasmine protocol
 
 
 
