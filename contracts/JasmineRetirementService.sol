@@ -10,10 +10,6 @@ pragma solidity >=0.8.17;
 // Core Implementations
 import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import { IRetirementService } from "./interfaces/IRetirementService.sol";
-import { ERC1363Receiver } from "./implementations/ERC1363Receiver.sol";
-
-// Implemented Interfaces
-import { IERC1363Receiver } from "@openzeppelin/contracts/interfaces/IERC1363Receiver.sol";
 
 // External Contracts
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
@@ -34,7 +30,7 @@ import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
  * @notice Facilitates retirements of EATs and JLTs in the Jasmine protocol
  * @custom:security-contact dev@jasmine.energy
  */
-contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC1363Receiver {
+contract JasmineRetirementService is IRetirementService, ERC1155Receiver {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -117,24 +113,6 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, ERC136
         return this.onERC1155BatchReceived.selector;
     }
 
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  ERC-1363 Receiver
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    /// @inheritdoc IERC1363Receiver
-    function onTransferReceived(
-        address operator,
-        address from,
-        uint256 value,
-        bytes memory data
-    ) 
-        external override(ERC1363Receiver, IERC1363Receiver) 
-        returns (bytes4)
-    {
-        // TODO: Implement me
-
-        return this.onTransferReceived.selector;
-    }
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Retirement Notification Recipient
