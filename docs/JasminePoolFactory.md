@@ -547,7 +547,7 @@ function setFeeBeneficiary(address newFeeBeneficiary) external nonpayable
 
 Allows pool fee managers to update the beneficiary to receive pool fees         across all Jasmine pools 
 
-*Requirements:     - Caller must have fee manager role     - New beneficiary cannot be zero address     - If new beneficiary is a contract, must support IERC777Recipient interface emits BaseWithdrawalFeeUpdate &amp; BaseRetirementFeeUpdate *
+*Requirements:     - Caller must have fee manager role     - New beneficiary cannot be zero address emits BaseWithdrawalFeeUpdate &amp; BaseRetirementFeeUpdate *
 
 #### Parameters
 
