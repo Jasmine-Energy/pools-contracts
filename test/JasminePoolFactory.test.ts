@@ -3,11 +3,11 @@ import { ethers, getNamedAccounts } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contracts } from "@/utils";
 import { JasminePool, JasminePoolFactory, JasmineMinter } from "@/typechain";
-import { deployCoreFixture, deployLibrariesFixture, deployPoolFactory, deployPoolImplementation } from "./shared/fixtures";
+import { deployCoreFixture, deployPoolFactory, deployPoolImplementation } from "./shared/fixtures";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs"
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
-import { DEFAULT_ADMIN_ROLE, FEE_MANAGER_ROLE } from "@/utils/constants";
+import { DEFAULT_ADMIN_ROLE, FEE_MANAGER_ROLE, POOL_MANAGER_ROLE } from "@/utils/constants";
 import { FuelType } from "@/types/energy-certificate.types";
 import {
   createAnyTechAnnualPolicy,
@@ -66,9 +66,7 @@ describe(Contracts.factory, function () {
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
         PoolFactory.deploy(ethers.constants.AddressZero, owner.address, uniswapPoolFactory, USDC)
-      ).to.be.revertedWith(
-        "JasminePoolFactory: Pool implementation must be set"
-      );
+      ).to.be.revertedWithCustomError(poolFactory, "InvalidInput");
     });
 
     it("Should revert if pool implementation does not support expect interfaces", async function () {
@@ -88,7 +86,7 @@ describe(Contracts.factory, function () {
           uniswapPoolFactory,
           USDC
         )
-      ).to.be.revertedWith("JasminePoolFactory: Fee beneficiary must be set");
+      ).to.be.revertedWithCustomError(poolFactory, "InvalidInput");
     });
   });
 
@@ -107,20 +105,57 @@ describe(Contracts.factory, function () {
       
     });
 
-    it("Should revert if non-owner calls add, remove or update pool implementation", async function () {
+    it("Should revert if non-owner calls add, update, remove or readd pool implementation", async function () {
       const factoryFromExt = poolFactory.connect(accounts[1]);
       await expect(
         factoryFromExt.addPoolImplementation(poolImplementation.address)
-      ).to.be.revertedWith("Ownable: caller is not the owner");
+      ).to.be.revertedWithCustomError(
+        poolFactory, "RequiresRole"
+      ).withArgs(POOL_MANAGER_ROLE);
       await expect(
         factoryFromExt.removePoolImplementation(0)
-      ).to.be.revertedWith("Ownable: caller is not the owner");
+      ).to.be.revertedWithCustomError(
+        poolFactory, "RequiresRole"
+      ).withArgs(POOL_MANAGER_ROLE);
       await expect(
         factoryFromExt.updateImplementationAddress(
           poolImplementation.address,
           0
         )
-      ).to.be.revertedWith("Ownable: caller is not the owner");
+      ).to.be.revertedWithCustomError(
+        poolFactory, "RequiresRole"
+      ).withArgs(POOL_MANAGER_ROLE);
+      await expect(
+        factoryFromExt.readdPoolImplementation(
+          0
+        )
+      ).to.be.revertedWithCustomError(
+        poolFactory, "RequiresRole"
+      ).withArgs(POOL_MANAGER_ROLE);
+    });
+
+    it("Should allow owner to remove a pool implementation", async function () {
+      expect(await poolFactory.removePoolImplementation(0)).to.be.ok
+        .and.to.emit(poolFactory, "PoolImplementationRemoved")
+        .withArgs(anyValue, 0); // TODO: Check beacon address
+    });
+
+    it("Should revert if owner removes a deleted pool implementation", async function () {
+      await expect(poolFactory.removePoolImplementation(0)).to.be.revertedWithCustomError(
+        poolFactory, "ValidationFailed"
+      );
+    });
+
+    it("Should allow owner to readd a pool implementation", async function () {
+      expect(await poolFactory.readdPoolImplementation(0)).to.be.ok
+        .and.to.emit(poolFactory, "PoolImplementationAdded")
+        .withArgs(poolImplementation.address, anyValue, 0); // TODO: Check beacon address
+    });
+
+    it("Should revert if owner removes a deleted pool implementation", async function () {
+      await expect(poolFactory.readdPoolImplementation(0)).to.be.revertedWithCustomError(
+        poolFactory, "ValidationFailed"
+      );
     });
   });
 

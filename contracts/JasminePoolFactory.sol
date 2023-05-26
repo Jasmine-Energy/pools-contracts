@@ -83,6 +83,8 @@ contract JasminePoolFactory is
     /// @dev Pool beacon proxy addresses containing pool implementations
     EnumerableSet.AddressSet internal _poolBeacons;
 
+    /// @dev Mapping of pool implementation versions to whether they are deprecated
+    mapping(uint256 => bool) internal _deprecatedPoolImplementations;
 
     //  ─────────────────────────────  Access Control  ──────────────────────────────  \\
 
@@ -144,6 +146,7 @@ contract JasminePoolFactory is
     {
         _validatePoolImplementation(_poolImplementation);
         _validateFeeReceiver(_feeBeneficiary);
+        if (_uniswapFactory == address(0x0) || _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
 
         UniswapFactory = _uniswapFactory;
         USDC = _usdc;
@@ -261,7 +264,7 @@ contract JasminePoolFactory is
         string calldata symbol
     )
         external
-        onlyOwner
+        onlyPoolManager
         returns (address newPool)
     {
         // 1. Encode packed policy and create hash
@@ -316,29 +319,32 @@ contract JasminePoolFactory is
         string calldata symbol
     )
         public
-        onlyOwner
+        onlyPoolManager
         returns (address newPool)
     {
-        // 1. Compute hash of init data
+        // 1. Validate pool implementation version
+        _validatePoolVersion(version);
+
+        // 2. Compute hash of init data
         bytes32 policyHash = keccak256(initData); // TODO: include version in hash
 
-        // 2. Ensure policy does not exist
+        // 3. Ensure policy does not exist
         if (_pools.contains(policyHash)) revert JasmineErrors.PoolExists(_predictDeploymentAddress(policyHash, version));
 
-        // 3. Deploy new pool
+        // 4. Deploy new pool
         BeaconProxy poolProxy = new BeaconProxy{ salt: policyHash }(
             _poolBeacons.at(version), ""
         );
 
-        // 4. Ensure new pool matches expected
+        // 5. Ensure new pool matches expected
         if (_predictDeploymentAddress(policyHash, version) != address(poolProxy)) revert JasmineErrors.ValidationFailed();
 
-        // 5. Initialize pool, add to pools and emit creation event
+        // 6. Initialize pool, add to pools and emit creation event
         Address.functionCall(address(poolProxy), abi.encodePacked(initSelector, abi.encode(initData, name, symbol)));
         _addDeployedPool(policyHash, version);
         emit PoolCreated(initData, address(poolProxy), name, symbol);
 
-        // 6. Create Uniswap pool and return new pool
+        // 7. Create Uniswap pool and return new pool
         // TODO: Pass in initial price as function parameter
         // QUESTION: How do we want to set initial price? $5/JLT is default
         _createUniswapPool(address(poolProxy), 177159557114295710296101716160); // NOTE: = $5/JLT
@@ -361,7 +367,7 @@ contract JasminePoolFactory is
         uint256 poolIndex
     )
         external
-        onlyOwner
+        onlyPoolManager
     {
         _validatePoolImplementation(newPoolImplementation);
 
@@ -382,7 +388,7 @@ contract JasminePoolFactory is
      */
     function addPoolImplementation(address newPoolImplementation) 
         public
-        onlyOwner
+        onlyPoolManager
         returns (uint256 indexInPools)
     {
         _validatePoolImplementation(newPoolImplementation);
@@ -409,24 +415,49 @@ contract JasminePoolFactory is
     /**
      * @notice Used to remove a pool implementation
      * 
-     * @ param poolIndex Index of pool to remove
-     * TODO: Would be nice to have an overloaded version that takes address of pool to remove
-     * NOTE: This will break CREATE2 address predictions. Think of means around this
+     * @dev Marks a pool implementation as deprecated. This is a soft delete
+     *      preventing new pool deployments from using the implementation while
+     *      allowing upgrades to occur.
+     * 
+     * @dev emits PoolImplementationRemoved
+     * 
+     * @param implementationsIndex Index of pool to remove
+     * 
      */
-    function removePoolImplementation(uint256)
-        public view
-        onlyOwner
+    function removePoolImplementation(uint256 implementationsIndex)
+        external
+        onlyPoolManager
     {
+        if (implementationsIndex >= _poolBeacons.length() ||
+            _deprecatedPoolImplementations[implementationsIndex]) revert JasmineErrors.ValidationFailed();
 
-        revert("JasminePoolFactory: Currently unsupported");
+        _deprecatedPoolImplementations[implementationsIndex] = true;
 
-        // address pool = _poolImplementations.at(poolIndex);
-        // require(
-        //     _poolImplementations.remove(pool),
-        //     "JasminePoolFactory: Failed to remove pool"
-        // );
+        emit PoolImplementationRemoved(_poolBeacons.at(implementationsIndex), implementationsIndex);
+    }
 
-        // emit PoolImplementationRemoved(pool, poolIndex);
+    /**
+     * @notice Used to undo a pool implementation removal
+     * 
+     * @dev emits PoolImplementationAdded
+     * 
+     * @param implementationsIndex Index of pool to undo removal
+     */
+    function readdPoolImplementation(uint256 implementationsIndex)
+        external
+        onlyPoolManager
+    {
+        if (implementationsIndex >= _poolBeacons.length() ||
+            !_deprecatedPoolImplementations[implementationsIndex]) revert JasmineErrors.ValidationFailed();
+        
+
+        _deprecatedPoolImplementations[implementationsIndex] = false;
+
+        emit PoolImplementationAdded(
+            UpgradeableBeacon(_poolBeacons.at(implementationsIndex)).implementation(),
+            _poolBeacons.at(implementationsIndex),
+            implementationsIndex
+        );
     }
 
 
@@ -633,10 +664,7 @@ contract JasminePoolFactory is
     function _validatePoolImplementation(address poolImplementation)
         internal view 
     {
-        require(
-            poolImplementation != address(0x0),
-            "JasminePoolFactory: Pool implementation must be set"
-        );
+        if (poolImplementation == address(0x0)) revert JasmineErrors.InvalidInput();
 
         if (!IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId))
             revert JasmineErrors.InvalidConformance(type(IJasminePool).interfaceId);
@@ -654,6 +682,18 @@ contract JasminePoolFactory is
     }
 
     /**
+     * @dev Checks if a given pool implementation version exists and is not deprecated
+     * 
+     * @param poolImplementationVersion Index of pool implementation to check
+     */
+    function _validatePoolVersion(uint256 poolImplementationVersion)
+        internal view
+    {
+        if (poolImplementationVersion >= _poolBeacons.length() || 
+            _deprecatedPoolImplementations[poolImplementationVersion]) revert JasmineErrors.ValidationFailed();
+    }
+
+    /**
      * @dev Checks if a given address is valid to receive JLT fees. Address cannot be zero.
      * 
      * @param newFeeBeneficiary Address to validate
@@ -661,17 +701,12 @@ contract JasminePoolFactory is
     function _validateFeeReceiver(address newFeeBeneficiary)
         internal pure
     {
-        require(
-            newFeeBeneficiary != address(0x0),
-            "JasminePoolFactory: Fee beneficiary must be set"
-        );
+        if (newFeeBeneficiary == address(0x0)) revert JasmineErrors.InvalidInput();
     }
 
     //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
 
-    /**
-     * @dev Enforces caller has fee manager role in pool factory
-     */
+    /// @dev Enforces caller has fee manager role in pool factory
     modifier onlyFeeManager() {
         if (!hasRole(FEE_MANAGER_ROLE, _msgSender())) {
             revert JasmineErrors.RequiresRole(FEE_MANAGER_ROLE);
@@ -679,9 +714,8 @@ contract JasminePoolFactory is
         _;
     }
 
-    /**
-     * @dev Enforces caller has fee manager role in pool factory
-     */
+    
+    /// @dev Enforces caller has fee manager role in pool factory
     modifier onlyPoolManager() {
         if (!hasRole(POOL_MANAGER_ROLE, _msgSender())) {
             revert JasmineErrors.RequiresRole(POOL_MANAGER_ROLE);

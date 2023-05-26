@@ -61,12 +61,10 @@ interface IJasminePoolFactory {
     /**
      * @notice Emitted when a pool implementations is removed
      * 
-     * @param poolImplementation Address of deleted pool implementation
      * @param beaconAddress Address of Beacon smart contract
      * @param poolIndex Index of deleted pool in set of pool implementations
      */
     event PoolImplementationRemoved(
-        address indexed poolImplementation,
         address indexed beaconAddress,
         uint256 indexed poolIndex
     );

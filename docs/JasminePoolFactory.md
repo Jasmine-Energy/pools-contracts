@@ -447,21 +447,37 @@ function pendingOwner() external view returns (address)
 |---|---|---|
 | _0 | address | undefined |
 
-### removePoolImplementation
+### readdPoolImplementation
 
 ```solidity
-function removePoolImplementation(uint256) external view
+function readdPoolImplementation(uint256 implementationsIndex) external nonpayable
 ```
 
-Used to remove a pool implementation  param poolIndex Index of pool to remove TODO: Would be nice to have an overloaded version that takes address of pool to remove NOTE: This will break CREATE2 address predictions. Think of means around this
+Used to undo a pool implementation removal 
 
-
+*emits PoolImplementationAdded *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined |
+| implementationsIndex | uint256 | Index of pool to undo removal |
+
+### removePoolImplementation
+
+```solidity
+function removePoolImplementation(uint256 implementationsIndex) external nonpayable
+```
+
+Used to remove a pool implementation 
+
+*Marks a pool implementation as deprecated. This is a soft delete      preventing new pool deployments from using the implementation while      allowing upgrades to occur. emits PoolImplementationRemoved *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| implementationsIndex | uint256 | Index of pool to remove  |
 
 ### renounceOwnership
 
@@ -757,7 +773,7 @@ Emitted when new pool implementations are supported by factory
 ### PoolImplementationRemoved
 
 ```solidity
-event PoolImplementationRemoved(address indexed poolImplementation, address indexed beaconAddress, uint256 indexed poolIndex)
+event PoolImplementationRemoved(address indexed beaconAddress, uint256 indexed poolIndex)
 ```
 
 Emitted when a pool implementations is removed 
@@ -768,7 +784,6 @@ Emitted when a pool implementations is removed
 
 | Name | Type | Description |
 |---|---|---|
-| poolImplementation `indexed` | address | undefined |
 | beaconAddress `indexed` | address | undefined |
 | poolIndex `indexed` | uint256 | undefined |
 
