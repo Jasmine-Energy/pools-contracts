@@ -89,6 +89,7 @@ contract JasminePoolFactory is
     /// @dev Access control roll for pool fee management
     bytes32 public constant FEE_MANAGER_ROLE = keccak256("FEE_MANAGER_ROLE");
 
+    // TODO: Add pool manager roll
 
     //  ───────────────────────────  External Addresses  ────────────────────────────  \\
 
@@ -306,7 +307,7 @@ contract JasminePoolFactory is
         uint256 version,
         bytes4  initSelector,
         bytes  memory   initData, // QUESTION: Consider renaming. This is more a generic deposit policy than init data as name and symbol are appended
-        string calldata name, 
+        string calldata name, // TODO: Enforce name and symbol are unique (plus max length?)
         string calldata symbol
     )
         public
@@ -314,7 +315,7 @@ contract JasminePoolFactory is
         returns (address newPool)
     {
         // 1. Compute hash of init data
-        bytes32 policyHash = keccak256(initData);
+        bytes32 policyHash = keccak256(initData); // TODO: include version in hash
 
         // 2. Ensure policy does not exist
         if (_pools.contains(policyHash)) revert JasmineErrors.PoolExists(_predictDeploymentAddress(policyHash, version));
@@ -333,6 +334,7 @@ contract JasminePoolFactory is
         emit PoolCreated(initData, address(poolProxy), name, symbol);
 
         // 6. Create Uniswap pool and return new pool
+        // TODO: Pass in initial price as function parameter
         // QUESTION: How do we want to set initial price? $5/JLT is default
         _createUniswapPool(address(poolProxy), 177159557114295710296101716160); // NOTE: = $5/JLT
         // * uint160(10**IJasminePool(address(poolProxy)).decimals())
@@ -466,6 +468,7 @@ contract JasminePoolFactory is
         super._transferOwnership(newOwner);
     }
 
+    // QUESTION: Prevent owner from renouncing ownership?
 
     //  ─────────────────────────────  Fee Management  ──────────────────────────────  \\
 

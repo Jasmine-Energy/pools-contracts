@@ -101,6 +101,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         external view override
         returns (bytes memory policy)
     {
+        // TODO: Use custom error
         require(metadataVersion == 1, "JasminePool: No policy for version");
         return abi.encode(
             _policy.vintagePeriod,

@@ -136,9 +136,9 @@ abstract contract JasmineBasePool is
     // TODO: Once pool conforms to IJasminePool again, add above line to natspec
     function retire(
         address owner, 
-        address beneficiary, 
+        address beneficiary, // TODO: If set, use in lieu of msg.sender
         uint256 amount, 
-        bytes calldata data
+        bytes calldata data // TODO: Concat to calldata
     )
         external virtual
         onlyAllowed(owner, amount)

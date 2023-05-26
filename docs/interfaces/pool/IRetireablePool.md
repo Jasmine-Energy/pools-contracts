@@ -209,7 +209,7 @@ emitted when tokens from a pool are retired
 |---|---|---|
 | operator `indexed` | address | Initiator of retirement |
 | beneficiary `indexed` | address | Designate beneficiary of retirement |
-| quantity  | uint256 | Number of tokens being retired |
+| quantity  | uint256 | Number of JLT being retired |
 
 ### Withdraw
 

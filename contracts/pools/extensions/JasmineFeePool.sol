@@ -10,6 +10,9 @@ pragma solidity >=0.8.17;
 // Implementation Contracts
 import { JasmineBasePool } from "../core/JasmineBasePool.sol";
 
+// Interfaces
+import { IFeePool } from "../../interfaces/pool/IFeePool.sol";
+
 // External Contracts
 import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
 
@@ -32,39 +35,13 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
  * 
  * QUESTION: Should there be a maximum permitted fee?
  */
-abstract contract JasmineFeePool is JasmineBasePool {
+abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
 
     using ArrayUtils for uint256[];
-
-    // ──────────────────────────────────────────────────────────────────────────────
-    // Events
-    // ──────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * @dev Emitted whenever fee manager updates withdrawal fee
-     * 
-     * @param withdrawFeeBips New withdrawal fee in basis points
-     * @param beneficiary Address to receive fees
-     */
-    event WithdrawalRateUpdate(
-        uint96 withdrawFeeBips,
-        address indexed beneficiary
-    );
-
-    /**
-     * @dev Emitted whenever fee manager updates retirement fee
-     * 
-     * @param retirementFeeBips new retirement fee in basis points
-     * @param beneficiary Address to receive fees
-     */
-    event RetirementRateUpdate(
-        uint96 retirementFeeBips,
-        address indexed beneficiary
-    );
 
 
     // ──────────────────────────────────────────────────────────────────────────────

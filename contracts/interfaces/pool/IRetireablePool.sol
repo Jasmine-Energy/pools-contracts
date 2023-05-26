@@ -26,7 +26,7 @@ interface IRetireablePool is IEATBackedPool {
      * 
      * @param operator Initiator of retirement
      * @param beneficiary Designate beneficiary of retirement
-     * @param quantity Number of tokens being retired
+     * @param quantity Number of JLT being retired
      */
     event Retirement(
         address indexed operator,

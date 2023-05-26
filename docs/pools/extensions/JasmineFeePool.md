@@ -933,14 +933,14 @@ event RetirementRateUpdate(uint96 retirementFeeBips, address indexed beneficiary
 
 
 
-*Emitted whenever fee manager updates retirement fee *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| retirementFeeBips  | uint96 | new retirement fee in basis points |
-| beneficiary `indexed` | address | Address to receive fees |
+| retirementFeeBips  | uint96 | undefined |
+| beneficiary `indexed` | address | undefined |
 
 ### Transfer
 
@@ -986,14 +986,14 @@ event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
 
 
 
-*Emitted whenever fee manager updates withdrawal fee *
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| withdrawFeeBips  | uint96 | New withdrawal fee in basis points |
-| beneficiary `indexed` | address | Address to receive fees |
+| withdrawFeeBips  | uint96 | undefined |
+| beneficiary `indexed` | address | undefined |
 
 
 
