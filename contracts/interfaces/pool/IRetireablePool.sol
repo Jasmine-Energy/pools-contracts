@@ -3,6 +3,10 @@
 pragma solidity >=0.8.0;
 
 
+//  ─────────────────────────────────────────────────────────────────────────────
+//  Imports
+//  ─────────────────────────────────────────────────────────────────────────────
+
 // Base
 import { IEATBackedPool } from "./IEATBackedPool.sol";
 
@@ -58,6 +62,23 @@ interface IRetireablePool is IEATBackedPool {
      * 
      */
     function retire(
+        address owner, 
+        address beneficiary, 
+        uint256 amount, 
+        bytes calldata data
+    ) external;
+
+
+    /**
+     * @notice Retires an exact amount of JLTs. If fees or other conversions are set,
+     *         cost of retirement will be greater than amount.
+     * 
+     * @param owner JLT holder to retire from
+     * @param beneficiary Address to receive retirement attestation
+     * @param amount Exact number of JLTs to retire
+     * @param data Optional calldata to relay to retirement service via onERC1155Received
+     */
+    function retireExact(
         address owner, 
         address beneficiary, 
         uint256 amount, 

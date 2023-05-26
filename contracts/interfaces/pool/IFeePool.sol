@@ -3,6 +3,15 @@
 pragma solidity >=0.8.0;
 
 
+//  ─────────────────────────────────────────────────────────────────────────────
+//  Imports
+//  ─────────────────────────────────────────────────────────────────────────────
+
+// Base
+import { IEATBackedPool } from "./IEATBackedPool.sol";
+import { IRetireablePool } from "./IRetireablePool.sol";
+
+
 /**
  * @title Fee Pool Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
@@ -10,7 +19,7 @@ pragma solidity >=0.8.0;
  *         withdrawals and retirements.
  * @custom:security-contact dev@jasmine.energy
  */
-interface IFeePool {
+interface IFeePool is IEATBackedPool, IRetireablePool {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Events

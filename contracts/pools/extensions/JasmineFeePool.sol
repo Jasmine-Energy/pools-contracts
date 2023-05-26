@@ -10,14 +10,18 @@ pragma solidity >=0.8.17;
 // Implementation Contracts
 import { JasmineBasePool } from "../core/JasmineBasePool.sol";
 
-// Interfaces
-import { IFeePool } from "../../interfaces/pool/IFeePool.sol";
+// Implemented Interfaces
+import { IFeePool }        from "../../interfaces/pool/IFeePool.sol";
+import { IJasminePool }    from "../../interfaces/IJasminePool.sol";
+import { IQualifiedPool }  from "../../interfaces/pool/IQualifiedPool.sol";
+import { IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
+import { IEATBackedPool }  from "../../interfaces/pool/IEATBackedPool.sol";
 
 // External Contracts
 import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
 
 // Utility Libraries
-import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { Math }       from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils } from "../../libraries/ArrayUtils.sol";
 import { 
     ERC20Errors,
@@ -207,7 +211,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         uint256[] memory tokenIds,
         uint256[] memory amounts
     )
-        public view virtual override
+        public view virtual override(IEATBackedPool, JasmineBasePool)
         returns (uint256 cost)
     {
         if (tokenIds.length != amounts.length) {
@@ -239,7 +243,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     function withdrawalCost(
         uint256 amount
     )
-        public view virtual override
+        public view virtual override(IEATBackedPool, JasmineBasePool)
         returns (uint256 cost)
     {
         // NOTE: If no feeBeneficiary is set, fees may not be collected
@@ -264,7 +268,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     function retirementCost(
         uint256 amount
     )
-        public view virtual override
+        public view virtual override(IEATBackedPool, JasmineBasePool)
         returns (uint256 cost)
     {
         // NOTE: If no feeBeneficiary is set, fees may not be collected

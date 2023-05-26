@@ -264,6 +264,47 @@ Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;bene
 | amount | uint256 | Number of JLTs to withdraw |
 | data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |
 
+### retireExact
+
+```solidity
+function retireExact(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
+```
+
+Retires an exact amount of JLTs. If fees or other conversions are set,         cost of retirement will be greater than amount. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| owner | address | JLT holder to retire from |
+| beneficiary | address | Address to receive retirement attestation |
+| amount | uint256 | Exact number of JLTs to retire |
+| data | bytes | Optional calldata to relay to retirement service via onERC1155Received |
+
+### retirementCost
+
+```solidity
+function retirementCost(uint256 amount) external view returns (uint256 cost)
+```
+
+Cost of retiring JLTs from pool. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| amount | uint256 | Amount of JLTs to retire.  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| cost | uint256 | Price of retiring in JLTs. |
+
 ### symbol
 
 ```solidity
@@ -415,6 +456,51 @@ Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in J
 | tokenIds | uint256[] | EAT token IDs to withdraw from pool |
 | quantities | uint256[] | Number of EATs for tokenId at same index to deposit |
 | data | bytes | Optional calldata to relay to recipient via onERC1155Received  Emits a {Withdraw} event. |
+
+### withdrawalCost
+
+```solidity
+function withdrawalCost(uint256 amount) external view returns (uint256 cost)
+```
+
+Cost of withdrawing amount of tokens from pool where pool         selects the tokens to withdraw. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| amount | uint256 | Number of EATs to withdraw.  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| cost | uint256 | Price of withdrawing EATs in JLTs |
+
+### withdrawalCost
+
+```solidity
+function withdrawalCost(uint256[] tokenIds, uint256[] amounts) external view returns (uint256 cost)
+```
+
+Cost of withdrawing specified amounts of tokens from pool. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenIds | uint256[] | IDs of EATs to withdaw |
+| amounts | uint256[] | Amounts of EATs to withdaw  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| cost | uint256 | Price of withdrawing EATs in JLTs |
 
 
 

@@ -9,13 +9,19 @@ pragma solidity >=0.8.17;
 
 // Parent Contract
 import { JasmineBasePool } from "./pools/core/JasmineBasePool.sol";
-import { JasmineFeePool } from "./pools/extensions/JasmineFeePool.sol";
+import { JasmineFeePool }  from "./pools/extensions/JasmineFeePool.sol";
+
+// Implemented Interfaces
+import { IJasminePool }    from "./interfaces/IJasminePool.sol";
+import { IQualifiedPool }  from "./interfaces/pool/IQualifiedPool.sol";
+import { IRetireablePool } from "./interfaces/pool/IRetireablePool.sol";
+import { IEATBackedPool }  from "./interfaces/pool/IEATBackedPool.sol";
 
 // External Contracts
 import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
 
 // Utility Libraries
-import { PoolPolicy } from "./libraries/PoolPolicy.sol";
+import { PoolPolicy }    from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
@@ -86,8 +92,12 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     // Deposit Policy Overrides
     // ──────────────────────────────────────────────────────────────────────────────
 
-    // @inheritdoc {IQualifiedPool}
-    // TODO: Once pool conforms to IJasminePool again, add above line to natspec
+    /**
+     * @dev Checks if a token is eligible for deposit into the pool based on the
+     *      pool's Deposit Policy.
+     * 
+     * @param tokenId EAT token ID to check eligibility
+     */
     function meetsPolicy(uint256 tokenId)
         public view override
         returns (bool isEligible)
@@ -95,8 +105,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         return super.meetsPolicy(tokenId) && _policy.meetsPolicy(oracle, tokenId);
     }
 
-    // @inheritdoc {IQualifiedPool}
-    // TODO: Once pool conforms to IJasminePool again, add above line to natspec
+    /// @inheritdoc IQualifiedPool
     function policyForVersion(uint8 metadataVersion)
         external view override
         returns (bytes memory policy)

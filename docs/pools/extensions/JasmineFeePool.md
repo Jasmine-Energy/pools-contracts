@@ -158,22 +158,22 @@ function decreaseAllowance(address spender, uint256 subtractedValue) external no
 function deposit(uint256 tokenId, uint256 amount) external nonpayable returns (uint256 jltQuantity)
 ```
 
-Used to deposit EATs into the pool. 
+Used to deposit EATs into the pool to receive JLTs. 
 
-*Requirements:     - Pool must be an approved operator of caller&#39;s EATs     - Caller must hold tokenId and have balance greater than or equal to amount *
+*Requirements:     - Pool must be an approved operator of from address *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| tokenId | uint256 | ID of EAT to deposit into pool |
-| amount | uint256 | Number of EATs to deposit  |
+| tokenId | uint256 | EAT token ID to deposit |
+| amount | uint256 | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| jltQuantity | uint256 | Number of JLTs issued |
+| jltQuantity | uint256 | Number of JLTs issued for deposit  Emits a {Deposit} event. |
 
 ### depositBatch
 
@@ -181,23 +181,23 @@ Used to deposit EATs into the pool.
 function depositBatch(address from, uint256[] tokenIds, uint256[] amounts) external nonpayable returns (uint256 jltQuantity)
 ```
 
- 
+Used to deposit numerous EATs of different IDs into the pool to receive JLTs. 
 
-*Requirements: *
+*Requirements:     - Pool must be an approved operator of from address     - Lenght of tokenIds and quantities must match *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| from | address | Address from which EATs will be transfered |
-| tokenIds | uint256[] | IDs of EAT to deposit into pool |
-| amounts | uint256[] | Number of EATs to deposit  |
+| from | address | Address from which to transfer EATs to pool |
+| tokenIds | uint256[] | EAT token IDs to deposit |
+| amounts | uint256[] | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| jltQuantity | uint256 | Number of JLTs issued |
+| jltQuantity | uint256 | Number of JLTs issued for deposit  Emits a {Deposit} event. |
 
 ### depositFrom
 
@@ -205,23 +205,23 @@ function depositBatch(address from, uint256[] tokenIds, uint256[] amounts) exter
 function depositFrom(address from, uint256 tokenId, uint256 amount) external nonpayable returns (uint256 jltQuantity)
 ```
 
-Used to deposit EATs on behalf of another address into the pool. 
+Used to deposit EATs from another account into the pool to receive JLTs. 
 
-*Requirements:     - Pool must be an approved operator of from&#39;s EATs     - Caller must be an approved operator of from&#39;s EATs     - From account must hold tokenId and have balance greater than or equal to amount *
+*Requirements:     - Pool must be an approved operator of from address     - msg.sender must be approved for the user&#39;s tokens *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| from | address | Address from which EATs will be transfered |
-| tokenId | uint256 | ID of EAT to deposit into pool |
-| amount | uint256 | Number of EATs to deposit  |
+| from | address | Address from which to transfer EATs to pool |
+| tokenId | uint256 | EAT token ID to deposit |
+| amount | uint256 | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| jltQuantity | uint256 | Number of JLTs issued TODO: Rename from operator deposit |
+| jltQuantity | uint256 | Number of JLTs issued for deposit  Emits a {Deposit} event. |
 
 ### increaseAllowance
 
@@ -707,24 +707,24 @@ Allows pool fee managers to update the withdrawal rate
 function withdraw(address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
-Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         from an alternate address - that the caller&#39;s approved for -          defer to withdrawFrom. 
+Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#39;. 
 
-*Requirements:     - Caller must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
+*Pool will automatically select EATs to withdraw. Defer to {withdrawSpecific}      if selecting specific EATs to withdraw is important. Requirements:     - msg.sender must have sufficient JLTs     - If recipient is a contract, it must implement onERC1155Received &amp; onERC1155BatchReceived *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| recipient | address | Address to receive EATs |
-| amount | uint256 | Number of JLTs to burn and EATs to withdraw |
-| data | bytes | Optional calldata to forward to recipient |
+| recipient | address | Address to receive withdrawn EATs |
+| amount | uint256 | undefined |
+| data | bytes | Optional calldata to relay to recipient via onERC1155Received  |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| tokenIds | uint256[] | undefined |
-| amounts | uint256[] | undefined |
+| tokenIds | uint256[] | Token IDs withdrawn from the pool |
+| amounts | uint256[] | Number of tokens withdraw, per ID, from the pool  Emits a {Withdraw} event. |
 
 ### withdrawFrom
 
@@ -732,25 +732,25 @@ Used to convert JLTs into EATs. Withdraws JLTs from caller. To withdraw         
 function withdrawFrom(address sender, address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
-Used to convert JLTs from sender into EATs which are sent         to recipient. 
+Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#39;. 
 
-*Requirements:     - Caller must be approved operator for sender     - Sender must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver *
+*Pool will automatically select EATs to withdraw. Defer to {withdrawSpecific}      if selecting specific EATs to withdraw is important. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - If recipient is a contract, it must implement onERC1155Received &amp; onERC1155BatchReceived *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| sender | address | Account to which will have JLTs burned |
-| recipient | address | Address to receive EATs |
-| amount | uint256 | Number of JLTs to burn and EATs to withdraw |
-| data | bytes | Optional calldata to forward to recipient |
+| sender | address | undefined |
+| recipient | address | Address to receive withdrawn EATs |
+| amount | uint256 | undefined |
+| data | bytes | Optional calldata to relay to recipient via onERC1155Received  |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| tokenIds | uint256[] | undefined |
-| amounts | uint256[] | undefined |
+| tokenIds | uint256[] | Token IDs withdrawn from the pool |
+| amounts | uint256[] | Number of tokens withdraw, per ID, from the pool  Emits a {Withdraw} event. |
 
 ### withdrawSpecific
 
@@ -758,19 +758,19 @@ Used to convert JLTs from sender into EATs which are sent         to recipient.
 function withdrawSpecific(address sender, address recipient, uint256[] tokenIds, uint256[] amounts, bytes data) external nonpayable
 ```
 
-Used to withdraw specific EATs held by pool by burning         JLTs from sender. 
+Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in JLTs from &#39;owner&#39;. 
 
-*Requirements:     - Caller must be approved operator for sender     - Sender must have sufficient JLTs     - If recipient is a contract, must implements ERC1155Receiver     - Length of token IDs and amounts must match     - Pool must hold all token IDs specified *
+*Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Length of tokenIds and quantities must match     - Owner must have more JLTs than sum of quantities     - If recipient is a contract, it must implement onERC1155Received &amp; onERC1155BatchReceived     - Owner and Recipient cannot be zero address *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| sender | address | Account to which will have JLTs burned |
-| recipient | address | Address to receive EATs |
-| tokenIds | uint256[] | EAT token IDs to withdraw |
-| amounts | uint256[] | Amount of EATs to withdraw per token ID |
-| data | bytes | Optional calldata to forward to recipient |
+| sender | address | undefined |
+| recipient | address | Address to receive withdrawn EATs |
+| tokenIds | uint256[] | EAT token IDs to withdraw from pool |
+| amounts | uint256[] | undefined |
+| data | bytes | Optional calldata to relay to recipient via onERC1155Received  Emits a {Withdraw} event. |
 
 ### withdrawalCost
 
