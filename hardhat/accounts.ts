@@ -44,6 +44,9 @@ export const namedAccounts = {
   feeBeneficiary: {
     default: 5,
   },
+  poolManager: {
+    default: 6,
+  },
   // Core contracts
   eat: {
     polygon: "0xba3aa8083f8978257aaafb19ed698a623197a7c1",

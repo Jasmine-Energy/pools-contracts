@@ -10,6 +10,10 @@ const FEE_MANAGER_ROLE = "0x6c0757dc3e6b28b2580c03fd9e96c274acf4f99d91fbec9b418f
 const DEFAULT_DECIMAL = 18n;
 const DEFAULT_DECIMAL_MULTIPLE = 10n ** DEFAULT_DECIMAL;
 
+const DepositPolicy = {
+    types: ["uint256[2]", "uint256", "uint256", "uint256", "uint256"]
+};
+
 const Contracts = {
     // Pool Contracts
     pool: 'JasminePool',
@@ -37,5 +41,6 @@ export {
     AnyField,
     DEFAULT_ADMIN_ROLE, POOL_MANAGER_ROLE, FEE_MANAGER_ROLE,
     DEFAULT_DECIMAL, DEFAULT_DECIMAL_MULTIPLE,
+    DepositPolicy,
     Contracts, Libraries
 };
