@@ -203,6 +203,19 @@ describe(Contracts.factory, function () {
       });
     });
 
+    it("Should prohibit ownership renouncement from owner", async function () {
+      await expect(poolFactory.renounceOwnership()).to.be.revertedWithCustomError(
+        poolFactory, "Disabled"
+      );
+    });
+
+    it("Should prohibit ownership renouncement from non-owner", async function () {
+      const factoryFromOther = poolFactory.connect(accounts[1]);
+      await expect(factoryFromOther.renounceOwnership()).to.be.revertedWith(
+        "Ownable: caller is not the owner"
+      );
+    });
+
     it("Should allow owner to initiate ownership transfer", async function () {
       const newOwner = accounts[1].address;
       expect(await poolFactory.transferOwnership(newOwner))

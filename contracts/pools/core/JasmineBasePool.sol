@@ -625,7 +625,7 @@ abstract contract JasmineBasePool is
         for (uint i = 0; i < tokenIds.length;) {
             _enforceEligibility(tokenIds[i]);
 
-            unchecked { ++i; }
+            unchecked { i++; }
         }
     }
 

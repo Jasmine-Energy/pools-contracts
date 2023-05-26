@@ -89,7 +89,8 @@ contract JasminePoolFactory is
     /// @dev Access control roll for pool fee management
     bytes32 public constant FEE_MANAGER_ROLE = keccak256("FEE_MANAGER_ROLE");
 
-    // TODO: Add pool manager roll
+    /// @dev Access control roll for managers of pool implementations and deployments
+    bytes32 public constant POOL_MANAGER_ROLE = keccak256("POOL_MANAGER_ROLE");
 
     //  ───────────────────────────  External Addresses  ────────────────────────────  \\
 
@@ -148,6 +149,10 @@ contract JasminePoolFactory is
         USDC = _usdc;
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        _setupRole(POOL_MANAGER_ROLE, msg.sender);
+        _setRoleAdmin(POOL_MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
+
         _setupRole(FEE_MANAGER_ROLE, msg.sender);
         _setRoleAdmin(FEE_MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
 
@@ -217,9 +222,9 @@ contract JasminePoolFactory is
         pools = new address[](eligiblePoolsCount);
 
         for (uint256 i; i < eligiblePoolsCount;) {
-            pools[i] = eligiblePools[i];
-
             unchecked {
+                pools[i] = eligiblePools[i];
+
                 i++;
             }
         }
@@ -468,7 +473,10 @@ contract JasminePoolFactory is
         super._transferOwnership(newOwner);
     }
 
-    // QUESTION: Prevent owner from renouncing ownership?
+    /// @notice Renouncing ownership is deliberately disabled
+    function renounceOwnership() public view override onlyOwner {
+        revert JasmineErrors.Disabled();
+    }
 
     //  ─────────────────────────────  Fee Management  ──────────────────────────────  \\
 
@@ -667,6 +675,16 @@ contract JasminePoolFactory is
     modifier onlyFeeManager() {
         if (!hasRole(FEE_MANAGER_ROLE, _msgSender())) {
             revert JasmineErrors.RequiresRole(FEE_MANAGER_ROLE);
+        }
+        _;
+    }
+
+    /**
+     * @dev Enforces caller has fee manager role in pool factory
+     */
+    modifier onlyPoolManager() {
+        if (!hasRole(POOL_MANAGER_ROLE, _msgSender())) {
+            revert JasmineErrors.RequiresRole(POOL_MANAGER_ROLE);
         }
         _;
     }

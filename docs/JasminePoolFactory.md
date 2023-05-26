@@ -44,6 +44,23 @@ function FEE_MANAGER_ROLE() external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined |
 
+### POOL_MANAGER_ROLE
+
+```solidity
+function POOL_MANAGER_ROLE() external view returns (bytes32)
+```
+
+
+
+*Access control roll for managers of pool implementations and deployments*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined |
+
 ### USDC
 
 ```solidity
@@ -449,12 +466,12 @@ Used to remove a pool implementation  param poolIndex Index of pool to remove TO
 ### renounceOwnership
 
 ```solidity
-function renounceOwnership() external nonpayable
+function renounceOwnership() external view
 ```
 
+Renouncing ownership is deliberately disabled
 
 
-*Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.*
 
 
 ### renounceRole
@@ -830,6 +847,17 @@ event RoleRevoked(bytes32 indexed role, address indexed account, address indexed
 
 
 ## Errors
+
+### Disabled
+
+```solidity
+error Disabled()
+```
+
+
+
+*Emitted if function is disabled*
+
 
 ### InvalidConformance
 

@@ -229,7 +229,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         for (uint256 i = 0; i < tokenIds.length;) {
             quantity += values[i];
             _holdings.add(tokenIds[i]);
-            unchecked { ++i; }
+            unchecked { i++; }
         }
         _totalDeposits += quantity;
     }
@@ -260,7 +260,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             total += values[i];
             if (balances[i] == 0) _holdings.remove(tokenIds[i]);
 
-            unchecked { ++i; }
+            unchecked { i++; }
         }
         _totalDeposits -= total;
     }

@@ -22,7 +22,7 @@ library ArrayUtils {
         for (uint256 i = 0; i < inputs.length;) {
             total += inputs[i];
 
-            unchecked { ++i; }
+            unchecked { i++; }
         }
     }
 
@@ -42,7 +42,7 @@ library ArrayUtils {
         for (uint256 i = 0; i < amount;) {
             filledArray[i] = repeatedAddress;
 
-            unchecked { ++i; }
+            unchecked { i++; }
         }
     }
 

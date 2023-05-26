@@ -129,7 +129,7 @@ abstract contract ERC1046 is IERC1046, IERC20Metadata, ERC165 {
                     i != _metadataKeys.length ? '", ' : '"'
                 ));
             }
-            unchecked { ++i; }
+            unchecked { i++; }
         }
 
         return result;
@@ -140,7 +140,7 @@ abstract contract ERC1046 is IERC1046, IERC20Metadata, ERC165 {
         for (uint256 i = 0; i < list.length;) {
             result = string(abi.encodePacked(result, '"', list[i], i != list.length - 1 ? '", ' : '"'));
 
-            unchecked { ++i; }
+            unchecked { i++; }
         }
         result = string(abi.encodePacked(result, "]"));
 
