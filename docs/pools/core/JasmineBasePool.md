@@ -457,25 +457,6 @@ Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;bene
 | amount | uint256 | Number of JLTs to withdraw |
 | data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |
 
-### retireExact
-
-```solidity
-function retireExact(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
-```
-
-Retires an exact amount of JLTs. If fees or other conversions are set,         cost of retirement will be greater than amount. 
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| owner | address | JLT holder to retire from |
-| beneficiary | address | Address to receive retirement attestation |
-| amount | uint256 | Exact number of JLTs to retire |
-| data | bytes | Optional calldata to relay to retirement service via onERC1155Received |
-
 ### retirementCost
 
 ```solidity

@@ -60,4 +60,26 @@ interface IFeePool is IEATBackedPool, IRetireablePool {
 
     /// @notice Retirement fee for a pool's JLT in basis points
     function retirementRate() external view returns (uint96);
+
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Retireable Extensions
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Retires an exact amount of JLTs. If fees or other conversions are set,
+     *         cost of retirement will be greater than amount.
+     * 
+     * @param owner JLT holder to retire from
+     * @param beneficiary Address to receive retirement attestation
+     * @param amount Exact number of JLTs to retire
+     * @param data Optional calldata to relay to retirement service via onERC1155Received
+     */
+    function retireExact(
+        address owner, 
+        address beneficiary, 
+        uint256 amount, 
+        bytes calldata data
+    ) external;
+
 }

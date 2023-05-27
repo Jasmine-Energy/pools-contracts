@@ -156,7 +156,6 @@ abstract contract ERC1155Manager is ERC1155Receiver {
 
     function _selectWithdrawTokens(uint256 amount)
         internal view
-        withdrawsUnlocked
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts

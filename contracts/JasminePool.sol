@@ -123,8 +123,10 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
 
 
     // ──────────────────────────────────────────────────────────────────────────────
-    // Withdraw Overrides
+    // Overrides
     // ──────────────────────────────────────────────────────────────────────────────
+
+    //  ───────────────────────────  Withdraw Overrides  ────────────────────────────  \\
 
     /// @inheritdoc JasmineFeePool
     function withdrawalCost(
@@ -147,6 +149,79 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         return super.withdrawalCost(amount);
     }
 
+    /// @inheritdoc JasmineBasePool
+    function withdraw(
+        address recipient,
+        uint256 amount,
+        bytes calldata data
+    )
+        public override(JasmineFeePool, JasmineBasePool)
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        return super.withdraw(
+            recipient,
+            amount,
+            data
+        );
+    }
+
+    /// @inheritdoc JasmineBasePool
+    function withdrawFrom(
+        address sender,
+        address recipient,
+        uint256 amount,
+        bytes calldata data
+    )
+        public override(JasmineFeePool, JasmineBasePool)
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        return super.withdrawFrom(
+            sender,
+            recipient,
+            amount,
+            data
+        );
+    }
+
+    /// @inheritdoc JasmineBasePool
+    function withdrawSpecific(
+        address sender,
+        address recipient,
+        uint256[] calldata tokenIds,
+        uint256[] calldata amounts,
+        bytes calldata data
+    ) 
+        external override(JasmineFeePool, JasmineBasePool)
+    {
+        super._withdraw(
+            sender,
+            recipient,
+            tokenIds,
+            amounts,
+            data
+        );
+    }    
+
+    //  ──────────────────────────  Retirement Overrides  ───────────────────────────  \\
+
+    /// @inheritdoc IRetireablePool
+    function retire(
+        address owner,
+        address beneficiary,
+        uint256 amount,
+        bytes calldata data
+    )
+        external override(JasmineFeePool, JasmineBasePool)
+    {
+        _retire(owner, beneficiary, amount, data);
+    }
+
     /// @inheritdoc JasmineFeePool
     function retirementCost(
         uint256 amount
@@ -157,17 +232,4 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         return super.retirementCost(amount);
     }
 
-    /// @inheritdoc JasmineBasePool
-    function _withdraw(
-        address sender,
-        address recipient,
-        uint256 cost,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts,
-        bytes memory data
-    ) 
-        internal override(JasmineBasePool, JasmineFeePool)
-    {
-        super._withdraw(sender, recipient, cost, tokenIds, amounts, data);
-    }
 }

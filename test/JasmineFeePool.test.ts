@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import { ethers, getNamedAccounts } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contracts } from "@/utils";
 import {
   JasminePool,
   JasminePoolFactory,
@@ -181,22 +180,36 @@ describe("Fee Pool", function () {
         await eat.safeTransferFrom(owner.address, solarPool.address, solarTokens.id, solarTokens.amount, []);
     });
 
-    it("Should take withdrawal fees if set", async function () {
-      const withdrawAmount = 1_000;
-      expect(await solarPool.withdraw(owner.address, withdrawAmount, [])).to.be.ok
-        .and.to.changeTokenBalance(solarPool, owner.address,  withdrawAmount * ((10_000 + baseWithdrawalRate) / 10_000) * (10 ** poolDecimals))
-        .and.to.changeTokenBalance(solarPool, feeBeneficiary, withdrawAmount * (baseWithdrawalRate / 10_000) * (10 ** poolDecimals));
-    });
-
-    it("Should take specific withdrawal fees if set", async function () {
+    describe("Withdrawal Fees", async function () {
+      it("Should take withdrawal fees if set", async function () {
         const withdrawAmount = 1_000;
-        expect(await solarPool.withdrawSpecific(owner.address, owner.address, [solarTokens.id], [withdrawAmount], [])).to.be.ok
-          .and.to.changeTokenBalance(solarPool, owner.address,  withdrawAmount * ((10_000 + baseWithdrawalSpecificRate) / 10_000) * (10 ** poolDecimals))
-          .and.to.changeTokenBalance(solarPool, feeBeneficiary, withdrawAmount * (baseWithdrawalSpecificRate / 10_000) * (10 ** poolDecimals));
+        expect(await solarPool.withdraw(owner.address, withdrawAmount, [])).to.be.ok
+          .and.to.changeTokenBalance(solarPool, owner.address,  withdrawAmount * ((10_000 + baseWithdrawalRate) / 10_000) * (10 ** poolDecimals))
+          .and.to.changeTokenBalance(solarPool, feeBeneficiary, withdrawAmount * (baseWithdrawalRate / 10_000) * (10 ** poolDecimals));
       });
 
-    it("Should take retirement fees if set", async function () {
-      // TODO
+      it("Should take specific withdrawal fees if set", async function () {
+          const withdrawAmount = 1_000;
+          expect(await solarPool.withdrawSpecific(owner.address, owner.address, [solarTokens.id], [withdrawAmount], [])).to.be.ok
+            .and.to.changeTokenBalance(solarPool, owner.address,  withdrawAmount * ((10_000 + baseWithdrawalSpecificRate) / 10_000) * (10 ** poolDecimals))
+            .and.to.changeTokenBalance(solarPool, feeBeneficiary, withdrawAmount * (baseWithdrawalSpecificRate / 10_000) * (10 ** poolDecimals));
+        });
+    });
+
+    describe("Retirement Fees", async function () {
+      it("Should take retirement fees if set", async function () {
+        const retirementAmount = 1_000;
+        expect(await solarPool.retire(owner.address, owner.address, retirementAmount, [])).to.be.ok
+          .and.to.changeTokenBalance(solarPool, owner.address,  retirementAmount * ((10_000 + baseRetirementRate) / 10_000) * (10 ** poolDecimals))
+          .and.to.changeTokenBalance(solarPool, feeBeneficiary, retirementAmount * (baseRetirementRate / 10_000) * (10 ** poolDecimals));
+      });
+
+      it("Should add retirement fees as excess if using retire exact", async function () {
+        const retirementAmount = 1_000;
+        expect(await solarPool.retireExact(owner.address, owner.address, retirementAmount, [])).to.be.ok
+          .and.to.changeTokenBalance(solarPool, owner.address,  retirementAmount * (10 ** poolDecimals))
+          // .and.to.changeTokenBalance(solarPool, feeBeneficiary, retirementAmount * (baseRetirementRate / 10_000) * (10 ** poolDecimals));
+      });
     });
   });
 });

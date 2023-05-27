@@ -77,7 +77,6 @@ abstract contract JasmineBasePool is
 
     JasmineEAT public immutable EAT;
     address public immutable retirementService;
-    // QUESTION: Should prob standardize and make this a contract
     address public immutable poolFactory;
 
 
@@ -143,37 +142,30 @@ abstract contract JasmineBasePool is
         bytes calldata data // TODO: Concat to calldata
     )
         external virtual
-        onlyAllowed(owner, amount)
-        nonReentrant enforceDeposits
     {
-        // 1. Burn JLTs from owner
-        _burn(owner, amount);
-
-        // 2. Select quantity of EATs to retire
-        uint256 oneEATCost = _standardizeDecimal(1);
-        if (amount < oneEATCost) {
-
-        }
-
-        // 3. Select tokens to withdraw
-        (uint256[] memory tokenIds, uint256[] memory amounts) = _selectWithdrawTokens(amount);
-
-        // TODO: Forward to retire exact
+        _retire(owner, beneficiary, amount, data);
     }
 
-    /// @inheritdoc IRetireablePool
-    function retireExact(
+    /**
+     * @dev Internal function to execute retirements
+     * 
+     * @param owner Address from which to burn JLT
+     * @param beneficiary Address to receive retirement accredidation
+     * @param amount Number of JLT to return
+     * @param data Additional data to encode in retirement
+     */
+    function _retire(
         address owner, 
-        address beneficiary, 
+        address beneficiary,
         uint256 amount, 
-        bytes calldata data
+        bytes calldata data // TODO: Concat to calldata
     )
-        external virtual
+        internal virtual
         onlyAllowed(owner, amount)
         withdrawal enforceDeposits nonReentrant
     {
         // 1. Burn JLTs from owner
-        uint256 cost = retirementCost(amount);
+        uint256 cost = this.retirementCost(amount);
         _burn(owner, cost);
 
         // 2. Select quantity of EATs to retire
@@ -279,19 +271,16 @@ abstract contract JasmineBasePool is
         uint256 amount,
         bytes calldata data
     )
-        external virtual
-        withdrawal
+        public virtual
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
-        (tokenIds, amounts) = (new uint256[](0), new uint256[](0));
         (tokenIds, amounts) = _selectWithdrawTokens(amount);
         _withdraw(
             _msgSender(),
             recipient,
-            withdrawalCost(amount),
             tokenIds,
             amounts,
             data
@@ -306,8 +295,8 @@ abstract contract JasmineBasePool is
         uint256 amount,
         bytes calldata data
     )
-        external virtual
-        withdrawal onlyAllowed(sender, _standardizeDecimal(amount))
+        public virtual
+        onlyAllowed(sender, _standardizeDecimal(amount))
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
@@ -317,7 +306,6 @@ abstract contract JasmineBasePool is
         _withdraw(
             sender,
             recipient,
-            withdrawalCost(amount),
             tokenIds,
             amounts,
             data
@@ -334,12 +322,11 @@ abstract contract JasmineBasePool is
         bytes calldata data
     ) 
         external virtual
-        withdrawal onlyAllowed(sender, _standardizeDecimal(amounts.sum()))
+        onlyAllowed(sender, _standardizeDecimal(amounts.sum()))
     {
         _withdraw(
             sender,
             recipient,
-            withdrawalCost(tokenIds, amounts),
             tokenIds,
             amounts,
             data
@@ -359,15 +346,16 @@ abstract contract JasmineBasePool is
     function _withdraw(
         address sender,
         address recipient,
-        uint256 cost,
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         bytes memory data
     ) 
         internal virtual
-        enforceDeposits nonReentrant
+        withdrawal enforceDeposits nonReentrant
     {
         // 1. Ensure sender has sufficient JLTs and lengths match
+        uint256 cost = this.withdrawalCost(tokenIds, amounts);
+
         if (balanceOf(sender) < cost)
             revert ERC20Errors.ERC20InsufficientBalance(
                 sender,
