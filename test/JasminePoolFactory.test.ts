@@ -95,6 +95,7 @@ describe(Contracts.factory, function () {
     });
 
     it("Should give deployer no special roles", async function () {
+      expect(await poolFactory.owner()).to.be.not.eq(deployer.address);
       expect(await poolFactory.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.be.false;
       expect(await poolFactory.hasRole(POOL_MANAGER_ROLE, deployer.address)).to.be.false;
       expect(await poolFactory.hasRole(FEE_MANAGER_ROLE, deployer.address)).to.be.false;
