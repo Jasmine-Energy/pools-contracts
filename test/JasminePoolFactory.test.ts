@@ -20,6 +20,7 @@ import {
 
 describe(Contracts.factory, function () {
   let owner: SignerWithAddress;
+  let deployer: SignerWithAddress;
   let bridge: SignerWithAddress;
   let feeBeneficiary: SignerWithAddress;
   let poolManager: SignerWithAddress;
@@ -49,6 +50,7 @@ describe(Contracts.factory, function () {
 
     const namedAccounts = await getNamedAccounts();
     owner = await ethers.getSigner(namedAccounts.owner);
+    deployer = await ethers.getSigner(namedAccounts.deployer);
     bridge = await ethers.getSigner(namedAccounts.bridge);
     feeBeneficiary = await ethers.getSigner(namedAccounts.feeBeneficiary);
     poolManager = await ethers.getSigner(namedAccounts.poolManager);
@@ -67,7 +69,7 @@ describe(Contracts.factory, function () {
     it("Should revert if no pool implementation is provided", async function () {
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
-        PoolFactory.deploy(ethers.constants.AddressZero, owner.address, uniswapPoolFactory, USDC)
+        PoolFactory.deploy(owner.address, ethers.constants.AddressZero, owner.address, uniswapPoolFactory, USDC)
       ).to.be.revertedWithCustomError(poolFactory, "InvalidInput");
     });
 
@@ -75,7 +77,7 @@ describe(Contracts.factory, function () {
       // NOTE: This test could be better. Only checks if EAT supports interface
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
-        PoolFactory.deploy(await poolImplementation.EAT(), owner.address, uniswapPoolFactory, USDC)
+        PoolFactory.deploy(owner.address, await poolImplementation.EAT(), owner.address, uniswapPoolFactory, USDC)
       ).to.be.revertedWithCustomError(poolFactory, "InvalidConformance");
     });
 
@@ -83,12 +85,19 @@ describe(Contracts.factory, function () {
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
         PoolFactory.deploy(
+          owner.address,
           poolImplementation.address,
           ethers.constants.AddressZero,
           uniswapPoolFactory,
           USDC
         )
       ).to.be.revertedWithCustomError(poolFactory, "InvalidInput");
+    });
+
+    it("Should give deployer no special roles", async function () {
+      expect(await poolFactory.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.be.false;
+      expect(await poolFactory.hasRole(POOL_MANAGER_ROLE, deployer.address)).to.be.false;
+      expect(await poolFactory.hasRole(FEE_MANAGER_ROLE, deployer.address)).to.be.false;
     });
   });
 

@@ -131,12 +131,14 @@ contract JasminePoolFactory is
      *       per {ERC165-supportsInterface} check
      *     - Pool implementation is not zero address
      * 
+     * @param _owner Address to receive initial ownership of contract
      * @param _poolImplementation Address containing Jasmine Pool implementation
      * @param _feeBeneficiary Address to receive all pool fees
      * @param _uniswapFactory Address of Uniswap V3 Factory
      * @param _usdc Address of USDC token
      */
     constructor(
+        address _owner,
         address _poolImplementation,
         address _feeBeneficiary,
         address _uniswapFactory,
@@ -144,22 +146,38 @@ contract JasminePoolFactory is
     )
         Ownable2Step() AccessControl()
     {
+        // 1. Validate inputs
         _validatePoolImplementation(_poolImplementation);
         _validateFeeReceiver(_feeBeneficiary);
-        if (_uniswapFactory == address(0x0) || _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
+        if (_owner == address(0x0) || 
+            _uniswapFactory == address(0x0) || 
+            _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
 
+        // 2. Set immutable external addresses
         UniswapFactory = _uniswapFactory;
         USDC = _usdc;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        // 3. Transfer ownership to initial owner
+        _transferOwnership(_owner);
 
-        _setupRole(POOL_MANAGER_ROLE, msg.sender);
+        // 4. Setup access control roles and role admins
+        _setupRole(DEFAULT_ADMIN_ROLE, _owner);
+
+        _setupRole(POOL_MANAGER_ROLE, _owner);
         _setRoleAdmin(POOL_MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
 
-        _setupRole(FEE_MANAGER_ROLE, msg.sender);
+        _setupRole(FEE_MANAGER_ROLE, _owner);
         _setRoleAdmin(FEE_MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
 
+        // 5. Grant owner pool manager and fee manager roles
+        // QUESTION: Should this be default behaviour?
+        _grantRole(POOL_MANAGER_ROLE, _owner);
+        _grantRole(FEE_MANAGER_ROLE, _owner);
+
+        // 6. Setup default pool implementation
+        _grantRole(POOL_MANAGER_ROLE, _msgSender());
         addPoolImplementation(_poolImplementation);
+        _revokeRole(POOL_MANAGER_ROLE, _msgSender());
     }
 
 

@@ -8,23 +8,23 @@ const deployDependencies: DeployFunction = async function (
     colouredLog.yellow(`deploying libraries to: ${network.name}`);
 
     const { deploy } = deployments;
-    const { owner } = await getNamedAccounts();
+    const { deployer } = await getNamedAccounts();
 
     // 1. Deploy Pool Policy Library
     const policyLib = await deploy(Libraries.poolPolicy, {
-        from: owner,
+        from: deployer,
         log: hardhatArguments.verbose
     });
   
     // 2. Deploy Calldata Library
     const calldataLib = await deploy(Libraries.calldata, {
-        from: owner,
+        from: deployer,
         log: hardhatArguments.verbose,
     });
 
     // 3. Deploy Calldata Library
     const arrayUtilsLib = await deploy(Libraries.arrayUtils, {
-        from: owner,
+        from: deployer,
         log: hardhatArguments.verbose,
     });
 

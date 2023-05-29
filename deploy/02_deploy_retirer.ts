@@ -9,7 +9,7 @@ const deployRetirementService: DeployFunction = async function (
 
     const { deploy, get } = deployments;
     const namedAccounts = await getNamedAccounts();
-    const { owner } = namedAccounts;
+    const { deployer } = namedAccounts;
 
     // 1. Get deployements
     const calldata = await get(Libraries.calldata);
@@ -29,7 +29,7 @@ const deployRetirementService: DeployFunction = async function (
 
     // 2. Deploy Retirement Service Contract
     const retirer = await deploy(Contracts.retirementService, {
-        from: owner,
+        from: deployer,
         args: [
             minter,
             eat,

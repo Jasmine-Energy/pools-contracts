@@ -9,12 +9,12 @@ const deployPoolImplementation: DeployFunction = async function (
 
     const { deploy, get } = deployments;
     const namedAccounts = await getNamedAccounts();
-    const { owner } = namedAccounts;
-    const ownerSigner = await ethers.getSigner(owner);
-    const ownerNonce = await ownerSigner.getTransactionCount();
+    const { deployer } = namedAccounts;
+    const deployerSigner = await ethers.getSigner(deployer);
+    const deployerNonce = await deployerSigner.getTransactionCount();
     const poolFactoryFutureAddress = ethers.utils.getContractAddress({
-        from: owner,
-        nonce: ownerNonce + 1,
+        from: deployer,
+        nonce: deployerNonce + 1,
     });
 
     // 1. Get deployements
@@ -34,7 +34,7 @@ const deployPoolImplementation: DeployFunction = async function (
 
     // 2. Deploy Pool Contract
     const pool = await deploy(Contracts.pool, {
-        from: owner,
+        from: deployer,
         args: [
             eat,
             oracle,

@@ -10,7 +10,7 @@ const deployFactory: DeployFunction = async function (
     colouredLog.yellow(`deploying Pool Factory to: ${network.name}`);
 
     const { deploy } = deployments;
-    const { owner, feeBeneficiary, uniswapPoolFactory, USDC } = await getNamedAccounts();
+    const { owner, deployer, feeBeneficiary, uniswapPoolFactory, USDC } = await getNamedAccounts();
 
     // 1. Get deployments
     const pool = await deployments.get(Contracts.pool);
@@ -18,8 +18,8 @@ const deployFactory: DeployFunction = async function (
 
     // 2. Deploy Pool Factory Contract
     const factory = await deploy(Contracts.factory, {
-        from: owner,
-        args: [pool.address, feeBeneficiary, uniswapPoolFactory, USDC],
+        from: deployer,
+        args: [owner, pool.address, feeBeneficiary, uniswapPoolFactory, USDC],
         libraries: {
             PoolPolicy: policy.address
         },
@@ -33,7 +33,7 @@ const deployFactory: DeployFunction = async function (
         console.log('Verifyiyng on Etherscan...');
         await run('verify:verify', {
             address: factory,
-            constructorArguments: [pool.address, feeBeneficiary, uniswapPoolFactory, USDC],
+            constructorArguments: [owner, pool.address, feeBeneficiary, uniswapPoolFactory, USDC],
             // TODO: link libraries
         });
     }

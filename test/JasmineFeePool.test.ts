@@ -8,14 +8,11 @@ import {
   JasmineOracle,
   JasmineMinter,
 } from "@/typechain";
-import { deployPoolImplementation, deployCoreFixture, deployPoolFactory } from "./shared/fixtures";
+import { deployPoolsFixture, deployCoreFixture, deployPoolFactory } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
 import {
-  createAnyTechAnnualPolicy,
-  createSolarPolicy,
-  createWindPolicy,
   makeMintFunction,
   mintFunctionType,
 } from "./shared/utilities";
@@ -36,7 +33,6 @@ describe("Fee Pool", function () {
   let mintEat: mintFunctionType;
 
   let poolFactory: JasminePoolFactory;
-  let poolImplementation: JasminePool;
   let anyTechAnnualPool: JasminePool;
   let solarPool: JasminePool;
   let windPool: JasminePool;
@@ -59,39 +55,8 @@ describe("Fee Pool", function () {
 
     mintEat = makeMintFunction(minter);
 
-    poolImplementation = await loadFixture(deployPoolImplementation);
-
     poolFactory = await loadFixture(deployPoolFactory);
   });
-
-  async function deployPoolsFixture() {
-    await poolFactory.deployNewBasePool(
-      createSolarPolicy(),
-      "Solar Tech",
-      "sJLT"
-    );
-    const solarPoolAddress = await poolFactory.getPoolAtIndex(0);
-
-    await poolFactory.deployNewBasePool(
-      createWindPolicy(),
-      "Wind Tech",
-      "wJLT"
-    );
-    const windPoolAddress = await poolFactory.getPoolAtIndex(1);
-
-    await poolFactory.deployNewBasePool(
-      createAnyTechAnnualPolicy(),
-      "Any Tech '23",
-      "a23JLT"
-    );
-    const anyTechPoolAddress = await poolFactory.getPoolAtIndex(2);
-
-    return {
-      solarPool: poolImplementation.attach(solarPoolAddress),
-      windPool: poolImplementation.attach(windPoolAddress),
-      anyTechAnnualPool: poolImplementation.attach(anyTechPoolAddress),
-    };
-  }
 
   beforeEach(async function () {
     const testPools = await loadFixture(deployPoolsFixture);
