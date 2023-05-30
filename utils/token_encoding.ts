@@ -24,7 +24,6 @@ interface ParsedEnergyAttributeTokenID {
  * associated certificateId, vintage, and registry
  */
 const decodeEnergyAttributeTokenId = (tokenId: bigint | string): ParsedEnergyAttributeTokenID => {
-
     const eatId = BigInt(tokenId);
 
     // @ts-ignore
@@ -60,7 +59,6 @@ const decodeEnergyAttributeTokenId = (tokenId: bigint | string): ParsedEnergyAtt
  * associated certificateId, vintage, and registry
  */
 const encodeEnergyAttributeTokenId = (certificateId: string, registry: CertificateRegistry, vintage: Date) => {
-
     const uuid = BigInt(`0x${certificateId.replaceAll('-', '')}`);
     const registryNumber = BigInt(CertificateRegistryArr.indexOf(registry)) & BigInt(2 ** 32 - 1);
     const vintageNumber = BigInt(Math.ceil(vintage.getTime() / 1_000)) & BigInt(2 ** 40 - 1);

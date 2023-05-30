@@ -1062,17 +1062,6 @@ error InbalancedDeposits()
 *Emitted if operation would cause inbalance in pool&#39;s EAT deposits*
 
 
-### InsufficientDeposits
-
-```solidity
-error InsufficientDeposits()
-```
-
-
-
-
-
-
 ### InvalidInput
 
 ```solidity

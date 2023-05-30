@@ -19,6 +19,14 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v3
+      - name: Install packages
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+      - run: npm install
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
       - name: Run Slither
         uses: crytic/slither-action@v0.3.0
         id: slither
