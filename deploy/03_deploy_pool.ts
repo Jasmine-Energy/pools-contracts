@@ -21,6 +21,7 @@ const deployPoolImplementation: DeployFunction = async function (
     const retirer = await get(Contracts.retirementService);
     const policy = await get(Libraries.poolPolicy);
     const arrayUtils = await get(Libraries.arrayUtils);
+    const redBlackTree = await get(Libraries.redBlackTree);
     const calldata = await get(Libraries.calldata);
     let eat: string;
     let oracle: string;
@@ -44,7 +45,8 @@ const deployPoolImplementation: DeployFunction = async function (
         libraries: {
             PoolPolicy: policy.address,
             ArrayUtils: arrayUtils.address,
-            Calldata: calldata.address
+            Calldata: calldata.address,
+            RedBlackTree: redBlackTree.address
         },
         log: hardhatArguments.verbose
     });

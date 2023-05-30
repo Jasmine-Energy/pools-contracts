@@ -34,7 +34,8 @@ const Contracts = {
 const Libraries = {
     poolPolicy: 'PoolPolicy',
     calldata: 'Calldata',
-    arrayUtils: 'ArrayUtils'
+    arrayUtils: 'ArrayUtils',
+    redBlackTree: 'RedBlackTree',
 };
 
 export {

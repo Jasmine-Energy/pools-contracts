@@ -56,7 +56,7 @@ abstract contract JasmineBasePool is
     IJasminePool,
     ERC20,
     ERC20Permit,
-    ERC1046,
+    // ERC1046, // TODO: Would be great to be able to use this, but pushes size over 24kb
     ERC1155Manager,
     Initializable,
     ReentrancyGuard
@@ -489,7 +489,7 @@ abstract contract JasmineBasePool is
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC1046, ERC1155Receiver) returns (bool) {
+    ) public view override(ERC1155Receiver) returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId ||
             interfaceId == type(IJasminePool).interfaceId ||
             super.supportsInterface(interfaceId);

@@ -28,9 +28,15 @@ const deployDependencies: DeployFunction = async function (
         log: hardhatArguments.verbose,
     });
 
-    colouredLog.blue(`Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address} ArrayUtils Lib to: ${arrayUtilsLib.address}`);
+    // 4. Deploy RedBlackTree Library
+    const redBlackTree  = await deploy(Libraries.redBlackTree, {
+        from: deployer,
+        log: hardhatArguments.verbose,
+    });
+
+    colouredLog.blue(`Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address} ArrayUtils Lib to: ${arrayUtilsLib.address} RedBlackTree Lib to: ${redBlackTree.address}`);
   
-    // 4. If on external network, verify contracts
+    // 5. If on external network, verify contracts
     if (network.tags['public']) {
         console.log('Verifyiyng on Etherscan...');
         await run('verify:verify', {

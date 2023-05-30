@@ -9,7 +9,7 @@ pragma solidity >=0.8.17;
 
 import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
-import { RedBlackTreeLibrary } from "../libraries/RedBlackTreeLibrary.sol";
+import { RedBlackTree } from "../libraries/RedBlackTreeLibrary.sol";
 import { ArrayUtils } from "../libraries/ArrayUtils.sol";
 
 error InvalidTokenAddress(address received, address expected);
@@ -30,7 +30,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
 
-    using RedBlackTreeLibrary for RedBlackTreeLibrary.Tree;
+    using RedBlackTree for RedBlackTree.Tree;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -39,7 +39,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     address private immutable _tokenAddress;
 
     uint256 private _totalDeposits;
-    RedBlackTreeLibrary.Tree tree;
+    RedBlackTree.Tree tree;
 
     /// @dev Maps vintage to token ID
     mapping(uint40 => uint256) private _tokenIds; // TODO: As vintage is already final 40bits, uint216 should is sufficient

@@ -15,7 +15,7 @@ pragma solidity ^0.8.0;
 // Enjoy. (c) BokkyPooBah / Bok Consulting Pty Ltd 2020. The MIT Licence.
 // ----------------------------------------------------------------------------
 
-library RedBlackTreeLibrary {
+library RedBlackTree {
     struct Node {
         uint parent;
         uint left;
