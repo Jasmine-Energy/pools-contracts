@@ -15,9 +15,6 @@ import { deployPoolImplementation, deployCoreFixture, deployPoolFactory, deployP
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
 import {
-  createAnyTechAnnualPolicy,
-  createSolarPolicy,
-  createWindPolicy,
   makeMintFunction,
   mintFunctionType,
 } from "./shared/utilities";

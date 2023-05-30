@@ -32,16 +32,25 @@ const deployPoolImplementation: DeployFunction = async function (
         eat = namedAccounts.eat;
         oracle = namedAccounts.oracle;
     }
+    let tokenBaseURI: string;
+    if (network.name == "polygon") {
+        tokenBaseURI = "https://api.jasmine.energy/v1/pools/";
+    } else {
+        tokenBaseURI = "https://localhost:8080/v1/pools/";
+    }
+
+    const deploymentArgs = [
+        eat,
+        oracle,
+        poolFactoryFutureAddress,
+        retirer.address,
+        tokenBaseURI,
+    ];
 
     // 2. Deploy Pool Contract
     const pool = await deploy(Contracts.pool, {
         from: deployer,
-        args: [
-            eat,
-            oracle,
-            poolFactoryFutureAddress,
-            retirer.address
-        ],
+        args: deploymentArgs,
         libraries: {
             PoolPolicy: policy.address,
             ArrayUtils: arrayUtils.address,
@@ -59,12 +68,7 @@ const deployPoolImplementation: DeployFunction = async function (
         console.log('Verifyiyng on Etherscan...');
         await run('verify:verify', {
             address: pool,
-            constructorArguments: [
-                eat,
-                oracle,
-                poolFactoryFutureAddress,
-                retirer.address
-            ],
+            constructorArguments: deploymentArgs,
         });
     }
 };

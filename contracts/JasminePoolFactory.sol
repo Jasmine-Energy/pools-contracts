@@ -119,6 +119,12 @@ contract JasminePoolFactory is
     /// @dev Default fee tier for Uniswap V3 pools. Default is 0.3%
     uint24 public constant defaultUniswapFee = 3_000;
 
+    //  ────────────────────────────────  Pool Fees  ────────────────────────────────  \\
+
+    /// @dev Base API route from which pool information may be obtained 
+    string private _poolsBaseURI;
+
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -136,13 +142,15 @@ contract JasminePoolFactory is
      * @param _feeBeneficiary Address to receive all pool fees
      * @param _uniswapFactory Address of Uniswap V3 Factory
      * @param _usdc Address of USDC token
+     * @param _tokensBaseURI Base URI of used for ERC-1046 token URI function
      */
     constructor(
         address _owner,
         address _poolImplementation,
         address _feeBeneficiary,
         address _uniswapFactory,
-        address _usdc
+        address _usdc,
+        string memory _tokensBaseURI
     )
         Ownable2Step() AccessControl()
     {
@@ -153,9 +161,10 @@ contract JasminePoolFactory is
             _uniswapFactory == address(0x0) || 
             _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
 
-        // 2. Set immutable external addresses
+        // 2. Set immutable external addresses and info fields
         UniswapFactory = _uniswapFactory;
         USDC = _usdc;
+        _poolsBaseURI = _tokensBaseURI;
 
         // 3. Transfer ownership to initial owner
         _transferOwnership(_owner);
@@ -498,6 +507,19 @@ contract JasminePoolFactory is
         returns (address poolAddress)
     {
         return _predictDeploymentAddress(policyHash, _poolVersions[policyHash]);
+    }
+
+    /**
+     * @notice Base API endpoint from which a pool's information may be obtained
+     *         by appending token symbol to end
+     * 
+     * @dev Used by pools to return their respect tokenURI functions
+     */
+    function poolsBaseURI()
+        external view
+        returns (string memory baseURI)
+    {
+        return _poolsBaseURI;
     }
 
 

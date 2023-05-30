@@ -56,8 +56,20 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     // Setup
     // ──────────────────────────────────────────────────────────────────────────────
 
-    constructor(address _eat, address _oracle, address _poolFactory, address _minter)
-        JasmineFeePool(_eat, _poolFactory, _minter)
+    /**
+     * @param _eat Address of the Jasmine Energy Attribution Token (EAT) contract
+     * @param _oracle Address of the Jasmine Oracle contract
+     * @param _poolFactory Address of the Jasmine Pool Factory contract
+     * @param _tokenBaseURI Base URI of used for ERC-1046 token URI function
+     */
+    constructor(
+        address _eat,
+        address _oracle,
+        address _poolFactory,
+        address _minter,
+        string memory _tokenBaseURI
+    )
+        JasmineFeePool(_eat, _poolFactory, _minter, _tokenBaseURI)
     {
         require(_oracle != address(0), "JasminePool: Oracle must be set");
 

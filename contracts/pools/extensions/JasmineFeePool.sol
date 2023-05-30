@@ -69,9 +69,15 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     /**
      * @param _eat Jasmine Energy Attribute Token address
      * @param _poolFactory Jasmine Pool Factory address
+     * @param _tokenBaseURI Base URI of used for ERC-1046 token URI function
      */
-    constructor(address _eat, address _poolFactory, address _minter)
-        JasmineBasePool(_eat, _poolFactory, _minter)
+    constructor(
+        address _eat,
+        address _poolFactory,
+        address _minter,
+        string memory _tokenBaseURI
+    )
+        JasmineBasePool(_eat, _poolFactory, _minter, _tokenBaseURI)
     {
         
     }

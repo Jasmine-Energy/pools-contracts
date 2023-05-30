@@ -26,6 +26,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 // External Contracts
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 import { JasmineRetirementService } from "../../JasmineRetirementService.sol";
+import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
 
 // Utility Libraries
 import { PoolPolicy } from "../../libraries/PoolPolicy.sol";
@@ -56,7 +57,7 @@ abstract contract JasmineBasePool is
     IJasminePool,
     ERC20,
     ERC20Permit,
-    // ERC1046, // TODO: Would be great to be able to use this, but pushes size over 24kb
+    ERC1046,
     ERC1155Manager,
     Initializable,
     ReentrancyGuard
@@ -96,11 +97,18 @@ abstract contract JasmineBasePool is
      * @param _eat Address of the Jasmine Energy Attribution Token (EAT) contract
      * @param _poolFactory Address of the Jasmine Pool Factory contract
      * @param _retirementService Address of the Jasmine retirement service contract
+     * @param _tokenBaseURI Base URI of used for ERC-1046 token URI function
      */
-    constructor(address _eat, address _poolFactory, address _retirementService)
+    constructor(
+        address _eat,
+        address _poolFactory,
+        address _retirementService,
+        string memory _tokenBaseURI
+    )
         ERC20("Jasmine Liquidity Token Base", "JLT")
         ERC20Permit("Jasmine Liquidity Token Base")
         ERC1155Manager(_eat)
+        ERC1046(_tokenBaseURI)
     {
         if (_eat == address(0x0) || 
             _poolFactory == address(0x0) || 
@@ -479,6 +487,16 @@ abstract contract JasmineBasePool is
         return _symbol;
     }
 
+    /**
+     * @inheritdoc IERC1046
+     * @dev Appends token symbol to end of base URI
+     */
+    function tokenURI() public view virtual override returns (string memory) {
+        return string(
+            abi.encodePacked(super.tokenURI(), _symbol)
+        );
+    }
+
 
 
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
@@ -489,7 +507,7 @@ abstract contract JasmineBasePool is
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC1155Receiver) returns (bool) {
+    ) public view override(ERC1046, ERC1155Receiver) returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId ||
             interfaceId == type(IJasminePool).interfaceId ||
             super.supportsInterface(interfaceId);

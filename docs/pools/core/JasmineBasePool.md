@@ -535,6 +535,23 @@ function symbol() external view returns (string)
 |---|---|---|
 | _0 | string | undefined |
 
+### tokenURI
+
+```solidity
+function tokenURI() external view returns (string)
+```
+
+Gets an ERC-721-like token URI
+
+*Appends token symbol to end of base URI*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | string | undefined |
+
 ### totalDeposits
 
 ```solidity
