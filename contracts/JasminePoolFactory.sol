@@ -487,68 +487,6 @@ contract JasminePoolFactory is
         );
     }
 
-
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Utilities
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * @notice Utility function to calculate deployed address of a pool from its
-     *         policy hash
-     * 
-     * @dev Requirements:
-     *     - Policy hash must exist in existing pools
-     * 
-     * @param policyHash Policy hash of pool to compute address of
-     * @return poolAddress Address of deployed pool
-     */
-    function computePoolAddress(bytes32 policyHash)
-        public view
-        returns (address poolAddress)
-    {
-        return _predictDeploymentAddress(policyHash, _poolVersions[policyHash]);
-    }
-
-    /**
-     * @notice Base API endpoint from which a pool's information may be obtained
-     *         by appending token symbol to end
-     * 
-     * @dev Used by pools to return their respect tokenURI functions
-     */
-    function poolsBaseURI()
-        external view
-        returns (string memory baseURI)
-    {
-        return _poolsBaseURI;
-    }
-
-
-    //  ─────────────────────────────  Access Control  ──────────────────────────────  \\
-
-    /**
-     * @dev Checks if account has pool fee manager roll
-     * 
-     * @param account Account to check fee manager roll against
-     */
-    function hasFeeManagerRole(address account) external view returns (bool) {
-        return hasRole(FEE_MANAGER_ROLE, account);
-    }
-
-    /**
-     * @inheritdoc Ownable2Step
-     * @dev Revokes admin role for previous owner and grants to newOwner
-     */
-    function _transferOwnership(address newOwner) internal virtual override {
-        _revokeRole(DEFAULT_ADMIN_ROLE, owner());
-        _grantRole(DEFAULT_ADMIN_ROLE, newOwner);
-        super._transferOwnership(newOwner);
-    }
-
-    /// @notice Renouncing ownership is deliberately disabled
-    function renounceOwnership() public view override onlyOwner {
-        revert JasmineErrors.Disabled();
-    }
-
     //  ─────────────────────────────  Fee Management  ──────────────────────────────  \\
 
     /**
@@ -619,6 +557,82 @@ contract JasminePoolFactory is
 
         emit BaseWithdrawalFeeUpdate(baseWithdrawalRate, newFeeBeneficiary, false);
         emit BaseRetirementFeeUpdate(baseRetirementRate, newFeeBeneficiary);
+    }
+
+    //  ───────────────────────────  Base URI Management  ───────────────────────────  \\
+
+    /**
+     * @notice Allows pool managers to update the base URI of pools
+     * 
+     * @dev No validation is done on the new URI. Onus is on caller to ensure the new
+     *      URI is valid
+     * 
+     * @param newPoolsURI New base endpoint for pools to point to
+     */
+    function updatePoolsBaseURI(string calldata newPoolsURI) external onlyPoolManager {
+        _poolsBaseURI = newPoolsURI;
+    }
+
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Utilities
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Utility function to calculate deployed address of a pool from its
+     *         policy hash
+     * 
+     * @dev Requirements:
+     *     - Policy hash must exist in existing pools
+     * 
+     * @param policyHash Policy hash of pool to compute address of
+     * @return poolAddress Address of deployed pool
+     */
+    function computePoolAddress(bytes32 policyHash)
+        public view
+        returns (address poolAddress)
+    {
+        return _predictDeploymentAddress(policyHash, _poolVersions[policyHash]);
+    }
+
+    /**
+     * @notice Base API endpoint from which a pool's information may be obtained
+     *         by appending token symbol to end
+     * 
+     * @dev Used by pools to return their respect tokenURI functions
+     */
+    function poolsBaseURI()
+        external view
+        returns (string memory baseURI)
+    {
+        return _poolsBaseURI;
+    }
+
+
+    //  ─────────────────────────────  Access Control  ──────────────────────────────  \\
+
+    /**
+     * @dev Checks if account has pool fee manager roll
+     * 
+     * @param account Account to check fee manager roll against
+     */
+    function hasFeeManagerRole(address account) external view returns (bool) {
+        return hasRole(FEE_MANAGER_ROLE, account);
+    }
+
+    /**
+     * @inheritdoc Ownable2Step
+     * @dev Revokes admin role for previous owner and grants to newOwner
+     */
+    function _transferOwnership(address newOwner) internal virtual override {
+        _revokeRole(DEFAULT_ADMIN_ROLE, owner());
+        _grantRole(DEFAULT_ADMIN_ROLE, newOwner);
+        super._transferOwnership(newOwner);
+    }
+
+    /// @notice Renouncing ownership is deliberately disabled
+    function renounceOwnership() public view override onlyOwner {
+        revert JasmineErrors.Disabled();
     }
 
 

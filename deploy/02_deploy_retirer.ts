@@ -47,13 +47,17 @@ const deployRetirementService: DeployFunction = async function (
     if (network.tags['public']) {
         // TODO: Verify on sourcify as well. Run "sourcify" command
         console.log('Verifyiyng on Etherscan...');
-        await run('verify:verify', {
-            address: retirer,
-            constructorArguments: [
-                minter,
-                eat,
-            ],
-        });
+        try {
+            await run('verify:verify', {
+                address: retirer,
+                constructorArguments: [
+                    minter,
+                    eat,
+                ],
+            });
+        } catch (err) {
+            colouredLog.red(`Verification failed. Error: ${err}`);
+        }
     }
 };
 deployRetirementService.tags = ['Retirer', 'all'];

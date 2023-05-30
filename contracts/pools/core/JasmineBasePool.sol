@@ -57,7 +57,7 @@ abstract contract JasmineBasePool is
     IJasminePool,
     ERC20,
     ERC20Permit,
-    ERC1046,
+    IERC1046,
     ERC1155Manager,
     Initializable,
     ReentrancyGuard
@@ -97,18 +97,15 @@ abstract contract JasmineBasePool is
      * @param _eat Address of the Jasmine Energy Attribution Token (EAT) contract
      * @param _poolFactory Address of the Jasmine Pool Factory contract
      * @param _retirementService Address of the Jasmine retirement service contract
-     * @param _tokenBaseURI Base URI of used for ERC-1046 token URI function
      */
     constructor(
         address _eat,
         address _poolFactory,
-        address _retirementService,
-        string memory _tokenBaseURI
+        address _retirementService
     )
         ERC20("Jasmine Liquidity Token Base", "JLT")
         ERC20Permit("Jasmine Liquidity Token Base")
         ERC1155Manager(_eat)
-        ERC1046(_tokenBaseURI)
     {
         if (_eat == address(0x0) || 
             _poolFactory == address(0x0) || 
@@ -491,13 +488,11 @@ abstract contract JasmineBasePool is
      * @inheritdoc IERC1046
      * @dev Appends token symbol to end of base URI
      */
-    function tokenURI() public view virtual override returns (string memory) {
+    function tokenURI() public view virtual returns (string memory) {
         return string(
-            abi.encodePacked(super.tokenURI(), _symbol)
+            abi.encodePacked(JasminePoolFactory(poolFactory).poolsBaseURI(), _symbol)
         );
     }
-
-
 
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
@@ -507,9 +502,10 @@ abstract contract JasmineBasePool is
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC1046, ERC1155Receiver) returns (bool) {
+    ) public view override(ERC1155Receiver) returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId ||
             interfaceId == type(IJasminePool).interfaceId ||
+            interfaceId == type(IERC1046).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 

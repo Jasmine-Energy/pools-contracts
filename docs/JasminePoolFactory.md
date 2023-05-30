@@ -447,6 +447,23 @@ function pendingOwner() external view returns (address)
 |---|---|---|
 | _0 | address | undefined |
 
+### poolsBaseURI
+
+```solidity
+function poolsBaseURI() external view returns (string baseURI)
+```
+
+Base API endpoint from which a pool&#39;s information may be obtained         by appending token symbol to end 
+
+*Used by pools to return their respect tokenURI functions*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| baseURI | string | undefined |
+
 ### readdPoolImplementation
 
 ```solidity
@@ -659,6 +676,22 @@ Allows owner to update a pool implementation
 |---|---|---|
 | newPoolImplementation | address | New address to replace |
 | poolIndex | uint256 | Index of pool to replace |
+
+### updatePoolsBaseURI
+
+```solidity
+function updatePoolsBaseURI(string newPoolsURI) external nonpayable
+```
+
+Allows pool managers to update the base URI of pools 
+
+*No validation is done on the new URI. Onus is on caller to ensure the new      URI is valid *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newPoolsURI | string | New base endpoint for pools to point to |
 
 
 

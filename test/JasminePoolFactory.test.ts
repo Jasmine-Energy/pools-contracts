@@ -69,7 +69,7 @@ describe(Contracts.factory, function () {
     it("Should revert if no pool implementation is provided", async function () {
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
-        PoolFactory.deploy(owner.address, ethers.constants.AddressZero, owner.address, uniswapPoolFactory, USDC)
+        PoolFactory.deploy(owner.address, ethers.constants.AddressZero, owner.address, uniswapPoolFactory, USDC, "")
       ).to.be.revertedWithCustomError(poolFactory, "InvalidInput");
     });
 
@@ -77,7 +77,7 @@ describe(Contracts.factory, function () {
       // NOTE: This test could be better. Only checks if EAT supports interface
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
-        PoolFactory.deploy(owner.address, await poolImplementation.EAT(), owner.address, uniswapPoolFactory, USDC)
+        PoolFactory.deploy(owner.address, await poolImplementation.EAT(), owner.address, uniswapPoolFactory, USDC, "")
       ).to.be.revertedWithCustomError(poolFactory, "InvalidConformance");
     });
 
@@ -89,7 +89,8 @@ describe(Contracts.factory, function () {
           poolImplementation.address,
           ethers.constants.AddressZero,
           uniswapPoolFactory,
-          USDC
+          USDC,
+          "",
         )
       ).to.be.revertedWithCustomError(poolFactory, "InvalidInput");
     });

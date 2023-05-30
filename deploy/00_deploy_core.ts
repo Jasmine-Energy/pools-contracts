@@ -4,8 +4,8 @@ import { Contracts, colouredLog } from '@/utils';
 import { FormatTypes } from '@ethersproject/abi';
 import { impersonateAccount } from '@nomicfoundation/hardhat-network-helpers';
 import { JasmineMinter } from '@/typechain';
+import { disableForking } from '@/utils/environment';
 
-// TODO: Migrate this over to using Jasmine contract's deploy function - included via plugin
 const deployCore: DeployFunction = async function (
     { ethers, upgrades, deployments, network, run, getNamedAccounts }: HardhatRuntimeEnvironment
 ) {
@@ -93,23 +93,27 @@ const deployCore: DeployFunction = async function (
     // 6. If on external network, verify contracts
     if (network.tags['public']) {
         console.log('Verifyiyng on Etherscan...');
-        await run('verify:verify', {
-            address: eatImplementationAddress,
-        });
+        try {
+            await run('verify:verify', {
+                address: eatImplementationAddress,
+            });
 
-        await run('verify:verify', {
-            address: oracleImplementationAddress,
-        });
+            await run('verify:verify', {
+                address: oracleImplementationAddress,
+            });
 
-        await run('verify:verify', {
-            address: minterImplementationAddress,
-            constructorArguments: [
-                Contracts.minter, 
-                '1', 
-                bridge,
-                owner
-            ],
-        });
+            await run('verify:verify', {
+                address: minterImplementationAddress,
+                constructorArguments: [
+                    Contracts.minter, 
+                    '1', 
+                    bridge,
+                    owner
+                ],
+            });
+        } catch (err) {
+            colouredLog.red(`Verification failed. Error: ${err}`);
+        }
     }
 };
 deployCore.skip = async function (
@@ -118,7 +122,9 @@ deployCore.skip = async function (
     const { eat, minter, oracle, bridge } = await hre.getNamedAccounts();
     let skip: boolean;
     if (eat && minter && oracle) {
-        if (hre.network.name === "hardhat" && hre.network.autoImpersonate) {
+        if (hre.network.name === "hardhat" && disableForking) {
+            skip = false
+        } else if (hre.network.name === "hardhat" && hre.network.autoImpersonate) {
             // NOTE: This screws up following deployment steps...
             // await hre.run("run", { script: "./scripts/set_bridge.ts", network: "hardhat" });
             var minterContract = await hre.ethers.getContractAt(Contracts.minter, minter) as JasmineMinter;
@@ -127,9 +133,12 @@ deployCore.skip = async function (
             const ownerSigner = await hre.ethers.getSigner(ownerAddress);
             minterContract = await hre.ethers.getContractAt(Contracts.minter, minter, ownerSigner) as JasmineMinter;
             await minterContract.setBridge(bridge);
+
             colouredLog.blue(`BRIDGE CHANGED TO: ${bridge}`);
+            skip = true;
+        } else {
+            skip = true;
         }
-        skip = true;
     } else if (hre.network.live || hre.network.tags['public']) {
         skip = true;
     } else {

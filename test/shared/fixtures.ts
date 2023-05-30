@@ -152,7 +152,8 @@ export async function deployPoolFactory() {
     poolImplementation.address,
     feeBeneficiary,
     uniswapPoolFactory,
-    USDC
+    USDC,
+    "https://api.jasmine.energy/v1/pools/",
   );
 
   return poolFactory.connect(ownerSigner) as JasminePoolFactory;

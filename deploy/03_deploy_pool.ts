@@ -7,6 +7,7 @@ const deployPoolImplementation: DeployFunction = async function (
 ) {
     colouredLog.yellow(`deploying Pool implementation to: ${network.name}`);
 
+    // 1. Get deployments, accounts and constructor args
     const { deploy, get } = deployments;
     const namedAccounts = await getNamedAccounts();
     const { deployer } = namedAccounts;
@@ -17,7 +18,6 @@ const deployPoolImplementation: DeployFunction = async function (
         nonce: deployerNonce + 1,
     });
 
-    // 1. Get deployements
     const retirer = await get(Contracts.retirementService);
     const policy = await get(Libraries.poolPolicy);
     const arrayUtils = await get(Libraries.arrayUtils);
@@ -32,25 +32,18 @@ const deployPoolImplementation: DeployFunction = async function (
         eat = namedAccounts.eat;
         oracle = namedAccounts.oracle;
     }
-    let tokenBaseURI: string;
-    if (network.name == "polygon") {
-        tokenBaseURI = "https://api.jasmine.energy/v1/pools/";
-    } else {
-        tokenBaseURI = "https://localhost:8080/v1/pools/";
-    }
 
-    const deploymentArgs = [
+    const constructorArgs = [
         eat,
         oracle,
         poolFactoryFutureAddress,
-        retirer.address,
-        tokenBaseURI,
+        retirer.address
     ];
 
     // 2. Deploy Pool Contract
     const pool = await deploy(Contracts.pool, {
         from: deployer,
-        args: deploymentArgs,
+        args: constructorArgs,
         libraries: {
             PoolPolicy: policy.address,
             ArrayUtils: arrayUtils.address,
@@ -66,10 +59,14 @@ const deployPoolImplementation: DeployFunction = async function (
     if (network.tags['public']) {
         // TODO: Verify on sourcify as well. Run "sourcify" command
         console.log('Verifyiyng on Etherscan...');
-        await run('verify:verify', {
-            address: pool,
-            constructorArguments: deploymentArgs,
-        });
+        try {
+            await run('verify:verify', {
+                address: pool,
+                constructorArguments: constructorArgs,
+            });
+        } catch (err) {
+            colouredLog.red(`Verification failed. Error: ${err}`);
+        }
     }
 };
 deployPoolImplementation.tags = ['Pool', 'all'];

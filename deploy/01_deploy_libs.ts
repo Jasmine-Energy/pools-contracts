@@ -39,17 +39,21 @@ const deployDependencies: DeployFunction = async function (
     // 5. If on external network, verify contracts
     if (network.tags['public']) {
         console.log('Verifyiyng on Etherscan...');
-        await run('verify:verify', {
-            address: calldataLib,
-        });
+        try {
+            await run('verify:verify', {
+                address: calldataLib,
+            });
 
-        await run('verify:verify', {
-            address: policyLib,
-        });
+            await run('verify:verify', {
+                address: policyLib,
+            });
 
-        await run('verify:verify', {
-            address: arrayUtilsLib,
-        });
+            await run('verify:verify', {
+                address: arrayUtilsLib,
+            });
+        } catch (err) {
+            colouredLog.red(`Verification failed. Error: ${err}`);
+        }
     }
 };
 deployDependencies.tags = ['Libraries', 'all'];

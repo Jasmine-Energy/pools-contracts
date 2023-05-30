@@ -4,6 +4,7 @@ import {
   HardhatNetworkUserConfig,
 } from "hardhat/types";
 import { accounts, accountsForNetwork } from "./accounts";
+import { disableForking } from "@/utils/environment";
 
 // Network definitions
 
@@ -53,6 +54,7 @@ const hardhat: HardhatNetworkUserConfig = {
   accounts,
   forking: {
     url: forkNetwork.url!,
+    enabled: !disableForking
   },
   saveDeployments: true,
   autoImpersonate: true,
