@@ -238,7 +238,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         )
     {
         // 1. If fee is not 0, calculate and take fee from caller
-        uint256 feeAmount = this.withdrawalCost(amount) - super.withdrawalCost(amount);
+        uint256 feeAmount = JasmineFeePool.withdrawalCost(amount) - super.withdrawalCost(amount);
         if (feeAmount != 0 && 
             JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
         {
@@ -271,7 +271,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         )
     {
         // 1. If fee is not 0, calculate and take fee from caller
-        uint256 feeAmount = this.withdrawalCost(amount) - super.withdrawalCost(amount);
+        uint256 feeAmount = JasmineFeePool.withdrawalCost(amount) - super.withdrawalCost(amount);
         if (feeAmount != 0 && 
             JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
         {
@@ -303,7 +303,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         onlyAllowed(sender, _standardizeDecimal(amounts.sum()))
     {
         // 1. If fee is not 0, calculate and take fee from caller
-        uint256 feeAmount = this.withdrawalCost(tokenIds, amounts) - super.withdrawalCost(tokenIds, amounts);
+        uint256 feeAmount = JasmineFeePool.withdrawalCost(tokenIds, amounts) - super.withdrawalCost(tokenIds, amounts);
         if (feeAmount != 0 && 
             JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
         {

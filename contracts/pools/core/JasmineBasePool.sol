@@ -169,7 +169,7 @@ abstract contract JasmineBasePool is
         withdrawal enforceDeposits nonReentrant
     {
         // 1. Burn JLTs from owner
-        uint256 cost = this.retirementCost(amount);
+        uint256 cost = JasmineBasePool.retirementCost(amount);
         _burn(owner, cost);
 
         // 2. Select quantity of EATs to retire
@@ -362,7 +362,7 @@ abstract contract JasmineBasePool is
         withdrawal enforceDeposits nonReentrant
     {
         // 1. Ensure sender has sufficient JLTs and lengths match
-        uint256 cost = this.withdrawalCost(tokenIds, amounts);
+        uint256 cost = JasmineBasePool.withdrawalCost(tokenIds, amounts);
 
         if (balanceOf(sender) < cost)
             revert ERC20Errors.ERC20InsufficientBalance(
