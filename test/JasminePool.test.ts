@@ -89,7 +89,7 @@ describe(Contracts.pool, function () {
         expect(await poolImplementation.name()).to.be.empty;
         expect(await poolImplementation.symbol()).to.be.empty;
 
-        expect(await poolImplementation.EAT()).to.be.eq(eat.address);
+        expect(await poolImplementation.eat()).to.be.eq(eat.address);
         expect(await poolImplementation.oracle()).to.be.eq(oracle.address);
         expect(await poolImplementation.poolFactory()).to.be.eq(
           poolFactory.address

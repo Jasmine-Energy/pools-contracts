@@ -76,9 +76,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         address _minter
     )
         JasmineBasePool(_eat, _poolFactory, _minter)
-    {
-        
-    }
+    { } // solhint-disable-line no-empty-blocks
 
 
     // ──────────────────────────────────────────────────────────────────────────────

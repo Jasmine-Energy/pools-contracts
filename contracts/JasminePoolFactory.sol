@@ -110,10 +110,10 @@ contract JasminePoolFactory is
     //  ───────────────────────────  External Addresses  ────────────────────────────  \\
 
     /// @dev Address of Uniswap V3 Factory to automatically deploy JLT liquidity pools
-    address public immutable UniswapFactory;
+    address public immutable uniswapFactory;
 
     /// @dev Address of USDC contract used to create UniSwap V3 pools for new JLTs
-    address public immutable USDC;
+    address public immutable usdc;
 
     //  ────────────────────────────────  Pool Fees  ────────────────────────────────  \\
 
@@ -130,7 +130,7 @@ contract JasminePoolFactory is
     address public feeBeneficiary;
 
     /// @dev Default fee tier for Uniswap V3 pools. Default is 0.3%
-    uint24 public constant defaultUniswapFee = 3_000;
+    uint24 public constant UNISWAP_FEE_TIER = 3_000;
 
     //  ────────────────────────────────  Pool Fees  ────────────────────────────────  \\
 
@@ -175,8 +175,8 @@ contract JasminePoolFactory is
             _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
 
         // 2. Set immutable external addresses and info fields
-        UniswapFactory = _uniswapFactory;
-        USDC = _usdc;
+        uniswapFactory = _uniswapFactory;
+        usdc = _usdc;
         _poolsBaseURI = _tokensBaseURI;
 
         // 3. Transfer ownership to initial owner
@@ -659,23 +659,23 @@ contract JasminePoolFactory is
     /**
      * @dev Creates a Uniswap V3 pool between JLT and USDC
      * 
-     * @param JLTPool Address of JLT pool to create Uniswap pool between USDC
+     * @param jltPool Address of JLT pool to create Uniswap pool between USDC
      * @param sqrtPriceX96 Initial price of the pool. See [docs]().
      */
     function _createUniswapPool(
-        address JLTPool,
+        address jltPool,
         uint160 sqrtPriceX96
     ) 
         private
         returns (address pool)
     {
-        (address token0, address token1) = JLTPool < USDC ? (JLTPool, USDC) : (USDC, JLTPool);
+        (address token0, address token1) = jltPool < usdc ? (jltPool, usdc) : (usdc, jltPool);
         if (token0 > token1) revert JasmineErrors.ValidationFailed();
         
-        pool = IUniswapV3Factory(UniswapFactory).getPool(token0, token1, defaultUniswapFee);
+        pool = IUniswapV3Factory(uniswapFactory).getPool(token0, token1, UNISWAP_FEE_TIER);
 
         if (pool == address(0)) {
-            pool = IUniswapV3Factory(UniswapFactory).createPool(JLTPool, USDC, defaultUniswapFee);
+            pool = IUniswapV3Factory(uniswapFactory).createPool(jltPool, usdc, UNISWAP_FEE_TIER);
             IUniswapV3Pool(pool).initialize(sqrtPriceX96);
         } else {
             (uint160 sqrtPriceX96Existing, , , , , , ) = IUniswapV3Pool(pool).slot0();

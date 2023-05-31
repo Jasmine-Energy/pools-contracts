@@ -27,23 +27,6 @@ function DOMAIN_SEPARATOR() external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined |
 
-### EAT
-
-```solidity
-function EAT() external view returns (contract JasmineEAT)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract JasmineEAT | undefined |
-
 ### allowance
 
 ```solidity
@@ -222,6 +205,23 @@ Used to deposit EATs from another account into the pool to receive JLTs.
 | Name | Type | Description |
 |---|---|---|
 | jltQuantity | uint256 | Number of JLTs issued for deposit  Emits a {Deposit} event. |
+
+### eat
+
+```solidity
+function eat() external view returns (contract JasmineEAT)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | contract JasmineEAT | undefined |
 
 ### increaseAllowance
 

@@ -61,39 +61,22 @@ function POOL_MANAGER_ROLE() external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined |
 
-### USDC
+### UNISWAP_FEE_TIER
 
 ```solidity
-function USDC() external view returns (address)
+function UNISWAP_FEE_TIER() external view returns (uint24)
 ```
 
 
 
-*Address of USDC contract used to create UniSwap V3 pools for new JLTs*
+*Default fee tier for Uniswap V3 pools. Default is 0.3%*
 
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | undefined |
-
-### UniswapFactory
-
-```solidity
-function UniswapFactory() external view returns (address)
-```
-
-
-
-*Address of Uniswap V3 Factory to automatically deploy JLT liquidity pools*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
+| _0 | uint24 | undefined |
 
 ### acceptOwnership
 
@@ -200,23 +183,6 @@ Utility function to calculate deployed address of a pool from its         policy
 | Name | Type | Description |
 |---|---|---|
 | poolAddress | address | Address of deployed pool |
-
-### defaultUniswapFee
-
-```solidity
-function defaultUniswapFee() external view returns (uint24)
-```
-
-
-
-*Default fee tier for Uniswap V3 pools. Default is 0.3%*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint24 | undefined |
 
 ### deployNewBasePool
 
@@ -660,6 +626,23 @@ function transferOwnership(address newOwner) external nonpayable
 |---|---|---|
 | newOwner | address | undefined |
 
+### uniswapFactory
+
+```solidity
+function uniswapFactory() external view returns (address)
+```
+
+
+
+*Address of Uniswap V3 Factory to automatically deploy JLT liquidity pools*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
 ### updateImplementationAddress
 
 ```solidity
@@ -692,6 +675,23 @@ Allows pool managers to update the base URI of pools
 | Name | Type | Description |
 |---|---|---|
 | newPoolsURI | string | New base endpoint for pools to point to |
+
+### usdc
+
+```solidity
+function usdc() external view returns (address)
+```
+
+
+
+*Address of USDC contract used to create UniSwap V3 pools for new JLTs*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
 
 
 

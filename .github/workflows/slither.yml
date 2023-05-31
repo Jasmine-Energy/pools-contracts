@@ -25,15 +25,15 @@ jobs:
           node-version: "18.x"
       - run: npm install
         shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
       - name: Run Slither
-        uses: crytic/slither-action@v0.3.0
         id: slither
+        uses: crytic/slither-action@v0.2.0
         with:
+          target: 'contracts'
+          slither-args: '--solc-remaps "@openzeppelin/contracts=./node_modules/@openzeppelin/contracts hardhat=./node_modules/hardhat @jasmine-energy/contracts=./node_modules/@jasmine-energy/contracts @uniswap/v3-core/contracts=./node_modules/@uniswap/v3-core/contracts"'
+          fail-on: 'low'
           sarif: results.sarif
-          fail-on: none
-
+          solc-version: '0.8.17'
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:

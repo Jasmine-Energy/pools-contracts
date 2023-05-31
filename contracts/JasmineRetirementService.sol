@@ -37,7 +37,7 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver {
     // ──────────────────────────────────────────────────────────────────────────────
 
     JasmineMinter public immutable minter;
-    JasmineEAT public immutable EAT;
+    JasmineEAT public immutable eat;
 
     IERC1820Registry public constant ERC1820_REGISTRY = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
@@ -47,9 +47,9 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver {
 
     constructor(address _minter, address _eat) {
         minter = JasmineMinter(_minter);
-        EAT = JasmineEAT(_eat);
+        eat = JasmineEAT(_eat);
 
-        EAT.setApprovalForAll(_minter, true);
+        eat.setApprovalForAll(_minter, true);
     }
 
 
@@ -272,8 +272,10 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver {
     ) private {
         address implementer = ERC1820_REGISTRY.getInterfaceImplementer(retiree, type(IRetirementRecipient).interfaceId);
         if (implementer != address(0x0)) {
+            /* solhint-disable no-empty-blocks */
             try IRetirementRecipient(implementer).onRetirement(retiree, tokenIds, amounts) { }
             catch { }
+            /* solhint-enable no-empty-blocks */
         }
     }
 
@@ -296,8 +298,10 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver {
             (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](1), new uint256[](1));
             tokenIds[0] = tokenId;
             amounts[0] = amount;
+            /* solhint-disable no-empty-blocks */
             try IRetirementRecipient(implementer).onRetirement(retiree, tokenIds, amounts) { }
             catch { }
+            /* solhint-enable no-empty-blocks */
         }
     }
 
@@ -305,7 +309,7 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver {
 
     /// @dev Enforces caller is EAT contract
     modifier onlyEAT() {
-        if (msg.sender != address(EAT)) revert JasmineErrors.Prohibited();
+        if (msg.sender != address(eat)) revert JasmineErrors.Prohibited();
         _;
     }
 }

@@ -39,7 +39,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     address private immutable _tokenAddress;
 
     uint256 private _totalDeposits;
-    RedBlackTree.Tree tree;
+    RedBlackTree.Tree private tree;
 
     /// @dev Maps vintage to token ID
     mapping(uint40 => uint256) private _tokenIds; // TODO: As vintage is already final 40bits, uint216 should is sufficient

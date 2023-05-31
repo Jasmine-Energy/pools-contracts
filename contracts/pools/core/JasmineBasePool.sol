@@ -75,7 +75,7 @@ abstract contract JasmineBasePool is
 
     //  ────────────────────────────────  Addresses  ────────────────────────────────  \\
 
-    JasmineEAT public immutable EAT;
+    JasmineEAT public immutable eat;
     address public immutable retirementService;
     address public immutable poolFactory;
 
@@ -110,7 +110,7 @@ abstract contract JasmineBasePool is
             _poolFactory == address(0x0) || 
             _retirementService == address(0x0)) revert JasmineErrors.ValidationFailed();
 
-        EAT = JasmineEAT(_eat);
+        eat = JasmineEAT(_eat);
         retirementService = _retirementService;
         poolFactory = _poolFactory;
     }
@@ -162,7 +162,7 @@ abstract contract JasmineBasePool is
         address owner, 
         address beneficiary,
         uint256 amount, 
-        bytes calldata data // TODO: Concat to calldata
+        bytes calldata data
     )
         internal virtual
         onlyAllowed(owner, amount)
@@ -192,6 +192,10 @@ abstract contract JasmineBasePool is
             retirementData = Calldata.encodeFractionalRetirementData();
         } else {
             retirementData = Calldata.encodeRetirementData(beneficiary, hasFractional);
+        }
+
+        if (data.length != 0) {
+            retirementData = abi.encodePacked(retirementData, data);
         }
 
         // 5. Send to retirement service and emit retirement event
@@ -238,7 +242,7 @@ abstract contract JasmineBasePool is
         nonReentrant enforceDeposits
         returns (uint256 jltQuantity)
     {
-        EAT.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
+        eat.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
         return _standardizeDecimal(amounts.sum());
     }
 
@@ -262,7 +266,7 @@ abstract contract JasmineBasePool is
         nonReentrant enforceDeposits
         returns (uint256 jltQuantity)
     {
-        EAT.safeTransferFrom(from, address(this), tokenId, amount, "");
+        eat.safeTransferFrom(from, address(this), tokenId, amount, "");
         return _standardizeDecimal(amount);
     }
 
@@ -401,8 +405,8 @@ abstract contract JasmineBasePool is
     {
         if (metadataVersion != 1) revert JasmineErrors.UnsupportedMetadataVersion(metadataVersion);
         return abi.encode(
-            EAT.exists.selector,
-            EAT.frozen.selector
+            eat.exists.selector,
+            eat.frozen.selector
         );
     }
 
@@ -561,7 +565,7 @@ abstract contract JasmineBasePool is
         internal view
         returns (bool isLegit)
     {
-        return EAT.exists(tokenId) && !EAT.frozen(tokenId);
+        return eat.exists(tokenId) && !eat.frozen(tokenId);
     }
 
     /**
@@ -636,7 +640,7 @@ abstract contract JasmineBasePool is
      * @dev Throws Prohibited() on failure
      */
     modifier onlyEAT {
-        if (_msgSender() != address(EAT)) revert JasmineErrors.Prohibited();
+        if (_msgSender() != address(eat)) revert JasmineErrors.Prohibited();
         _;
     }
 
@@ -656,7 +660,7 @@ abstract contract JasmineBasePool is
      * @dev Throws Prohibited() on failure
      */
     modifier onlyEATApproved(address holder) {
-        if (!EAT.isApprovedForAll(holder, _msgSender())) revert JasmineErrors.Prohibited();
+        if (!eat.isApprovedForAll(holder, _msgSender())) revert JasmineErrors.Prohibited();
         _;
     }
 

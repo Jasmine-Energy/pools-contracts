@@ -77,7 +77,7 @@ describe(Contracts.factory, function () {
       // NOTE: This test could be better. Only checks if EAT supports interface
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
-        PoolFactory.deploy(owner.address, await poolImplementation.EAT(), owner.address, uniswapPoolFactory, USDC, "")
+        PoolFactory.deploy(owner.address, await poolImplementation.eat(), owner.address, uniswapPoolFactory, USDC, "")
       ).to.be.revertedWithCustomError(poolFactory, "InvalidConformance");
     });
 

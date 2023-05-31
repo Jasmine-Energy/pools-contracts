@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+// solhint-disable reason-string
 
 pragma solidity ^0.8.0;
 
