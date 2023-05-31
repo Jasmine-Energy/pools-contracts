@@ -29,18 +29,14 @@ jobs:
           slither-args: '--solc-remaps "@openzeppelin/contracts=./node_modules/@openzeppelin/contracts hardhat=./node_modules/hardhat @jasmine-energy/contracts=./node_modules/@jasmine-energy/contracts @uniswap/v3-core/contracts=./node_modules/@uniswap/v3-core/contracts" --checklist --checklist-limit 50 --exclude-dependencies --exclude-low --exclude-informational --exclude-optimization --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/'
           fail-on: 'none'
           solc-version: '0.8.17'
-      - name: Filter Slither output
-        id: filter
-        if: github.event_name == 'pull_request'
-        env:
-          SLITHER_OUTPUT: ${{ steps.slither.outputs.stdout }}
-        run: tail -n +2 <<< $'$SLITHER_OUTPUT'
       - name: Create/update checklist as PR comment
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
+        env:
+          SLITHER_OUTPUT: ${{ steps.slither.outputs.stdout }}
         with:
           script: |
             const script = require('.github/scripts/comment')
             const header = '# Slither report'
-            const body = `${{ steps.filter.outputs.stdout }}`
+            const body = process.env.SLITHER_OUTPUT
             await script({ github, context, header, body })
