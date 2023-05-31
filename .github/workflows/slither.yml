@@ -5,9 +5,6 @@ on:
       - main
       - dev
   pull_request:
-    branches:
-      - main
-      - dev
   workflow_dispatch:
 jobs:
   analyze:
@@ -29,11 +26,15 @@ jobs:
         uses: crytic/slither-action@v0.3.0
         with:
           target: 'contracts'
-          slither-args: '--solc-remaps "@openzeppelin/contracts=./node_modules/@openzeppelin/contracts hardhat=./node_modules/hardhat @jasmine-energy/contracts=./node_modules/@jasmine-energy/contracts @uniswap/v3-core/contracts=./node_modules/@uniswap/v3-core/contracts"'
+          slither-args: '--solc-remaps "@openzeppelin/contracts=./node_modules/@openzeppelin/contracts hardhat=./node_modules/hardhat @jasmine-energy/contracts=./node_modules/@jasmine-energy/contracts @uniswap/v3-core/contracts=./node_modules/@uniswap/v3-core/contracts" --checklist --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/'
           fail-on: 'none'
-          sarif: results.sarif
           solc-version: '0.8.17'
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v2
+      - name: Create/update checklist as PR comment
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
         with:
-          sarif_file: ${{ steps.slither.outputs.sarif }}
+          script: |
+            const script = require('.github/scripts/comment')
+            const header = '# Slither report'
+            const body = `${{ steps.slither.outputs.stdout }}`
+            await script({ github, context, header, body })
