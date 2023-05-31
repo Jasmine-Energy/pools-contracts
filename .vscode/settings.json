@@ -9,5 +9,7 @@
     "solidity-va.whatsNew.disabled": true,
     "solidity-va.uml.actors.enable": true,
     "solidity-va.diagnostics.cdili_json.import": true,
-    "solidity-va.preview.markdown": true
+    "solidity-va.preview.markdown": true,
+    "slither.solcPath": "",
+    "slither.hiddenDetectors": []
 }
