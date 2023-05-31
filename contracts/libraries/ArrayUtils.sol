@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+// solhint-disable no-inline-assembly
 
 pragma solidity >=0.8.17;
 
@@ -22,7 +23,7 @@ library ArrayUtils {
         for (uint256 i = 0; i < inputs.length;) {
             total += inputs[i];
 
-            unchecked { ++i; }
+            unchecked { i++; }
         }
     }
 
@@ -42,7 +43,7 @@ library ArrayUtils {
         for (uint256 i = 0; i < amount;) {
             filledArray[i] = repeatedAddress;
 
-            unchecked { ++i; }
+            unchecked { i++; }
         }
     }
 

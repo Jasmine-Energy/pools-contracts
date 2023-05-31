@@ -4,7 +4,7 @@
 
 > Jasmine Pool Factory
 
-
+Deploys new Jasmine Reference Pools, manages pool implementations and         controls fees across the Jasmine protocol
 
 
 
@@ -44,39 +44,39 @@ function FEE_MANAGER_ROLE() external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined |
 
-### USDC
+### POOL_MANAGER_ROLE
 
 ```solidity
-function USDC() external view returns (address)
+function POOL_MANAGER_ROLE() external view returns (bytes32)
 ```
 
 
 
-*Address of USDC contract used to create UniSwap V3 pools for new JLTs*
+*Access control roll for managers of pool implementations and deployments*
 
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | undefined |
+| _0 | bytes32 | undefined |
 
-### UniswapFactory
+### UNISWAP_FEE_TIER
 
 ```solidity
-function UniswapFactory() external view returns (address)
+function UNISWAP_FEE_TIER() external view returns (uint24)
 ```
 
 
 
-*Address of Uniswap V3 Factory to automatically deploy JLT liquidity pools*
+*Default fee tier for Uniswap V3 pools. Default is 0.3%*
 
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | undefined |
+| _0 | uint24 | undefined |
 
 ### acceptOwnership
 
@@ -183,23 +183,6 @@ Utility function to calculate deployed address of a pool from its         policy
 | Name | Type | Description |
 |---|---|---|
 | poolAddress | address | Address of deployed pool |
-
-### defaultUniswapFee
-
-```solidity
-function defaultUniswapFee() external view returns (uint24)
-```
-
-
-
-*Default fee tier for Uniswap V3 pools. Default is 0.3%*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint24 | undefined |
 
 ### deployNewBasePool
 
@@ -430,31 +413,64 @@ function pendingOwner() external view returns (address)
 |---|---|---|
 | _0 | address | undefined |
 
-### removePoolImplementation
+### poolsBaseURI
 
 ```solidity
-function removePoolImplementation(uint256) external view
+function poolsBaseURI() external view returns (string baseURI)
 ```
 
-Used to remove a pool implementation  param poolIndex Index of pool to remove TODO: Would be nice to have an overloaded version that takes address of pool to remove NOTE: This will break CREATE2 address predictions. Think of means around this
+Base API endpoint from which a pool&#39;s information may be obtained         by appending token symbol to end 
+
+*Used by pools to return their respect tokenURI functions*
 
 
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| baseURI | string | undefined |
+
+### readdPoolImplementation
+
+```solidity
+function readdPoolImplementation(uint256 implementationsIndex) external nonpayable
+```
+
+Used to undo a pool implementation removal 
+
+*emits PoolImplementationAdded *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined |
+| implementationsIndex | uint256 | Index of pool to undo removal |
+
+### removePoolImplementation
+
+```solidity
+function removePoolImplementation(uint256 implementationsIndex) external nonpayable
+```
+
+Used to remove a pool implementation 
+
+*Marks a pool implementation as deprecated. This is a soft delete      preventing new pool deployments from using the implementation while      allowing upgrades to occur. emits PoolImplementationRemoved *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| implementationsIndex | uint256 | Index of pool to remove  |
 
 ### renounceOwnership
 
 ```solidity
-function renounceOwnership() external nonpayable
+function renounceOwnership() external view
 ```
 
+Renouncing ownership is deliberately disabled
 
 
-*Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.*
 
 
 ### renounceRole
@@ -610,6 +626,23 @@ function transferOwnership(address newOwner) external nonpayable
 |---|---|---|
 | newOwner | address | undefined |
 
+### uniswapFactory
+
+```solidity
+function uniswapFactory() external view returns (address)
+```
+
+
+
+*Address of Uniswap V3 Factory to automatically deploy JLT liquidity pools*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
 ### updateImplementationAddress
 
 ```solidity
@@ -626,6 +659,39 @@ Allows owner to update a pool implementation
 |---|---|---|
 | newPoolImplementation | address | New address to replace |
 | poolIndex | uint256 | Index of pool to replace |
+
+### updatePoolsBaseURI
+
+```solidity
+function updatePoolsBaseURI(string newPoolsURI) external nonpayable
+```
+
+Allows pool managers to update the base URI of pools 
+
+*No validation is done on the new URI. Onus is on caller to ensure the new      URI is valid emits PoolsBaseURIChanged *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newPoolsURI | string | New base endpoint for pools to point to |
+
+### usdc
+
+```solidity
+function usdc() external view returns (address)
+```
+
+
+
+*Address of USDC contract used to create UniSwap V3 pools for new JLTs*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
 
 
 
@@ -740,7 +806,7 @@ Emitted when new pool implementations are supported by factory
 ### PoolImplementationRemoved
 
 ```solidity
-event PoolImplementationRemoved(address indexed poolImplementation, address indexed beaconAddress, uint256 indexed poolIndex)
+event PoolImplementationRemoved(address indexed beaconAddress, uint256 indexed poolIndex)
 ```
 
 Emitted when a pool implementations is removed 
@@ -751,7 +817,6 @@ Emitted when a pool implementations is removed
 
 | Name | Type | Description |
 |---|---|---|
-| poolImplementation `indexed` | address | undefined |
 | beaconAddress `indexed` | address | undefined |
 | poolIndex `indexed` | uint256 | undefined |
 
@@ -772,6 +837,23 @@ Emitted when a pool&#39;s beacon implementation updates
 | newPoolImplementation `indexed` | address | undefined |
 | beaconAddress `indexed` | address | undefined |
 | poolIndex `indexed` | uint256 | undefined |
+
+### PoolsBaseURIChanged
+
+```solidity
+event PoolsBaseURIChanged(string indexed newBaseURI, string indexed oldBaseURI)
+```
+
+Emitted whenever the pools&#39; base token URI is updated
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newBaseURI `indexed` | string | Pools&#39; updated base token URI |
+| oldBaseURI `indexed` | string | Pools&#39; previous base token URI |
 
 ### RoleAdminChanged
 
@@ -830,6 +912,17 @@ event RoleRevoked(bytes32 indexed role, address indexed account, address indexed
 
 
 ## Errors
+
+### Disabled
+
+```solidity
+error Disabled()
+```
+
+
+
+*Emitted if function is disabled*
+
 
 ### InvalidConformance
 

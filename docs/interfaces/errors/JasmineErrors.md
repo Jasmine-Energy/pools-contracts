@@ -12,6 +12,17 @@ Convenience interface for errors omitted by Jasmine&#39;s smart contracts
 
 ## Errors
 
+### Disabled
+
+```solidity
+error Disabled()
+```
+
+
+
+*Emitted if function is disabled*
+
+
 ### InbalancedDeposits
 
 ```solidity

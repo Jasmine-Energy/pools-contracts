@@ -7,20 +7,21 @@ const deployPoolImplementation: DeployFunction = async function (
 ) {
     colouredLog.yellow(`deploying Pool implementation to: ${network.name}`);
 
+    // 1. Get deployments, accounts and constructor args
     const { deploy, get } = deployments;
     const namedAccounts = await getNamedAccounts();
-    const { owner } = namedAccounts;
-    const ownerSigner = await ethers.getSigner(owner);
-    const ownerNonce = await ownerSigner.getTransactionCount();
+    const { deployer } = namedAccounts;
+    const deployerSigner = await ethers.getSigner(deployer);
+    const deployerNonce = await deployerSigner.getTransactionCount();
     const poolFactoryFutureAddress = ethers.utils.getContractAddress({
-        from: owner,
-        nonce: ownerNonce + 1,
+        from: deployer,
+        nonce: deployerNonce + 1,
     });
 
-    // 1. Get deployements
     const retirer = await get(Contracts.retirementService);
     const policy = await get(Libraries.poolPolicy);
     const arrayUtils = await get(Libraries.arrayUtils);
+    const redBlackTree = await get(Libraries.redBlackTree);
     const calldata = await get(Libraries.calldata);
     let eat: string;
     let oracle: string;
@@ -32,19 +33,22 @@ const deployPoolImplementation: DeployFunction = async function (
         oracle = namedAccounts.oracle;
     }
 
+    const constructorArgs = [
+        eat,
+        oracle,
+        poolFactoryFutureAddress,
+        retirer.address
+    ];
+
     // 2. Deploy Pool Contract
     const pool = await deploy(Contracts.pool, {
-        from: owner,
-        args: [
-            eat,
-            oracle,
-            poolFactoryFutureAddress,
-            retirer.address
-        ],
+        from: deployer,
+        args: constructorArgs,
         libraries: {
             PoolPolicy: policy.address,
             ArrayUtils: arrayUtils.address,
-            Calldata: calldata.address
+            Calldata: calldata.address,
+            RedBlackTree: redBlackTree.address
         },
         log: hardhatArguments.verbose
     });
@@ -55,15 +59,14 @@ const deployPoolImplementation: DeployFunction = async function (
     if (network.tags['public']) {
         // TODO: Verify on sourcify as well. Run "sourcify" command
         console.log('Verifyiyng on Etherscan...');
-        await run('verify:verify', {
-            address: pool,
-            constructorArguments: [
-                eat,
-                oracle,
-                poolFactoryFutureAddress,
-                retirer.address
-            ],
-        });
+        try {
+            await run('verify:verify', {
+                address: pool,
+                constructorArguments: constructorArgs,
+            });
+        } catch (err) {
+            colouredLog.red(`Verification failed. Error: ${err}`);
+        }
     }
 };
 deployPoolImplementation.tags = ['Pool', 'all'];

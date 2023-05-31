@@ -8,42 +8,52 @@ const deployDependencies: DeployFunction = async function (
     colouredLog.yellow(`deploying libraries to: ${network.name}`);
 
     const { deploy } = deployments;
-    const { owner } = await getNamedAccounts();
+    const { deployer } = await getNamedAccounts();
 
     // 1. Deploy Pool Policy Library
     const policyLib = await deploy(Libraries.poolPolicy, {
-        from: owner,
+        from: deployer,
         log: hardhatArguments.verbose
     });
   
     // 2. Deploy Calldata Library
     const calldataLib = await deploy(Libraries.calldata, {
-        from: owner,
+        from: deployer,
         log: hardhatArguments.verbose,
     });
 
     // 3. Deploy Calldata Library
     const arrayUtilsLib = await deploy(Libraries.arrayUtils, {
-        from: owner,
+        from: deployer,
         log: hardhatArguments.verbose,
     });
 
-    colouredLog.blue(`Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address} ArrayUtils Lib to: ${arrayUtilsLib.address}`);
+    // 4. Deploy RedBlackTree Library
+    const redBlackTree  = await deploy(Libraries.redBlackTree, {
+        from: deployer,
+        log: hardhatArguments.verbose,
+    });
+
+    colouredLog.blue(`Deployed Policy Lib to: ${policyLib.address} Calldata Lib to: ${calldataLib.address} ArrayUtils Lib to: ${arrayUtilsLib.address} RedBlackTree Lib to: ${redBlackTree.address}`);
   
-    // 4. If on external network, verify contracts
+    // 5. If on external network, verify contracts
     if (network.tags['public']) {
         console.log('Verifyiyng on Etherscan...');
-        await run('verify:verify', {
-            address: calldataLib,
-        });
+        try {
+            await run('verify:verify', {
+                address: calldataLib,
+            });
 
-        await run('verify:verify', {
-            address: policyLib,
-        });
+            await run('verify:verify', {
+                address: policyLib,
+            });
 
-        await run('verify:verify', {
-            address: arrayUtilsLib,
-        });
+            await run('verify:verify', {
+                address: arrayUtilsLib,
+            });
+        } catch (err) {
+            colouredLog.red(`Verification failed. Error: ${err}`);
+        }
     }
 };
 deployDependencies.tags = ['Libraries', 'all'];

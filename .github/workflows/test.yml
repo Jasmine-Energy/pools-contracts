@@ -1,5 +1,11 @@
 name: test
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
   packages: read
@@ -13,8 +19,6 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@v3
-      - name: Authenticate with private NPM package
-        run: sed -i 's/GITHUB_TOKEN/ACTIONS_TOKEN/g' .npmrc
       - name: Install packages
         uses: actions/setup-node@v3
         with:

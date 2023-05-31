@@ -9,13 +9,19 @@ pragma solidity >=0.8.17;
 
 // Parent Contract
 import { JasmineBasePool } from "./pools/core/JasmineBasePool.sol";
-import { JasmineFeePool } from "./pools/extensions/JasmineFeePool.sol";
+import { JasmineFeePool }  from "./pools/extensions/JasmineFeePool.sol";
+
+// Implemented Interfaces
+import { IJasminePool }    from "./interfaces/IJasminePool.sol";
+import { IQualifiedPool }  from "./interfaces/pool/IQualifiedPool.sol";
+import { IRetireablePool } from "./interfaces/pool/IRetireablePool.sol";
+import { IEATBackedPool }  from "./interfaces/pool/IEATBackedPool.sol";
 
 // External Contracts
 import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
 
 // Utility Libraries
-import { PoolPolicy } from "./libraries/PoolPolicy.sol";
+import { PoolPolicy }    from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
@@ -50,10 +56,20 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     // Setup
     // ──────────────────────────────────────────────────────────────────────────────
 
-    constructor(address _eat, address _oracle, address _poolFactory, address _minter)
+    /**
+     * @param _eat Address of the Jasmine Energy Attribution Token (EAT) contract
+     * @param _oracle Address of the Jasmine Oracle contract
+     * @param _poolFactory Address of the Jasmine Pool Factory contract
+     */
+    constructor(
+        address _eat,
+        address _oracle,
+        address _poolFactory,
+        address _minter
+    )
         JasmineFeePool(_eat, _poolFactory, _minter)
     {
-        require(_oracle != address(0), "JasminePool: Oracle must be set");
+        require(_oracle != address(0x0), "JasminePool: Oracle must be set");
 
         oracle = JasmineOracle(_oracle);
     }
@@ -86,8 +102,12 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     // Deposit Policy Overrides
     // ──────────────────────────────────────────────────────────────────────────────
 
-    // @inheritdoc {IQualifiedPool}
-    // TODO: Once pool conforms to IJasminePool again, add above line to natspec
+    /**
+     * @dev Checks if a token is eligible for deposit into the pool based on the
+     *      pool's Deposit Policy.
+     * 
+     * @param tokenId EAT token ID to check eligibility
+     */
     function meetsPolicy(uint256 tokenId)
         public view override
         returns (bool isEligible)
@@ -95,12 +115,12 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         return super.meetsPolicy(tokenId) && _policy.meetsPolicy(oracle, tokenId);
     }
 
-    // @inheritdoc {IQualifiedPool}
-    // TODO: Once pool conforms to IJasminePool again, add above line to natspec
+    /// @inheritdoc IQualifiedPool
     function policyForVersion(uint8 metadataVersion)
         external view override
         returns (bytes memory policy)
     {
+        // TODO: Use custom error
         require(metadataVersion == 1, "JasminePool: No policy for version");
         return abi.encode(
             _policy.vintagePeriod,
@@ -113,8 +133,10 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
 
 
     // ──────────────────────────────────────────────────────────────────────────────
-    // Withdraw Overrides
+    // Overrides
     // ──────────────────────────────────────────────────────────────────────────────
+
+    //  ───────────────────────────  Withdraw Overrides  ────────────────────────────  \\
 
     /// @inheritdoc JasmineFeePool
     function withdrawalCost(
@@ -137,6 +159,79 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         return super.withdrawalCost(amount);
     }
 
+    /// @inheritdoc JasmineBasePool
+    function withdraw(
+        address recipient,
+        uint256 amount,
+        bytes calldata data
+    )
+        public override(JasmineFeePool, JasmineBasePool)
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        return super.withdraw(
+            recipient,
+            amount,
+            data
+        );
+    }
+
+    /// @inheritdoc JasmineBasePool
+    function withdrawFrom(
+        address sender,
+        address recipient,
+        uint256 amount,
+        bytes calldata data
+    )
+        public override(JasmineFeePool, JasmineBasePool)
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        return super.withdrawFrom(
+            sender,
+            recipient,
+            amount,
+            data
+        );
+    }
+
+    /// @inheritdoc JasmineBasePool
+    function withdrawSpecific(
+        address sender,
+        address recipient,
+        uint256[] calldata tokenIds,
+        uint256[] calldata amounts,
+        bytes calldata data
+    ) 
+        external override(JasmineFeePool, JasmineBasePool)
+    {
+        super._withdraw(
+            sender,
+            recipient,
+            tokenIds,
+            amounts,
+            data
+        );
+    }    
+
+    //  ──────────────────────────  Retirement Overrides  ───────────────────────────  \\
+
+    /// @inheritdoc IRetireablePool
+    function retire(
+        address owner,
+        address beneficiary,
+        uint256 amount,
+        bytes calldata data
+    )
+        external override(JasmineFeePool, JasmineBasePool)
+    {
+        _retire(owner, beneficiary, amount, data);
+    }
+
     /// @inheritdoc JasmineFeePool
     function retirementCost(
         uint256 amount
@@ -147,17 +242,4 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         return super.retirementCost(amount);
     }
 
-    /// @inheritdoc JasmineBasePool
-    function _withdraw(
-        address sender,
-        address recipient,
-        uint256 cost,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts,
-        bytes memory data
-    ) 
-        internal override(JasmineBasePool, JasmineFeePool)
-    {
-        super._withdraw(sender, recipient, cost, tokenIds, amounts, data);
-    }
 }

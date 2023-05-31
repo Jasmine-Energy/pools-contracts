@@ -115,7 +115,7 @@ Emitted when new pool implementations are supported by factory
 ### PoolImplementationRemoved
 
 ```solidity
-event PoolImplementationRemoved(address indexed poolImplementation, address indexed beaconAddress, uint256 indexed poolIndex)
+event PoolImplementationRemoved(address indexed beaconAddress, uint256 indexed poolIndex)
 ```
 
 Emitted when a pool implementations is removed 
@@ -126,7 +126,6 @@ Emitted when a pool implementations is removed
 
 | Name | Type | Description |
 |---|---|---|
-| poolImplementation `indexed` | address | Address of deleted pool implementation |
 | beaconAddress `indexed` | address | Address of Beacon smart contract |
 | poolIndex `indexed` | uint256 | Index of deleted pool in set of pool implementations |
 

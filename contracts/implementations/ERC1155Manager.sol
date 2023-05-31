@@ -9,7 +9,7 @@ pragma solidity >=0.8.17;
 
 import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
-import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { RedBlackTree } from "../libraries/RedBlackTreeLibrary.sol";
 import { ArrayUtils } from "../libraries/ArrayUtils.sol";
 
 error InvalidTokenAddress(address received, address expected);
@@ -30,7 +30,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
 
-    using EnumerableSet for EnumerableSet.UintSet;
+    using RedBlackTree for RedBlackTree.Tree;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -39,7 +39,10 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     address private immutable _tokenAddress;
 
     uint256 private _totalDeposits;
-    EnumerableSet.UintSet private _holdings;
+    RedBlackTree.Tree private tree;
+
+    /// @dev Maps vintage to token ID
+    mapping(uint40 => uint256) private _tokenIds; // TODO: As vintage is already final 40bits, uint216 should is sufficient
 
     uint8 private constant WITHDRAWS_LOCK = 1;
     uint8 private constant WITHDRAWS_UNLOCKED = 2;
@@ -156,7 +159,6 @@ abstract contract ERC1155Manager is ERC1155Receiver {
 
     function _selectWithdrawTokens(uint256 amount)
         internal view
-        withdrawsUnlocked
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
@@ -166,14 +168,16 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint256 i = 0;
         uint256 finalBalance;
 
+        uint current = tree.first();
+
         while (sum != amount) {
-            if (i >= _holdings.length()) revert InsufficientDeposits();
-            uint256 tokenId = _holdings.at(i);
+            uint256 tokenId = _tokenIds[uint40(current)];
             uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenId);
             if (sum + balance < amount) {
                 unchecked {
                     sum += balance;
                     i++;
+                    current = tree.next(current);
                 }
                 continue;
             } else {
@@ -185,15 +189,18 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             }
         }
 
+        current = tree.first();
+
         if (i == 1) {
             tokenIds = new uint256[](1);
-            tokenIds[0] = _holdings.at(0);
+            tokenIds[0] = _tokenIds[uint40(current)];
             amounts = new uint256[](1);
             amounts[0] = finalBalance;
         } else {
             tokenIds = new uint256[](i);
             for (uint x = 0; x < i;) {
-                tokenIds[x] = _holdings.at(x);
+                tokenIds[x] = _tokenIds[uint40(current)];
+                current = tree.next(current);
                 unchecked { x++; }
             }
             amounts = IERC1155(_tokenAddress).balanceOfBatch(ArrayUtils.fill(address(this), i), tokenIds);
@@ -215,7 +222,9 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     )
         private
     {
-        _holdings.add(tokenId);
+        uint40 vintage = getVintageFromTokenId(tokenId);
+        tree.insert(vintage);
+        _tokenIds[vintage] = tokenId;
         _totalDeposits += value;
     }
 
@@ -227,9 +236,12 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         returns (uint256 quantity)
     {
         for (uint256 i = 0; i < tokenIds.length;) {
+            uint40 vintage = getVintageFromTokenId(tokenIds[i]);
+            tree.insert(vintage);
+            _tokenIds[vintage] = tokenIds[i];
+
             quantity += values[i];
-            _holdings.add(tokenIds[i]);
-            unchecked { ++i; }
+            unchecked { i++; }
         }
         _totalDeposits += quantity;
     }
@@ -243,7 +255,11 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         private
     {
         uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenId);
-        if (balance == 0) _holdings.remove(tokenId);
+        if (balance == 0) {
+            uint40 vintage = getVintageFromTokenId(tokenId);
+            tree.remove(vintage);
+            delete _tokenIds[vintage];
+        }
         _totalDeposits -= value;
     }
 
@@ -258,11 +274,19 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length;) {
             total += values[i];
-            if (balances[i] == 0) _holdings.remove(tokenIds[i]);
+            if (balances[i] == 0) {
+                uint40 vintage = getVintageFromTokenId(tokenIds[i]);
+                tree.remove(vintage);
+                delete _tokenIds[vintage];
+            }
 
-            unchecked { ++i; }
+            unchecked { i++; }
         }
         _totalDeposits -= total;
+    }
+
+    function getVintageFromTokenId(uint256 tokenId) internal pure returns (uint40) {
+        return uint40(tokenId >> 216);
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────

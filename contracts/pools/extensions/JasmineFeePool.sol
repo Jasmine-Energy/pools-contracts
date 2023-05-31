@@ -10,11 +10,18 @@ pragma solidity >=0.8.17;
 // Implementation Contracts
 import { JasmineBasePool } from "../core/JasmineBasePool.sol";
 
+// Implemented Interfaces
+import { IFeePool }        from "../../interfaces/pool/IFeePool.sol";
+import { IJasminePool }    from "../../interfaces/IJasminePool.sol";
+import { IQualifiedPool }  from "../../interfaces/pool/IQualifiedPool.sol";
+import { IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
+import { IEATBackedPool }  from "../../interfaces/pool/IEATBackedPool.sol";
+
 // External Contracts
 import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
 
 // Utility Libraries
-import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { Math }       from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils } from "../../libraries/ArrayUtils.sol";
 import { 
     ERC20Errors,
@@ -32,39 +39,13 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
  * 
  * QUESTION: Should there be a maximum permitted fee?
  */
-abstract contract JasmineFeePool is JasmineBasePool {
+abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
 
     using ArrayUtils for uint256[];
-
-    // ──────────────────────────────────────────────────────────────────────────────
-    // Events
-    // ──────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * @dev Emitted whenever fee manager updates withdrawal fee
-     * 
-     * @param withdrawFeeBips New withdrawal fee in basis points
-     * @param beneficiary Address to receive fees
-     */
-    event WithdrawalRateUpdate(
-        uint96 withdrawFeeBips,
-        address indexed beneficiary
-    );
-
-    /**
-     * @dev Emitted whenever fee manager updates retirement fee
-     * 
-     * @param retirementFeeBips new retirement fee in basis points
-     * @param beneficiary Address to receive fees
-     */
-    event RetirementRateUpdate(
-        uint96 retirementFeeBips,
-        address indexed beneficiary
-    );
 
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -89,11 +70,13 @@ abstract contract JasmineFeePool is JasmineBasePool {
      * @param _eat Jasmine Energy Attribute Token address
      * @param _poolFactory Jasmine Pool Factory address
      */
-    constructor(address _eat, address _poolFactory, address _minter)
+    constructor(
+        address _eat,
+        address _poolFactory,
+        address _minter
+    )
         JasmineBasePool(_eat, _poolFactory, _minter)
-    {
-        
-    }
+    { } // solhint-disable-line no-empty-blocks
 
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -146,6 +129,7 @@ abstract contract JasmineFeePool is JasmineBasePool {
         }
     }
 
+
     // ──────────────────────────────────────────────────────────────────────────────
     // Admin Functionality
     // ──────────────────────────────────────────────────────────────────────────────
@@ -184,26 +168,110 @@ abstract contract JasmineFeePool is JasmineBasePool {
         _updateRetirementRate(newRetirementRate);
     }
 
+
     //  ─────────────────────────────────────────────────────────────────────────────
-    //  Overrides
+    //  Retirement Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    /// @inheritdoc JasmineBasePool
-    function _withdraw(
-        address sender,
+    /// @inheritdoc IRetireablePool
+    function retire(
+        address owner,
+        address beneficiary,
+        uint256 amount,
+        bytes calldata data
+    )
+        external virtual override(IRetireablePool, JasmineBasePool)
+    {
+        // 1. If fee is set, calculate fee to take from amount given
+        if (retirementRate() != 0 && beneficiary != address(0x0)) {
+            uint256 feeAmount = Math.ceilDiv(amount, retirementRate());
+            _transfer(
+                owner,
+                JasminePoolFactory(poolFactory).feeBeneficiary(),
+                feeAmount
+            );
+            amount -= feeAmount;
+        }
+
+        // 2. Execute retirement
+        _retire(owner, beneficiary, amount, data);
+    }
+
+    /// @inheritdoc IFeePool
+    function retireExact(
+        address owner, 
+        address beneficiary, 
+        uint256 amount, 
+        bytes calldata data
+    )
+        external virtual
+    {
+        // 1. If fee is set, calculate excess fee on top of given amount
+        if (retirementRate() != 0 && beneficiary != address(0x0)) {
+            uint256 feeAmount = retirementCost(amount) - amount;
+            _transfer(
+                owner,
+                JasminePoolFactory(poolFactory).feeBeneficiary(),
+                feeAmount
+            );
+        }
+        
+        // 2. Execute retirement
+        _retire(owner, beneficiary, amount, data);
+    }
+
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Withdrawal Functions
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /// @inheritdoc IEATBackedPool
+    function withdraw(
         address recipient,
-        uint256 cost,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts,
-        bytes memory data
-    ) 
-        internal virtual override
+        uint256 amount,
+        bytes calldata data
+    )
+        public virtual override(IEATBackedPool, JasmineBasePool)
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
     {
         // 1. If fee is not 0, calculate and take fee from caller
+        uint256 feeAmount = this.withdrawalCost(amount) - super.withdrawalCost(amount);
+        if (feeAmount != 0 && 
+            JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
+        {
+            _transfer(
+                _msgSender(),
+                JasminePoolFactory(poolFactory).feeBeneficiary(),
+                feeAmount
+            );
+        }
 
-        // NOTE: Implicit in this implementation is that both withdrawal cost
-        // NOTE: functions in parent return same value for any and specific
-        uint256 feeAmount = cost - super.withdrawalCost(tokenIds, amounts);
+        // 2. Execute withdrawal
+        return super.withdraw(
+            recipient,
+            amount,
+            data
+        );
+    }
+
+    /// @inheritdoc IEATBackedPool
+    function withdrawFrom(
+        address sender,
+        address recipient,
+        uint256 amount,
+        bytes calldata data
+    )
+        public virtual override(IEATBackedPool, JasmineBasePool)
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        // 1. If fee is not 0, calculate and take fee from caller
+        uint256 feeAmount = this.withdrawalCost(amount) - super.withdrawalCost(amount);
         if (feeAmount != 0 && 
             JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
         {
@@ -213,9 +281,53 @@ abstract contract JasmineFeePool is JasmineBasePool {
                 feeAmount
             );
         }
-        // 2. Call super
-        super._withdraw(sender, recipient, cost - feeAmount, tokenIds, amounts, data);
+
+        // 2. Execute withdrawal
+        return super.withdrawFrom(
+            sender,
+            recipient,
+            amount,
+            data
+        );
     }
+
+    /// @inheritdoc IEATBackedPool
+    function withdrawSpecific(
+        address sender,
+        address recipient,
+        uint256[] calldata tokenIds,
+        uint256[] calldata amounts,
+        bytes calldata data
+    ) 
+        external virtual override(IEATBackedPool, JasmineBasePool)
+        onlyAllowed(sender, _standardizeDecimal(amounts.sum()))
+    {
+        // 1. If fee is not 0, calculate and take fee from caller
+        uint256 feeAmount = this.withdrawalCost(tokenIds, amounts) - super.withdrawalCost(tokenIds, amounts);
+        if (feeAmount != 0 && 
+            JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
+        {
+            _transfer(
+                sender,
+                JasminePoolFactory(poolFactory).feeBeneficiary(),
+                feeAmount
+            );
+        }
+
+        // 2. Execute withdrawal
+        _withdraw(
+            sender,
+            recipient,
+            tokenIds,
+            amounts,
+            data
+        );
+    }
+
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Costing Functions
+    //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
      * @notice Cost of withdrawing specified amounts of tokens from pool including
@@ -230,7 +342,7 @@ abstract contract JasmineFeePool is JasmineBasePool {
         uint256[] memory tokenIds,
         uint256[] memory amounts
     )
-        public view virtual override
+        public view virtual override(IEATBackedPool, JasmineBasePool)
         returns (uint256 cost)
     {
         if (tokenIds.length != amounts.length) {
@@ -262,7 +374,7 @@ abstract contract JasmineFeePool is JasmineBasePool {
     function withdrawalCost(
         uint256 amount
     )
-        public view virtual override
+        public view virtual override(IEATBackedPool, JasmineBasePool)
         returns (uint256 cost)
     {
         // NOTE: If no feeBeneficiary is set, fees may not be collected
@@ -287,7 +399,7 @@ abstract contract JasmineFeePool is JasmineBasePool {
     function retirementCost(
         uint256 amount
     )
-        public view virtual override
+        public view virtual override(IEATBackedPool, JasmineBasePool)
         returns (uint256 cost)
     {
         // NOTE: If no feeBeneficiary is set, fees may not be collected

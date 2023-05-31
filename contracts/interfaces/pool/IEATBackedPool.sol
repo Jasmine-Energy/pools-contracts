@@ -190,4 +190,45 @@ interface IEATBackedPool {
         bytes calldata data
     ) external;
 
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Costing Functions
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Cost of withdrawing specified amounts of tokens from pool.
+     * 
+     * @param tokenIds IDs of EATs to withdaw
+     * @param amounts Amounts of EATs to withdaw
+     * 
+     * @return cost Price of withdrawing EATs in JLTs
+     */
+    function withdrawalCost(
+        uint256[] memory tokenIds,
+        uint256[] memory amounts
+    ) external view returns (uint256 cost);
+
+    /**
+     * @notice Cost of withdrawing amount of tokens from pool where pool
+     *         selects the tokens to withdraw.
+     * 
+     * @param amount Number of EATs to withdraw.
+     * 
+     * @return cost Price of withdrawing EATs in JLTs
+     */
+    function withdrawalCost(
+        uint256 amount
+    ) external view returns (uint256 cost);
+
+    /**
+     * @notice Cost of retiring JLTs from pool.
+     * 
+     * @param amount Amount of JLTs to retire.
+     * 
+     * @return cost Price of retiring in JLTs.
+     */
+    function retirementCost(
+        uint256 amount
+    ) external view returns (uint256 cost);
+    
 }

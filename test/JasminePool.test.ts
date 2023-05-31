@@ -10,14 +10,11 @@ import {
   JasmineOracle,
   JasmineMinter,
 } from "@/typechain";
-import { deployPoolImplementation, deployCoreFixture, deployPoolFactory } from "./shared/fixtures";
+import { deployPoolImplementation, deployCoreFixture, deployPoolFactory, deployPoolsFixture } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
 import {
-  createAnyTechAnnualPolicy,
-  createSolarPolicy,
-  createWindPolicy,
   makeMintFunction,
   mintFunctionType,
 } from "./shared/utilities";
@@ -65,35 +62,6 @@ describe(Contracts.pool, function () {
     poolFactory = await loadFixture(deployPoolFactory);
   });
 
-  async function deployPoolsFixture() {
-    await poolFactory.deployNewBasePool(
-      createSolarPolicy(),
-      "Solar Tech",
-      "sJLT"
-    );
-    const solarPoolAddress = await poolFactory.getPoolAtIndex(0);
-
-    await poolFactory.deployNewBasePool(
-      createWindPolicy(),
-      "Wind Tech",
-      "wJLT"
-    );
-    const windPoolAddress = await poolFactory.getPoolAtIndex(1);
-
-    await poolFactory.deployNewBasePool(
-      createAnyTechAnnualPolicy(),
-      "Any Tech '23",
-      "a23JLT"
-    );
-    const anyTechPoolAddress = await poolFactory.getPoolAtIndex(2);
-
-    return {
-      solarPool: poolImplementation.attach(solarPoolAddress),
-      windPool: poolImplementation.attach(windPoolAddress),
-      anyTechAnnualPool: poolImplementation.attach(anyTechPoolAddress),
-    };
-  }
-
   beforeEach(async function () {
     const testPools = await loadFixture(deployPoolsFixture);
     solarPool = testPools.solarPool;
@@ -121,7 +89,7 @@ describe(Contracts.pool, function () {
         expect(await poolImplementation.name()).to.be.empty;
         expect(await poolImplementation.symbol()).to.be.empty;
 
-        expect(await poolImplementation.EAT()).to.be.eq(eat.address);
+        expect(await poolImplementation.eat()).to.be.eq(eat.address);
         expect(await poolImplementation.oracle()).to.be.eq(oracle.address);
         expect(await poolImplementation.poolFactory()).to.be.eq(
           poolFactory.address
@@ -506,5 +474,38 @@ describe(Contracts.pool, function () {
     });
   });
 
-  describe("Transfer", async function () {});
+  describe("Metadata", async function () {
+    it("Should have name set", async function () {
+      expect(await solarPool.name()).to.be.eq("Solar Tech");
+    });
+
+    it("Should have symbol set", async function () {
+      expect(await solarPool.symbol()).to.be.eq("sJLT");
+    });
+
+    it("Should have decimals set", async function () {
+      expect(await solarPool.decimals()).to.be.eq(DEFAULT_DECIMAL);
+    });
+
+    it("Should have total supply set", async function () {
+      const tokens = await mintEat(owner.address, 5, FuelType.SOLAR);
+      await eat.safeTransferFrom(
+        owner.address,
+        solarPool.address,
+        tokens.id,
+        tokens.amount,
+        []
+      );
+
+      expect(await solarPool.totalSupply()).to.exist
+        .and.to.not.be.eq(0)
+        .and.to.not.be.undefined;
+    });
+
+    it("Should correctly return tokenURI", async function () {
+      const baseURI = await poolFactory.poolsBaseURI();
+      const solarSymbol = await solarPool.symbol();
+      expect(await solarPool.tokenURI()).to.be.eq(baseURI.concat(solarSymbol));
+    });
+  });
 });

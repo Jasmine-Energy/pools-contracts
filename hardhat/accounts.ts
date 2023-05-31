@@ -41,8 +41,14 @@ export const namedAccounts = {
     polygon: "0xf752f0300333d53982dd8c128ca077f17cb8c405",
     mumbai: "0x2dcad29de8a67d70b7b5bf32b19f1480f333d8dd",
   },
+  deployer: {
+    default: 2,
+  },
   feeBeneficiary: {
     default: 5,
+  },
+  poolManager: {
+    default: 6,
   },
   // Core contracts
   eat: {

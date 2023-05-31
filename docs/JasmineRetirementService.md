@@ -10,23 +10,6 @@ Facilitates retirements of EATs and JLTs in the Jasmine protocol
 
 ## Methods
 
-### EAT
-
-```solidity
-function EAT() external view returns (contract JasmineEAT)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract JasmineEAT | undefined |
-
 ### ERC1820_REGISTRY
 
 ```solidity
@@ -43,6 +26,23 @@ function ERC1820_REGISTRY() external view returns (contract IERC1820Registry)
 | Name | Type | Description |
 |---|---|---|
 | _0 | contract IERC1820Registry | undefined |
+
+### eat
+
+```solidity
+function eat() external view returns (contract JasmineEAT)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | contract JasmineEAT | undefined |
 
 ### minter
 

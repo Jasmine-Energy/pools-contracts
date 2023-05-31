@@ -15,6 +15,7 @@ import "hardhat-deploy-ethers";
 import "hardhat-storage-layout";
 import "hardhat-tracer";
 import "hardhat-interact";
+import "solidity-coverage"
 import "@typechain/hardhat";
 
 import "tsconfig-paths/register";
