@@ -101,6 +101,11 @@ describe(Contracts.factory, function () {
       expect(await poolFactory.hasRole(POOL_MANAGER_ROLE, deployer.address)).to.be.false;
       expect(await poolFactory.hasRole(FEE_MANAGER_ROLE, deployer.address)).to.be.false;
     });
+
+    it("Should have an inital base URI for pools", async function () {
+      const initialBaseURI = "https://api.jasmine.energy/v1/pools/";
+      expect(await poolFactory.poolsBaseURI()).to.be.eq(initialBaseURI);
+    });
   });
 
   describe("Pool Implementation Management", async function () {
@@ -255,6 +260,26 @@ describe(Contracts.factory, function () {
       expect(await poolFactory.eligiblePoolsForToken(solarTokens.id)).to.eql(
         [solarPool, anyTechPool]
       );
+    });
+  });
+
+  describe("Pools' Base Token URI", async function () {
+    it("Should allow pool manager to update pools base URI", async function () {
+      let poolFactoryFromManager = poolFactory.connect(poolManager);
+      const newURI = "https://cooltests.eth/";
+      const oldURI = await poolFactory.poolsBaseURI();
+      expect(await poolFactoryFromManager.updatePoolsBaseURI(newURI)).to.be.ok.and
+        .to.emit(poolFactory, "PoolsBaseURIChanged")
+        .withArgs(newURI, oldURI);
+      expect(await poolFactory.poolsBaseURI()).to.be.eq(newURI);
+    });
+
+    it("Should prohibit non-pool manager from updating pools base URI", async function () {
+      const factoryFromOther = poolFactory.connect(accounts[1]);
+      const newURI = "https://cooltests.eth/";
+      await expect(factoryFromOther.updatePoolsBaseURI(newURI)).to.be.revertedWithCustomError(
+        poolFactory, "RequiresRole"
+      ).withArgs(POOL_MANAGER_ROLE);
     });
   });
 

@@ -474,5 +474,38 @@ describe(Contracts.pool, function () {
     });
   });
 
-  describe("Transfer", async function () {});
+  describe("Metadata", async function () {
+    it("Should have name set", async function () {
+      expect(await solarPool.name()).to.be.eq("Solar Tech");
+    });
+
+    it("Should have symbol set", async function () {
+      expect(await solarPool.symbol()).to.be.eq("sJLT");
+    });
+
+    it("Should have decimals set", async function () {
+      expect(await solarPool.decimals()).to.be.eq(DEFAULT_DECIMAL);
+    });
+
+    it("Should have total supply set", async function () {
+      const tokens = await mintEat(owner.address, 5, FuelType.SOLAR);
+      await eat.safeTransferFrom(
+        owner.address,
+        solarPool.address,
+        tokens.id,
+        tokens.amount,
+        []
+      );
+
+      expect(await solarPool.totalSupply()).to.exist
+        .and.to.not.be.eq(0)
+        .and.to.not.be.undefined;
+    });
+
+    it("Should correctly return tokenURI", async function () {
+      const baseURI = await poolFactory.poolsBaseURI();
+      const solarSymbol = await solarPool.symbol();
+      expect(await solarPool.tokenURI()).to.be.eq(baseURI.concat(solarSymbol));
+    });
+  });
 });

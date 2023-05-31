@@ -58,6 +58,19 @@ contract JasminePoolFactory is
     using PoolPolicy for PoolPolicy.DepositPolicy;
     using Address for address;
 
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Events
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Emitted whenever the pools' base token URI is updated
+     * @param newBaseURI Pools' updated base token URI
+     * @param oldBaseURI Pools' previous base token URI
+     */
+    event PoolsBaseURIChanged(
+        string indexed newBaseURI,
+        string indexed oldBaseURI
+    );
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -567,9 +580,12 @@ contract JasminePoolFactory is
      * @dev No validation is done on the new URI. Onus is on caller to ensure the new
      *      URI is valid
      * 
+     * @dev emits PoolsBaseURIChanged
+     * 
      * @param newPoolsURI New base endpoint for pools to point to
      */
     function updatePoolsBaseURI(string calldata newPoolsURI) external onlyPoolManager {
+        emit PoolsBaseURIChanged(newPoolsURI, _poolsBaseURI);
         _poolsBaseURI = newPoolsURI;
     }
 

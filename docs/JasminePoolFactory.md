@@ -685,7 +685,7 @@ function updatePoolsBaseURI(string newPoolsURI) external nonpayable
 
 Allows pool managers to update the base URI of pools 
 
-*No validation is done on the new URI. Onus is on caller to ensure the new      URI is valid *
+*No validation is done on the new URI. Onus is on caller to ensure the new      URI is valid emits PoolsBaseURIChanged *
 
 #### Parameters
 
@@ -837,6 +837,23 @@ Emitted when a pool&#39;s beacon implementation updates
 | newPoolImplementation `indexed` | address | undefined |
 | beaconAddress `indexed` | address | undefined |
 | poolIndex `indexed` | uint256 | undefined |
+
+### PoolsBaseURIChanged
+
+```solidity
+event PoolsBaseURIChanged(string indexed newBaseURI, string indexed oldBaseURI)
+```
+
+Emitted whenever the pools&#39; base token URI is updated
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newBaseURI `indexed` | string | Pools&#39; updated base token URI |
+| oldBaseURI `indexed` | string | Pools&#39; previous base token URI |
 
 ### RoleAdminChanged
 
