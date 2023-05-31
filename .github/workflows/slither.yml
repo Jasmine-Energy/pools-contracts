@@ -13,6 +13,7 @@ jobs:
   analyze:
     runs-on: [self-hosted, factory]
     permissions:
+      actions: read
       contents: read
       security-events: write
     steps:
