@@ -1,5 +1,11 @@
 name: lint
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
   packages: read
