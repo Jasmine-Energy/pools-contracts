@@ -54,7 +54,8 @@ const hardhat: HardhatNetworkUserConfig = {
   accounts,
   forking: {
     url: forkNetwork.url!,
-    enabled: !disableForking
+    enabled: !disableForking,
+    blockNumber: process.env.FORK_NUMBER ? parseInt(process.env.FORK_NUMBER) : (forkNetworkName === "polygon" ? 43382100 : 36285100),
   },
   saveDeployments: true,
   autoImpersonate: true,
