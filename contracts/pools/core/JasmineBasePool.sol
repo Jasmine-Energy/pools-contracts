@@ -364,18 +364,6 @@ abstract contract JasmineBasePool is
         // 1. Ensure sender has sufficient JLTs and lengths match
         uint256 cost = JasmineBasePool.withdrawalCost(tokenIds, amounts);
 
-        if (balanceOf(sender) < cost)
-            revert ERC20Errors.ERC20InsufficientBalance(
-                sender,
-                balanceOf(sender),
-                cost
-            );
-        if (tokenIds.length != amounts.length)
-            revert ERC1155Errors.ERC1155InvalidArrayLength(
-                tokenIds.length,
-                amounts.length
-            );
-
         // 2. Burn Tokens
         _burn(sender, cost);
 
@@ -383,6 +371,15 @@ abstract contract JasmineBasePool is
         _transferDeposits(recipient, tokenIds, amounts, data);
     }
 
+    //  ─────────────────────────────  Burn Functions  ──────────────────────────────  \\
+
+    /// @dev Used to rebalance na pool deposit discrepancies between EAT deposits and JLTs issued
+    function rebalanceDeposits(uint256 amount) 
+        external
+        onlyAllowed(_msgSender(), amount)
+    {
+        _burn(_msgSender(), amount);
+    }   
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Jasmine Qualified Pool Implementations

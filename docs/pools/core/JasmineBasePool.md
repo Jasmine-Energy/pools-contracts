@@ -461,6 +461,22 @@ function poolFactory() external view returns (address)
 |---|---|---|
 | _0 | address | undefined |
 
+### rebalanceDeposits
+
+```solidity
+function rebalanceDeposits(uint256 amount) external nonpayable
+```
+
+
+
+*Used to rebalance na pool deposit discrepancies between EAT deposits and JLTs issued*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| amount | uint256 | undefined |
+
 ### retire
 
 ```solidity
@@ -913,24 +929,6 @@ error ERC1155InvalidArrayLength(uint256 idsLength, uint256 valuesLength)
 |---|---|---|
 | idsLength | uint256 | undefined |
 | valuesLength | uint256 | undefined |
-
-### ERC20InsufficientBalance
-
-```solidity
-error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| sender | address | undefined |
-| balance | uint256 | undefined |
-| needed | uint256 | undefined |
 
 ### InbalancedDeposits
 
