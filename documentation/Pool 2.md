@@ -1,1 +1,0 @@
-# Jasmine Reference Pool
