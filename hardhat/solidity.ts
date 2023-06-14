@@ -5,7 +5,7 @@ export const optimizerRuns = 100;
 export const solidity: SolidityUserConfig = {
   compilers: [
     {
-      version: "0.8.20",
+      version: "0.8.19",
       settings: {
         optimizer: {
           enabled: true,

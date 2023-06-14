@@ -61,7 +61,7 @@ const deployPoolImplementation: DeployFunction = async function (
         console.log('Verifyiyng on Etherscan...');
         try {
             await run('verify:verify', {
-                address: pool,
+                address: pool.address,
                 constructorArguments: constructorArgs,
             });
         } catch (err) {

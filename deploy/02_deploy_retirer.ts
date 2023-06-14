@@ -41,7 +41,7 @@ const deployRetirementService: DeployFunction = async function (
         log: hardhatArguments.verbose
     });
 
-    colouredLog.blue(`Deployed Pool impl to: ${retirer.address}`);
+    colouredLog.blue(`Deployed Retirement Service to: ${retirer.address}`);
 
     // 3. If on external network, verify contracts
     if (network.tags['public']) {
@@ -49,7 +49,7 @@ const deployRetirementService: DeployFunction = async function (
         console.log('Verifyiyng on Etherscan...');
         try {
             await run('verify:verify', {
-                address: retirer,
+                address: retirer.address,
                 constructorArguments: [
                     minter,
                     eat,

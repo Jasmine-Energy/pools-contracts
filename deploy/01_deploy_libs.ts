@@ -41,15 +41,15 @@ const deployDependencies: DeployFunction = async function (
         console.log('Verifyiyng on Etherscan...');
         try {
             await run('verify:verify', {
-                address: calldataLib,
+                address: calldataLib.address,
             });
 
             await run('verify:verify', {
-                address: policyLib,
+                address: policyLib.address,
             });
 
             await run('verify:verify', {
-                address: arrayUtilsLib,
+                address: arrayUtilsLib.address,
             });
         } catch (err) {
             colouredLog.red(`Verification failed. Error: ${err}`);
