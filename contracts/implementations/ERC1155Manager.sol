@@ -12,6 +12,7 @@ import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC
 import { RedBlackTree } from "../libraries/RedBlackTreeLibrary.sol";
 import { ArrayUtils } from "../libraries/ArrayUtils.sol";
 
+// TODO: Should probably place somewhere else
 error InvalidTokenAddress(address received, address expected);
 error InsufficientDeposits();
 error WithdrawsLocked();
