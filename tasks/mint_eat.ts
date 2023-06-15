@@ -46,6 +46,7 @@ task("mint", "Mints an EAT")
   )
   .addParam<string>("quantity", "Number of EATs to mint.", "5")
   .addOptionalParam("minter", "Address of minter contract")
+  .addOptionalParam("uuid", "Specifiy the uuid of the associated certificate")
   .setAction(
     async (
       taskArgs: TaskArguments,
@@ -108,7 +109,7 @@ task("mint", "Mints an EAT")
       const uuidPacked = ethers.utils
         .hexZeroPad(ethers.utils.hexValue(ethers.utils.randomBytes(16)), 16)
         .slice(2);
-      const uuid = [
+      const uuid = taskArgs.uuid ? taskArgs.uuid : [
         uuidPacked.slice(0, 8),
         uuidPacked.slice(8, 12),
         uuidPacked.slice(12, 16),
