@@ -18,8 +18,8 @@ library ArrayUtils {
      * @return total The sum of all elements
      */
     function sum(
-        uint256[] calldata inputs
-    ) external pure returns (uint256 total) {
+        uint256[] memory inputs
+    ) internal pure returns (uint256 total) {
         for (uint256 i = 0; i < inputs.length;) {
             total += inputs[i];
 
@@ -38,7 +38,7 @@ library ArrayUtils {
     function fill(
         address repeatedAddress,
         uint256 amount
-    ) external pure returns (address[] memory filledArray) {
+    ) internal pure returns (address[] memory filledArray) {
         filledArray = new address[](amount);
         for (uint256 i = 0; i < amount;) {
             filledArray[i] = repeatedAddress;
@@ -61,7 +61,7 @@ library ArrayUtils {
         uint256 _start,
         uint256 _length
     )
-        external pure
+        internal pure
         returns (bytes memory)
     {
         require(_length + 31 >= _length, "slice_overflow");

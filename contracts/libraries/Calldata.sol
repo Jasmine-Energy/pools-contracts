@@ -24,13 +24,13 @@ library Calldata {
     //  ─────────────────────────────  Operation Codes  ─────────────────────────────  \\
 
     /// @dev Calldata prefix for retirement operations associated with a single user
-    bytes1 public constant RETIREMENT_OP = 0x00;
+    bytes1 internal constant RETIREMENT_OP = 0x00;
 
     /// @dev Calldata prefix for fractional retirement operations
-    bytes1 public constant RETIREMENT_FRACTIONAL_OP = 0x01;
+    bytes1 internal constant RETIREMENT_FRACTIONAL_OP = 0x01;
 
     /// @dev Calldata prefix for bridge-off operations
-    bytes1 public constant BRIDGE_OFF_OP = 0x10;
+    bytes1 internal constant BRIDGE_OFF_OP = 0x10;
     
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -42,21 +42,21 @@ library Calldata {
 
     // QUESTION: Do we want to optionally include memo hash?
     function encodeRetirementData(address beneficiary, bool hasFractional)
-        external pure
+        internal pure
         returns (bytes memory retirementData)
     {
         return abi.encode(hasFractional ? RETIREMENT_FRACTIONAL_OP : RETIREMENT_OP, beneficiary);
     }
 
     function encodeFractionalRetirementData()
-        external pure
+        internal pure
         returns (bytes memory retirementData)
     {
         return abi.encode(RETIREMENT_FRACTIONAL_OP);
     }
 
     function encodeBridgeOffData(address recipient)
-        external pure
+        internal pure
         returns (bytes memory bridgeOffData)
     {
         return abi.encode(BRIDGE_OFF_OP, recipient);
@@ -66,7 +66,7 @@ library Calldata {
     //  ────────────────────────────────  Decoding  ────────────────────────────────  \\
 
     function isRetirementOperation(bytes memory data)
-        external pure
+        internal pure
         returns (bool isRetirement, bool hasFractional)
     {
         if (data.length == 0) revert JasmineErrors.InvalidInput();
@@ -78,7 +78,7 @@ library Calldata {
     }
 
     function isBridgeOffOperation(bytes memory data)
-        external pure
+        internal pure
         returns (bool isBridgeOff)
     {
         if (data.length == 0) revert JasmineErrors.InvalidInput();
