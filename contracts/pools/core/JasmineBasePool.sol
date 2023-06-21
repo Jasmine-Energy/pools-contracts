@@ -30,7 +30,6 @@ import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
 // Utility Libraries
 import { PoolPolicy } from "../../libraries/PoolPolicy.sol";
 import { Calldata } from "../../libraries/Calldata.sol";
-import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils } from "../../libraries/ArrayUtils.sol";
 import { 
@@ -65,7 +64,6 @@ abstract contract JasmineBasePool is
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
 
-    using EnumerableSet for EnumerableSet.UintSet;
     using ArrayUtils for uint256[];
 
 
@@ -141,9 +139,9 @@ abstract contract JasmineBasePool is
     /// @inheritdoc IRetireablePool
     function retire(
         address owner, 
-        address beneficiary, // TODO: If set, use in lieu of msg.sender
+        address beneficiary,
         uint256 amount, 
-        bytes calldata data // TODO: Concat to calldata
+        bytes calldata data
     )
         external virtual
     {
@@ -165,15 +163,14 @@ abstract contract JasmineBasePool is
         bytes calldata data
     )
         internal virtual
-        onlyAllowed(owner, amount)
         withdrawal enforceDeposits nonReentrant
     {
         // 1. Burn JLTs from owner
         uint256 cost = JasmineBasePool.retirementCost(amount);
-        _burn(owner, cost);
+        _spendJLT(owner, cost);
 
         // 2. Select quantity of EATs to retire
-        uint256 eatQuantity = totalDeposits() - Math.ceilDiv(totalSupply(), 10 ** decimals());
+        uint256 eatQuantity = totalDeposits - Math.ceilDiv(totalSupply(), 10 ** decimals());
         if (eatQuantity == 0) {
             emit Retirement(owner, beneficiary, amount);
             return;
@@ -304,7 +301,6 @@ abstract contract JasmineBasePool is
         bytes calldata data
     )
         public virtual
-        onlyAllowed(sender, _standardizeDecimal(amount))
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
@@ -330,7 +326,6 @@ abstract contract JasmineBasePool is
         bytes calldata data
     ) 
         external virtual
-        onlyAllowed(sender, _standardizeDecimal(amounts.sum()))
     {
         _withdraw(
             sender,
@@ -365,7 +360,7 @@ abstract contract JasmineBasePool is
         uint256 cost = JasmineBasePool.withdrawalCost(tokenIds, amounts);
 
         // 2. Burn Tokens
-        _burn(sender, cost);
+        _spendJLT(sender, cost);
 
         // 3. Transfer Select Tokens
         _transferDeposits(recipient, tokenIds, amounts, data);
@@ -376,8 +371,8 @@ abstract contract JasmineBasePool is
     /// @dev Used to rebalance na pool deposit discrepancies between EAT deposits and JLTs issued
     function rebalanceDeposits(uint256 amount) 
         external
-        onlyAllowed(_msgSender(), amount)
     {
+        if (amount == 0) revert JasmineErrors.InvalidInput();
         _burn(_msgSender(), amount);
     }   
 
@@ -521,7 +516,7 @@ abstract contract JasmineBasePool is
      * 
      * @param tokenIds ERC-1155 token IDs received
      */
-    function beforeDeposit(
+    function _beforeDeposit(
         address,
         uint256[] memory tokenIds,
         uint256[] memory
@@ -539,7 +534,7 @@ abstract contract JasmineBasePool is
      * 
      * Emits a {Withdraw} event.
      */
-    function afterDeposit(address from, uint256 quantity) internal override {
+    function _afterDeposit(address from, uint256 quantity) internal override {
         _mint(
             from,
             _standardizeDecimal(quantity)
@@ -579,6 +574,24 @@ abstract contract JasmineBasePool is
         return input * (10 ** decimals());
     }
 
+    /**
+     * @dev Private function for burning JLT and decreasing allowance
+     * 
+     * @dev Throws Prohibited() on failure or InvalidInput() if quantity is 0
+     */
+    function _spendJLT(address from, uint256 amount)
+        private
+    {
+        if (amount == 0) revert JasmineErrors.InvalidInput();
+        else if (from != _msgSender()) {
+            if (allowance(from, _msgSender()) < amount) revert JasmineErrors.Prohibited();
+
+            _approve(from, _msgSender(), allowance(from, _msgSender()) - amount);
+        }
+
+        _burn(from, amount);
+    }
+
     //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
 
     /**
@@ -586,7 +599,7 @@ abstract contract JasmineBasePool is
      */
     modifier enforceDeposits() {
         _;
-        if (_standardizeDecimal(totalDeposits()) < totalSupply()) revert JasmineErrors.InbalancedDeposits();
+        if (_standardizeDecimal(totalDeposits) < totalSupply()) revert JasmineErrors.InbalancedDeposits();
     }
 
     /**
@@ -632,43 +645,12 @@ abstract contract JasmineBasePool is
     }
 
     /**
-     * @dev Enforce msg sender is EAT contract
-     * 
-     * @dev Throws Prohibited() on failure
-     */
-    modifier onlyEAT {
-        if (_msgSender() != address(eat)) revert JasmineErrors.Prohibited();
-        _;
-    }
-
-    /**
-     * @dev Enforce msg sender is Pool Factory contract
-     * 
-     * @dev Throws Prohibited() on failure
-     */
-    modifier onlyFactory() {
-        if (_msgSender() != poolFactory) revert JasmineErrors.Prohibited();
-        _;
-    }
-
-    /**
      * @dev Enforce caller is approved for holder's EATs - or caller is holder
      * 
      * @dev Throws Prohibited() on failure
      */
     modifier onlyEATApproved(address holder) {
         if (!eat.isApprovedForAll(holder, _msgSender())) revert JasmineErrors.Prohibited();
-        _;
-    }
-
-     /**
-     * @dev Extend onlyOperator to include addresses approved for an amount of JLTs
-     * 
-     * @dev Throws Prohibited() on failure or InvalidInput() if quantity is 0
-     */
-    modifier onlyAllowed(address holder, uint256 quantity) {
-        if (quantity == 0) revert JasmineErrors.InvalidInput();
-        if (holder != _msgSender() && allowance(holder, _msgSender()) < quantity) revert JasmineErrors.Prohibited();
         _;
     }
 }

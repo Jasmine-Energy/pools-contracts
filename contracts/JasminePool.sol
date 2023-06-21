@@ -90,7 +90,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         string calldata symbol_
     )
         external
-        initializer onlyInitializing onlyFactory
+        initializer
     {
         _policy = abi.decode(policy_, (PoolPolicy.DepositPolicy));
 

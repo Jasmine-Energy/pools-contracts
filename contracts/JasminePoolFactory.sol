@@ -15,7 +15,6 @@ import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol"
 
 // External Contracts
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
-import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 

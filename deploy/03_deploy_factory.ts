@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { Contracts, Libraries, colouredLog } from '@/utils';
+import { Contracts, colouredLog } from '@/utils';
 import { JasminePoolFactory } from '@/typechain';
 import { AnyField } from '@/utils/constants';
 
@@ -21,7 +21,6 @@ const deployFactory: DeployFunction = async function (
     }
 
     const pool = await deployments.get(Contracts.pool);
-    const policy = await deployments.get(Libraries.poolPolicy);
 
     const constructorArgs = [
         owner,
@@ -36,9 +35,6 @@ const deployFactory: DeployFunction = async function (
     const factory = await deploy(Contracts.factory, {
         from: deployer,
         args: constructorArgs,
-        libraries: {
-            PoolPolicy: policy.address
-        },
         log: hardhatArguments.verbose
     });
 

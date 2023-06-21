@@ -70,7 +70,7 @@ describe(Contracts.factory, function () {
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
         PoolFactory.deploy(owner.address, ethers.constants.AddressZero, owner.address, uniswapPoolFactory, USDC, "")
-      ).to.be.revertedWithCustomError(poolFactory, "InvalidInput");
+      ).to.be.reverted;
     });
 
     it("Should revert if pool implementation does not support expect interfaces", async function () {

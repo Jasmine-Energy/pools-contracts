@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { Contracts, Libraries, colouredLog } from '@/utils';
+import { Contracts, colouredLog } from '@/utils';
 
 const deployRetirementService: DeployFunction = async function (
     { deployments, network, run, hardhatArguments, getNamedAccounts }: HardhatRuntimeEnvironment
@@ -12,8 +12,6 @@ const deployRetirementService: DeployFunction = async function (
     const { deployer } = namedAccounts;
 
     // 1. Get deployements
-    const calldata = await get(Libraries.calldata);
-    const arrayUtils = await get(Libraries.arrayUtils);
     let eat: string;
     let minter: string;
     let oracle: string;
@@ -34,10 +32,6 @@ const deployRetirementService: DeployFunction = async function (
             minter,
             eat,
         ],
-        libraries: {
-            Calldata: calldata.address,
-            ArrayUtils: arrayUtils.address,
-        },
         log: hardhatArguments.verbose
     });
 

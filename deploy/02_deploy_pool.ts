@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { Contracts, Libraries, colouredLog } from '@/utils';
+import { Contracts, colouredLog } from '@/utils';
 
 const deployPoolImplementation: DeployFunction = async function (
     { ethers, deployments, network, run, hardhatArguments, getNamedAccounts }: HardhatRuntimeEnvironment
@@ -19,10 +19,6 @@ const deployPoolImplementation: DeployFunction = async function (
     });
 
     const retirer = await get(Contracts.retirementService);
-    const policy = await get(Libraries.poolPolicy);
-    const arrayUtils = await get(Libraries.arrayUtils);
-    const redBlackTree = await get(Libraries.redBlackTree);
-    const calldata = await get(Libraries.calldata);
     let eat: string;
     let oracle: string;
     try {
@@ -44,13 +40,7 @@ const deployPoolImplementation: DeployFunction = async function (
     const pool = await deploy(Contracts.pool, {
         from: deployer,
         args: constructorArgs,
-        libraries: {
-            PoolPolicy: policy.address,
-            ArrayUtils: arrayUtils.address,
-            Calldata: calldata.address,
-            RedBlackTree: redBlackTree.address
-        },
-        log: hardhatArguments.verbose
+        log: hardhatArguments.verbose,
     });
 
     colouredLog.blue(`Deployed Pool impl to: ${pool.address}`);

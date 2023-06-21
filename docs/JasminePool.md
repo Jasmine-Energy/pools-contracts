@@ -1124,7 +1124,7 @@ error InvalidTokenAddress(address received, address expected)
 
 
 
-
+*Emitted if tokens (ERC-1155) are received from incorrect contract*
 
 #### Parameters
 
@@ -1227,7 +1227,7 @@ error WithdrawsLocked()
 
 
 
-
+*Emitted if withdraws are locked*
 
 
 

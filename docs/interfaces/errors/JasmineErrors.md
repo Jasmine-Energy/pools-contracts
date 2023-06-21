@@ -61,6 +61,23 @@ error InvalidInput()
 *Emitted if input is invalid*
 
 
+### InvalidTokenAddress
+
+```solidity
+error InvalidTokenAddress(address received, address expected)
+```
+
+
+
+*Emitted if tokens (ERC-1155) are received from incorrect contract*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| received | address | undefined |
+| expected | address | undefined |
+
 ### NoPool
 
 ```solidity
@@ -156,6 +173,17 @@ error ValidationFailed()
 
 
 *Emitted if internal validation failed*
+
+
+### WithdrawsLocked
+
+```solidity
+error WithdrawsLocked()
+```
+
+
+
+*Emitted if withdraws are locked*
 
 
 
