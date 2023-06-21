@@ -486,7 +486,7 @@ function rebalanceDeposits(uint256 amount) external nonpayable
 
 
 
-*Used to rebalance na pool deposit discrepancies between EAT deposits and JLTs issued*
+*Used to rebalance a pool&#39;s deposit discrepancies between EAT deposits and JLTs issued*
 
 #### Parameters
 
