@@ -18,6 +18,8 @@ import "hardhat-interact";
 import "solidity-coverage"
 import "@typechain/hardhat";
 
+dotenv.config();
+
 import "tsconfig-paths/register";
 
 import { 
@@ -28,8 +30,6 @@ import {
 } from "./hardhat";
 
 import "./tasks";
-
-dotenv.config();
 
 
 const config: HardhatUserConfig = {

@@ -559,7 +559,7 @@ abstract contract JasmineBasePool is
      * @return isLegit Boolean if token passed legitimacy check
      */
     function _isLegitimateToken(uint256 tokenId)
-        internal view
+        private view
         returns (bool isLegit)
     {
         return eat.exists(tokenId) && !eat.frozen(tokenId);

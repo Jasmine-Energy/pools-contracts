@@ -408,7 +408,7 @@ function oracle() external view returns (contract JasmineOracle)
 
 
 
-
+*Jasmine Oracle contract*
 
 
 #### Returns
@@ -1191,6 +1191,22 @@ error Unqualified(uint256 tokenId)
 | Name | Type | Description |
 |---|---|---|
 | tokenId | uint256 | undefined |
+
+### UnsupportedMetadataVersion
+
+```solidity
+error UnsupportedMetadataVersion(uint8 metadataVersion)
+```
+
+
+
+*Emitted if contract does not support metadata version*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| metadataVersion | uint8 | undefined |
 
 ### ValidationFailed
 

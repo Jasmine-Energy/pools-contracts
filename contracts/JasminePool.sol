@@ -22,7 +22,6 @@ import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
 
 // Utility Libraries
 import { PoolPolicy }    from "./libraries/PoolPolicy.sol";
-import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 
@@ -40,7 +39,6 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     // ──────────────────────────────────────────────────────────────────────────────
 
     using PoolPolicy for PoolPolicy.DepositPolicy;
-    using EnumerableSet for EnumerableSet.UintSet;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -49,6 +47,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     /// @dev Policy to deposit into pool
     PoolPolicy.DepositPolicy internal _policy;
 
+    /// @dev Jasmine Oracle contract
     JasmineOracle public immutable oracle;
 
 
@@ -69,7 +68,8 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     )
         JasmineFeePool(_eat, _poolFactory, _minter)
     {
-        require(_oracle != address(0x0), "JasminePool: Oracle must be set");
+        // NOTE: EAT, Pool Factory and Minting contracts are validated in JasmineBasePool
+        if ( _oracle == address(0x0)) revert JasmineErrors.InvalidInput();
 
         oracle = JasmineOracle(_oracle);
     }
@@ -120,8 +120,8 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         external view override
         returns (bytes memory policy)
     {
-        // TODO: Use custom error
-        require(metadataVersion == 1, "JasminePool: No policy for version");
+        if (metadataVersion != 1) revert JasmineErrors.UnsupportedMetadataVersion(metadataVersion);
+
         return abi.encode(
             _policy.vintagePeriod,
             _policy.techType,

@@ -223,10 +223,12 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     )
         private
     {
+        _totalDeposits += value;
+
         uint40 vintage = getVintageFromTokenId(tokenId);
+        if (tree.exists(vintage)) return;
         tree.insert(vintage);
         _tokenIds[vintage] = tokenId;
-        _totalDeposits += value;
     }
 
     function _addDeposits(
@@ -237,11 +239,16 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         returns (uint256 quantity)
     {
         for (uint256 i = 0; i < tokenIds.length;) {
+            quantity += values[i];
+
             uint40 vintage = getVintageFromTokenId(tokenIds[i]);
+            if (tree.exists(vintage)) {
+                unchecked { i++; }
+                continue;
+            }
             tree.insert(vintage);
             _tokenIds[vintage] = tokenIds[i];
 
-            quantity += values[i];
             unchecked { i++; }
         }
         _totalDeposits += quantity;
