@@ -69,16 +69,21 @@ export async function deployCoreFixture() {
 
 
 export async function deployRetirementService() {
-  const { deployer } = await getNamedAccounts();
+  const { deployer, owner } = await getNamedAccounts();
   const deployerSigner = await ethers.getSigner(deployer);
   const { eat, minter } = await loadFixture(deployCoreFixture);
 
   const RetirementService = await ethers.getContractFactory(Contracts.retirementService, {
     signer: deployerSigner,
   });
-  const retirementService = await RetirementService.deploy(
-    minter.address,
-    eat.address,
+  const retirementService = await upgrades.deployProxy(
+    RetirementService,
+    [owner],
+    {
+      unsafeAllow: ["constructor", "state-variable-immutable"],
+      constructorArgs: [minter.address, eat.address],
+      kind: "uups",
+    }
   );
   return retirementService as JasmineRetirementService;
 }

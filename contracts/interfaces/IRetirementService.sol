@@ -3,8 +3,7 @@
 pragma solidity >=0.8.0;
 
 
-import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
-
+import { IERC1155ReceiverUpgradeable as IERC1155Receiver } from "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155ReceiverUpgradeable.sol";
 
 /**
  * @title Retirement Service Interface
