@@ -45,6 +45,12 @@ interface JasmineErrors {
     /// @dev Emitted if operation would cause inbalance in pool's EAT deposits
     error InbalancedDeposits();
 
+    /// @dev Emitted if tokens (ERC-1155) are received from incorrect contract
+    error InvalidTokenAddress(address received, address expected);
+
+    /// @dev Emitted if withdraws are locked
+    error WithdrawsLocked();
+
     //  ───────────────────────────  Pool Factory Errors  ───────────────────────────  \\
 
     /// @dev Emitted if no pool(s) meet query

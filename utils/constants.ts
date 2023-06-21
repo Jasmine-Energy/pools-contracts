@@ -31,17 +31,10 @@ const Contracts = {
     },
 };
 
-const Libraries = {
-    poolPolicy: 'PoolPolicy',
-    calldata: 'Calldata',
-    arrayUtils: 'ArrayUtils',
-    redBlackTree: 'RedBlackTree',
-};
-
 export {
     AnyField,
     DEFAULT_ADMIN_ROLE, POOL_MANAGER_ROLE, FEE_MANAGER_ROLE,
     DEFAULT_DECIMAL, DEFAULT_DECIMAL_MULTIPLE,
     DepositPolicy,
-    Contracts, Libraries
+    Contracts
 };

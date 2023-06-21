@@ -23,7 +23,7 @@ library PoolPolicy {
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /// @dev Use this value in DepositPolicy to set no constraints for attribute
-    uint32 public constant ANY_VALUE = type(uint32).max;
+    uint32 internal constant ANY_VALUE = type(uint32).max;
 
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ library PoolPolicy {
     //  ────────────────────────────  Policy Utilities  ─────────────────────────────  \\
 
 
-    function meetsPolicy(DepositPolicy storage policy, JasmineOracle oracle, uint256 tokenId) external view returns (bool isEligible) {
+    function meetsPolicy(DepositPolicy storage policy, JasmineOracle oracle, uint256 tokenId) internal view returns (bool isEligible) {
         // 1. If policy's vintage is not empty, check token has vintage
         if (policy.vintagePeriod[0] != ANY_VALUE &&
             policy.vintagePeriod[1] != ANY_VALUE &&

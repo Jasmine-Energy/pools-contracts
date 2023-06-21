@@ -7,7 +7,7 @@ import { deployPoolImplementation } from "./shared/fixtures";
 
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
-import { DEFAULT_ADMIN_ROLE, FEE_MANAGER_ROLE } from "@/utils/constants";
+
 
 describe(Contracts.uniswap.pool, function () {
   let owner: SignerWithAddress;

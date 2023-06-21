@@ -11,12 +11,7 @@ import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import { RedBlackTree } from "../libraries/RedBlackTreeLibrary.sol";
 import { ArrayUtils } from "../libraries/ArrayUtils.sol";
-
-// TODO: Should probably place somewhere else
-error InvalidTokenAddress(address received, address expected);
-error InsufficientDeposits();
-error WithdrawsLocked();
-
+import { JasmineErrors } from "../interfaces/errors/JasmineErrors.sol";
 
 /**
  * @title ERC-1155 Manager
@@ -39,7 +34,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
 
     address private immutable _tokenAddress;
 
-    uint256 private _totalDeposits;
+    uint256 public totalDeposits;
     RedBlackTree.Tree private tree;
 
     /// @dev Maps vintage to token ID
@@ -65,19 +60,11 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
-    //  Getters
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    function totalDeposits() public view returns (uint256) {
-        return _totalDeposits;
-    }
-
-    //  ─────────────────────────────────────────────────────────────────────────────
     //  Hooks
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function beforeDeposit(address from, uint256[] memory tokenIds, uint256[] memory values) internal virtual;
-    function afterDeposit(address from, uint256 quantity) internal virtual;
+    function _beforeDeposit(address from, uint256[] memory tokenIds, uint256[] memory values) internal virtual;
+    function _afterDeposit(address from, uint256 quantity) internal virtual;
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  ERC-1155 Deposit Functions
@@ -90,16 +77,18 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint256 value,
         bytes memory
     )
-        public virtual
-        onlyToken
+        public virtual override
         returns (bytes4)
     {
+        _enforceTokenAddress(msg.sender);
+
         (uint256[] memory tokenIds, uint256[] memory values) = (new uint256[](1), new uint256[](1));
         tokenIds[0] = tokenId;
         values[0] = value;
-        beforeDeposit(from, tokenIds, values);
+        _beforeDeposit(from, tokenIds, values);
         _addDeposit(tokenId, value);
-        afterDeposit(from, value);
+        _afterDeposit(from, value);
+
         return this.onERC1155Received.selector;
     }
 
@@ -110,13 +99,15 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint256[] memory values,
         bytes memory
     )
-        public virtual
-        onlyToken
+        public virtual override
         returns (bytes4)
     {
-        beforeDeposit(from, tokenIds, values);
+        _enforceTokenAddress(msg.sender);
+
+        _beforeDeposit(from, tokenIds, values);
         uint256 quantityDepositted = _addDeposits(tokenIds, values);
-        afterDeposit(from, quantityDepositted);
+        _afterDeposit(from, quantityDepositted);
+
         return this.onERC1155BatchReceived.selector;
     }
 
@@ -134,6 +125,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         withdrawsUnlocked
     {
         if (tokenIds.length == 1) {
+            _removeDeposit(tokenIds[0], values[0]);
             IERC1155(_tokenAddress).safeTransferFrom(
                 address(this),
                 recipient,
@@ -141,8 +133,8 @@ abstract contract ERC1155Manager is ERC1155Receiver {
                 values[0],
                 data
             );
-            _removeDeposit(tokenIds[0], values[0]);
         } else {
+            _removeDeposits(tokenIds, values);
             IERC1155(_tokenAddress).safeBatchTransferFrom(
                 address(this),
                 recipient,
@@ -150,7 +142,6 @@ abstract contract ERC1155Manager is ERC1155Receiver {
                 values,
                 data
             );
-            _removeDeposits(tokenIds, values);
         }
     }
 
@@ -223,10 +214,12 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     )
         private
     {
-        uint40 vintage = getVintageFromTokenId(tokenId);
+        totalDeposits += value;
+
+        uint40 vintage = _getVintageFromTokenId(tokenId);
+        if (tree.exists(vintage)) return;
         tree.insert(vintage);
         _tokenIds[vintage] = tokenId;
-        _totalDeposits += value;
     }
 
     function _addDeposits(
@@ -237,14 +230,19 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         returns (uint256 quantity)
     {
         for (uint256 i = 0; i < tokenIds.length;) {
-            uint40 vintage = getVintageFromTokenId(tokenIds[i]);
+            quantity += values[i];
+
+            uint40 vintage = _getVintageFromTokenId(tokenIds[i]);
+            if (tree.exists(vintage)) {
+                unchecked { i++; }
+                continue;
+            }
             tree.insert(vintage);
             _tokenIds[vintage] = tokenIds[i];
 
-            quantity += values[i];
             unchecked { i++; }
         }
-        _totalDeposits += quantity;
+        totalDeposits += quantity;
     }
 
     //  ────────────────────────────  Removing Deposits  ────────────────────────────  \\
@@ -257,11 +255,11 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     {
         uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenId);
         if (balance == 0) {
-            uint40 vintage = getVintageFromTokenId(tokenId);
+            uint40 vintage = _getVintageFromTokenId(tokenId);
             tree.remove(vintage);
             delete _tokenIds[vintage];
         }
-        _totalDeposits -= value;
+        totalDeposits -= value;
     }
 
     function _removeDeposits(
@@ -276,27 +274,27 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         for (uint256 i = 0; i < tokenIds.length;) {
             total += values[i];
             if (balances[i] == 0) {
-                uint40 vintage = getVintageFromTokenId(tokenIds[i]);
+                uint40 vintage = _getVintageFromTokenId(tokenIds[i]);
                 tree.remove(vintage);
                 delete _tokenIds[vintage];
             }
 
             unchecked { i++; }
         }
-        _totalDeposits -= total;
+        totalDeposits -= total;
     }
 
-    function getVintageFromTokenId(uint256 tokenId) internal pure returns (uint40) {
+    function _getVintageFromTokenId(uint256 tokenId) private pure returns (uint40) {
         return uint40(tokenId >> 216);
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
-    //  Modifiers
+    //  Modifiers and State Enforcement Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
 
     function _enforceUnlock() private view {
-        if (_isUnlocked != WITHDRAWS_UNLOCKED) revert WithdrawsLocked();
+        if (_isUnlocked != WITHDRAWS_UNLOCKED) revert JasmineErrors.WithdrawsLocked();
     }
 
     modifier withdrawal() {
@@ -310,8 +308,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         _;
     }
 
-    modifier onlyToken() {
-        if (msg.sender != _tokenAddress) revert InvalidTokenAddress(msg.sender, _tokenAddress);
-        _;
+    function _enforceTokenAddress(address tokenAddress) private view {
+        if (_tokenAddress != tokenAddress) revert JasmineErrors.InvalidTokenAddress(tokenAddress, _tokenAddress);
     }
 }

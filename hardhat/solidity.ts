@@ -1,6 +1,6 @@
 import { SolidityUserConfig } from "hardhat/types";
 
-export const optimizerRuns = 100;
+export const optimizerRuns = 200;
 
 export const solidity: SolidityUserConfig = {
   compilers: [

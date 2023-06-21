@@ -408,7 +408,7 @@ function oracle() external view returns (contract JasmineOracle)
 
 
 
-
+*Jasmine Oracle contract*
 
 
 #### Returns
@@ -1124,7 +1124,7 @@ error InvalidTokenAddress(address received, address expected)
 
 
 
-
+*Emitted if tokens (ERC-1155) are received from incorrect contract*
 
 #### Parameters
 
@@ -1192,6 +1192,22 @@ error Unqualified(uint256 tokenId)
 |---|---|---|
 | tokenId | uint256 | undefined |
 
+### UnsupportedMetadataVersion
+
+```solidity
+error UnsupportedMetadataVersion(uint8 metadataVersion)
+```
+
+
+
+*Emitted if contract does not support metadata version*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| metadataVersion | uint8 | undefined |
+
 ### ValidationFailed
 
 ```solidity
@@ -1211,7 +1227,7 @@ error WithdrawsLocked()
 
 
 
-
+*Emitted if withdraws are locked*
 
 
 

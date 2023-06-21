@@ -15,7 +15,6 @@ import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol"
 
 // External Contracts
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
-import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
 import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
@@ -732,10 +731,8 @@ contract JasminePoolFactory is
      * @param poolImplementation Address of pool implementation
      */
     function _validatePoolImplementation(address poolImplementation)
-        internal view 
+        private view 
     {
-        if (poolImplementation == address(0x0)) revert JasmineErrors.InvalidInput();
-
         if (!IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId))
             revert JasmineErrors.InvalidConformance(type(IJasminePool).interfaceId);
         
@@ -757,7 +754,7 @@ contract JasminePoolFactory is
      * @param poolImplementationVersion Index of pool implementation to check
      */
     function _validatePoolVersion(uint256 poolImplementationVersion)
-        internal view
+        private view
     {
         if (poolImplementationVersion >= _poolBeacons.length() || 
             _deprecatedPoolImplementations[poolImplementationVersion]) revert JasmineErrors.ValidationFailed();
@@ -769,7 +766,7 @@ contract JasminePoolFactory is
      * @param newFeeBeneficiary Address to validate
      */
     function _validateFeeReceiver(address newFeeBeneficiary)
-        internal pure
+        private pure
     {
         if (newFeeBeneficiary == address(0x0)) revert JasmineErrors.InvalidInput();
     }

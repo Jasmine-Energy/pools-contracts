@@ -23,10 +23,7 @@ import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
 // Utility Libraries
 import { Math }       from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils } from "../../libraries/ArrayUtils.sol";
-import { 
-    ERC20Errors,
-    ERC1155Errors
-} from "../../interfaces/ERC/IERC6093.sol";
+import { ERC1155Errors } from "../../interfaces/ERC/IERC6093.sol";
 import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
 
 
@@ -300,7 +297,6 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         bytes calldata data
     ) 
         external virtual override(IEATBackedPool, JasmineBasePool)
-        onlyAllowed(sender, _standardizeDecimal(amounts.sum()))
     {
         // 1. If fee is not 0, calculate and take fee from caller
         uint256 feeAmount = JasmineFeePool.withdrawalCost(tokenIds, amounts) - super.withdrawalCost(tokenIds, amounts);

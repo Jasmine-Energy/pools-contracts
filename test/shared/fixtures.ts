@@ -1,12 +1,10 @@
 import { ethers, upgrades, getNamedAccounts } from "hardhat";
-import { Contracts, Libraries } from "@/utils";
+import { Contracts } from "@/utils";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import {
   createAnyTechAnnualPolicy,
   createSolarPolicy,
   createWindPolicy,
-  makeMintFunction,
-  mintFunctionType,
 } from "./utilities";
 import {
   JasminePool, JasmineRetirementService,
@@ -69,35 +67,13 @@ export async function deployCoreFixture() {
   return { eat, oracle, minter };
 }
 
-export async function deployLibrariesFixture() {
-  const { deployer } = await getNamedAccounts();
-  const deployerSigner = await ethers.getSigner(deployer);
-  const PolicyLib = await ethers.getContractFactory(Libraries.poolPolicy, deployerSigner);
-  const CalldataLib = await ethers.getContractFactory(Libraries.calldata, deployerSigner);
-  const ArrayUtilsLib = await ethers.getContractFactory(Libraries.arrayUtils, deployerSigner);
-  const policyLib = await PolicyLib.deploy();
-  const calldataLib = await CalldataLib.deploy();
-  const arrayUtilsLib = await ArrayUtilsLib.deploy();
-  return {
-    policyLibAddress: policyLib.address,
-    calldataLibAddress: calldataLib.address,
-    arrayUtilsLibAddress: arrayUtilsLib.address,
-  };
-}
 
 export async function deployRetirementService() {
   const { deployer } = await getNamedAccounts();
   const deployerSigner = await ethers.getSigner(deployer);
   const { eat, minter } = await loadFixture(deployCoreFixture);
-  const { calldataLibAddress, arrayUtilsLibAddress } = await loadFixture(
-    deployLibrariesFixture
-  );
 
   const RetirementService = await ethers.getContractFactory(Contracts.retirementService, {
-    libraries: {
-      Calldata: calldataLibAddress,
-      ArrayUtils: arrayUtilsLibAddress,
-    },
     signer: deployerSigner,
   });
   const retirementService = await RetirementService.deploy(
@@ -109,9 +85,6 @@ export async function deployRetirementService() {
 
 export async function deployPoolImplementation() {
   const { eat, oracle } = await loadFixture(deployCoreFixture);
-  const { policyLibAddress, arrayUtilsLibAddress, calldataLibAddress } = await loadFixture(
-    deployLibrariesFixture
-  );
   const retirementService = await loadFixture(deployRetirementService);
   const { deployer } = await getNamedAccounts();
   const deployerSigner = await ethers.getSigner(deployer);
@@ -123,11 +96,6 @@ export async function deployPoolImplementation() {
   });
 
   const Pool = await ethers.getContractFactory(Contracts.pool, {
-    libraries: {
-      PoolPolicy: policyLibAddress,
-      ArrayUtils: arrayUtilsLibAddress,
-      Calldata: calldataLibAddress,
-    },
     signer: deployerSigner,
   });
   const poolImplementation = await Pool.deploy(
@@ -163,15 +131,7 @@ export async function deployPoolsFixture() {
   const { owner } = await getNamedAccounts();
   const ownerSigner = await ethers.getSigner(owner);
 
-  const { policyLibAddress, arrayUtilsLibAddress, calldataLibAddress } = await loadFixture(
-    deployLibrariesFixture
-  );
   const Pool = await ethers.getContractFactory(Contracts.pool, {
-    libraries: {
-      PoolPolicy: policyLibAddress,
-      ArrayUtils: arrayUtilsLibAddress,
-      Calldata: calldataLibAddress,
-    },
     signer: ownerSigner,
   });
   const poolFactory = await loadFixture(deployPoolFactory);

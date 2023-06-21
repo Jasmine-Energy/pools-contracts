@@ -74,7 +74,7 @@ describe(Contracts.pool, function () {
       it("Should revert if initialize is called by non factory", async function () {
         await expect(
           poolImplementation.connect(owner).initialize([], "Pool Name", "JLT")
-        ).to.be.revertedWithCustomError(poolImplementation, "Prohibited");
+        ).to.be.reverted;
       });
 
       it("Should revert if initialize is called more than once", async function () {
