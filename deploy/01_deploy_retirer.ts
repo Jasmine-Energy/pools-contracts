@@ -48,7 +48,6 @@ const deployRetirementService: DeployFunction = async function (
 
     // 3. If on external network, verify contracts
     if (network.tags['public']) {
-        // TODO: Verify on sourcify as well. Run "sourcify" command
         console.log('Verifyiyng on Etherscan...');
         try {
             await run('verify:verify', {

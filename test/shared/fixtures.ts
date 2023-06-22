@@ -145,21 +145,24 @@ export async function deployPoolsFixture() {
   await poolFactory.deployNewBasePool(
     createSolarPolicy(),
     "Solar Tech",
-    "sJLT"
+    "sJLT",
+    177159557114295710296101716160n
   );
   const solarPoolAddress = await poolFactory.getPoolAtIndex(0);
 
   await poolFactory.deployNewBasePool(
     createWindPolicy(),
     "Wind Tech",
-    "wJLT"
+    "wJLT",
+    177159557114295710296101716160n
   );
   const windPoolAddress = await poolFactory.getPoolAtIndex(1);
 
   await poolFactory.deployNewBasePool(
     createAnyTechAnnualPolicy(),
     "Any Tech '23",
-    "a23JLT"
+    "a23JLT",
+    177159557114295710296101716160n
   );
   const anyTechPoolAddress = await poolFactory.getPoolAtIndex(2);
 

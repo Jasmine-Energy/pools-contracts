@@ -210,7 +210,8 @@ describe(Contracts.factory, function () {
         await factoryFromManager.deployNewBasePool(
           newPolicy,
           "Solar Tech '23",
-          "a23JLT"
+          "a23JLT",
+          177159557114295710296101716160n
         )
       )
         .to.be.ok.and.to.emit(poolFactory, "PoolCreated")
@@ -230,7 +231,7 @@ describe(Contracts.factory, function () {
         Object.values(newPolicy)
       );
       expect(
-        await factoryFromManager.deployNewPool(0, "0xc117db0b", initData, "Any Tech '23", "a23JLT")
+        await factoryFromManager.deployNewPool(0, "0xc117db0b", initData, "Any Tech '23", "a23JLT", 177159557114295710296101716160n)
       ).to.be.ok.and.to.emit(poolFactory, "PoolCreated")
         .withArgs(newPolicy, anyValue, "Any Tech '23", "a23JLT")
         .and.to.emit(poolFactory, "Initialized")
@@ -251,7 +252,8 @@ describe(Contracts.factory, function () {
         await poolFactory.deployNewBasePool(
           newPolicy,
           "Wind Tech '23",
-          "w23JLT"
+          "w23JLT",
+          177159557114295710296101716160n
         )
       ).to.be.ok;
       expect(await poolFactory.getPoolAtIndex(
@@ -263,7 +265,7 @@ describe(Contracts.factory, function () {
       await factoryFromManager.removePoolImplementation(0);
 
       await expect(
-        factoryFromManager.deployNewBasePool(createSolarPolicy(), "Solar Tech '23", "a23JLT")
+        factoryFromManager.deployNewBasePool(createSolarPolicy(), "Solar Tech '23", "a23JLT", 177159557114295710296101716160n)
       ).to.be.revertedWithCustomError(poolFactory, "ValidationFailed");
 
       await factoryFromManager.readdPoolImplementation(0);
