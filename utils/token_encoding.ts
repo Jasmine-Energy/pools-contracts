@@ -89,13 +89,13 @@ const encodeOracleData = (
     const registryNumber = BigInt(CertificateRegistryArr.indexOf(registry)) & BigInt(2 ** 32 - 1);
     const vintageNumber = BigInt(Math.ceil(vintage.getTime() / 1_000)) & BigInt(2 ** 40 - 1);
     const fuelTypeNumber = BigInt(FuelTypesArray.indexOf(fuelType)) & BigInt(2 ** 32 - 1);
-    const certificationNumber = BigInt(CertificateArr.indexOf(certificateType)) & BigInt(2 ** 32 - 1);
+    const certificateTypeNumber = BigInt(CertificateArr.indexOf(certificateType)) & BigInt(2 ** 32 - 1);
     const endorsementNumber = BigInt(CertificateEndorsementArr.indexOf(endorsement)) & BigInt(2 ** 32 - 1);
 
     const coder = new ethers.utils.AbiCoder();
     return coder.encode(
       ['uint8', 'uint128', 'uint32', 'uint40', 'uint32', 'uint32', 'uint32'],
-      [versionNumber, uuid, registryNumber, vintageNumber, fuelTypeNumber, certificationNumber, endorsementNumber]
+      [versionNumber, uuid, registryNumber, vintageNumber, fuelTypeNumber, certificateTypeNumber, endorsementNumber]
     );
 };
 

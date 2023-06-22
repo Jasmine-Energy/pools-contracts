@@ -15,7 +15,7 @@ import {
 import { JasmineMinter } from '@/typechain';
 import { AnyField } from '@/utils/constants';
 
-export type mintFunctionType = ((recipient: string, amount?: number, fuel?: FuelType, registry?: CertificateRegistry, vintage?: number, endorsement?: CertificateEndorsement, certification?: EnergyCertificateType) => Promise<{ id: bigint; amount: bigint; }>) | ((arg0: string, arg1: number, arg2: FuelType) => { id: bigint; amount: bigint; } | PromiseLike<{ id: bigint; amount: bigint; }>);
+export type mintFunctionType = ((recipient: string, amount?: number, fuel?: FuelType, registry?: CertificateRegistry, vintage?: number, endorsement?: CertificateEndorsement, certificateType?: EnergyCertificateType) => Promise<{ id: bigint; amount: bigint; }>) | ((arg0: string, arg1: number, arg2: FuelType) => { id: bigint; amount: bigint; } | PromiseLike<{ id: bigint; amount: bigint; }>);
 
 export function makeMintFunction(minter: JasmineMinter): mintFunctionType {
     return async function mintEat(
@@ -25,7 +25,7 @@ export function makeMintFunction(minter: JasmineMinter): mintFunctionType {
         registry: CertificateRegistry = CertificateRegistry.NAR,
         vintage: number = new Date().valueOf(),
         endorsement: CertificateEndorsement = CertificateEndorsement.GREEN_E,
-        certification: EnergyCertificateType = EnergyCertificateType.REC
+        certificateType: EnergyCertificateType = EnergyCertificateType.REC
     ) {
         // 1. Load required accounts, contracts and info
         const { bridge } = await getNamedAccounts();
@@ -79,7 +79,7 @@ export function makeMintFunction(minter: JasmineMinter): mintFunctionType {
             registry,
             new Date(vintage),
             fuel,
-            certification,
+            certificateType,
             endorsement
         );
     
@@ -116,7 +116,7 @@ export function createSolarPolicy() {
         vintagePeriod: [AnyField, AnyField] as [number, number],
         techType: BigInt(FuelTypesArray.indexOf(FuelType.SOLAR)) & BigInt(2 ** 32 - 1),
         registry: AnyField,
-        certification: AnyField,
+        certificateType: AnyField,
         endorsement: AnyField
     };
 }
@@ -126,7 +126,7 @@ export function createWindPolicy() {
         vintagePeriod: [AnyField, AnyField] as [number, number],
         techType: BigInt(FuelTypesArray.indexOf(FuelType.WIND)) & BigInt(2 ** 32 - 1),
         registry: AnyField,
-        certification: AnyField,
+        certificateType: AnyField,
         endorsement: AnyField
     };
 }
@@ -140,7 +140,7 @@ export function createAnyTechAnnualPolicy() {
         ] as [number, number],
         techType: AnyField,
         registry: AnyField,
-        certification: AnyField,
+        certificateType: AnyField,
         endorsement: AnyField
     };
 }

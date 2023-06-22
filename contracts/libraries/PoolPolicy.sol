@@ -39,10 +39,10 @@ library PoolPolicy {
      *      NOTE: This applies for vintage period as well.
      */
     struct DepositPolicy {
-        uint56[2] vintagePeriod; // Question: Confirm this is correct size
+        uint56[2] vintagePeriod;
         uint32 techType;
         uint32 registry;
-        uint32 certification;
+        uint32 certificateType;
         uint32 endorsement;
     }
 
@@ -71,9 +71,9 @@ library PoolPolicy {
             !oracle.hasRegistry(tokenId, policy.registry)) {
             return false;
         }
-        // 4. If certification is not empty, check token has certification
-        if (policy.certification != ANY_VALUE &&
-            !oracle.hasCertificateType(tokenId, policy.certification)) {
+        // 4. If certificateType is not empty, check token has certificateType
+        if (policy.certificateType != ANY_VALUE &&
+            !oracle.hasCertificateType(tokenId, policy.certificateType)) {
             return false;
         }
         // 5. If endorsement is not empty, check token has endorsement

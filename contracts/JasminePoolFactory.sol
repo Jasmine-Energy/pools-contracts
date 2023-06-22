@@ -327,7 +327,7 @@ contract JasminePoolFactory is
             policy.vintagePeriod,
             policy.techType,
             policy.registry,
-            policy.certification,
+            policy.certificateType,
             policy.endorsement
         );
 
