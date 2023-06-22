@@ -36,11 +36,11 @@ const deployRetirementService: DeployFunction = async function (
             proxyContract: 'UUPS',
             execute: {
               init: {
-                methodName: 'initialize',
-                args: [owner],
-              },
+                    methodName: 'initialize',
+                    args: [owner],
+                },
             },
-          },
+        },
         log: hardhatArguments.verbose
     });
 

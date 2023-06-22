@@ -97,7 +97,7 @@ export async function deployPoolImplementation() {
   const deployerNonce = await deployerSigner.getTransactionCount();
   const poolFactoryFutureAddress = ethers.utils.getContractAddress({
     from: deployerSigner.address,
-    nonce: deployerNonce + 1,
+    nonce: deployerNonce + 2,
   });
 
   const Pool = await ethers.getContractFactory(Contracts.pool, {
@@ -120,13 +120,14 @@ export async function deployPoolFactory() {
 
   const PoolFactory = await ethers.getContractFactory(Contracts.factory, deployerSigner);
 
-  const poolFactory = await PoolFactory.deploy(
-    owner,
-    poolImplementation.address,
-    feeBeneficiary,
-    uniswapPoolFactory,
-    USDC,
-    "https://api.jasmine.energy/v1/pools/",
+  const poolFactory = await upgrades.deployProxy(
+    PoolFactory,
+    [owner, poolImplementation.address, feeBeneficiary, "https://api.jasmine.energy/v1/pools/"],
+    {
+      unsafeAllow: ["constructor", "state-variable-immutable"],
+      constructorArgs: [uniswapPoolFactory, USDC],
+      kind: "uups",
+    }
   );
 
   return poolFactory.connect(ownerSigner) as JasminePoolFactory;

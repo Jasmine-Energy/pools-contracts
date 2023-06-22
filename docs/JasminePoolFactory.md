@@ -379,6 +379,25 @@ function hasRole(bytes32 role, address account) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined |
 
+### initialize
+
+```solidity
+function initialize(address _owner, address _poolImplementation, address _feeBeneficiary, string _tokensBaseURI) external nonpayable
+```
+
+
+
+*UUPS initializer to set feilds, setup access control roles,     transfer ownership to initial owner, and add an initial pool *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _owner | address | Address to receive initial ownership of contract |
+| _poolImplementation | address | Address containing Jasmine Pool implementation |
+| _feeBeneficiary | address | Address to receive all pool fees |
+| _tokensBaseURI | string | Base URI of used for ERC-1046 token URI function |
+
 ### owner
 
 ```solidity
@@ -429,6 +448,23 @@ Base API endpoint from which a pool&#39;s information may be obtained         by
 | Name | Type | Description |
 |---|---|---|
 | baseURI | string | undefined |
+
+### proxiableUUID
+
+```solidity
+function proxiableUUID() external view returns (bytes32)
+```
+
+
+
+*Implementation of the ERC1822 {proxiableUUID} function. This returns the storage slot used by the implementation. It is used to validate the implementation&#39;s compatibility when performing an upgrade. IMPORTANT: A proxy pointing at a proxiable contract should not be considered proxiable itself, because this risks bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this function revert if invoked through a proxy. This is guaranteed by the `notDelegated` modifier.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined |
 
 ### readdPoolImplementation
 
@@ -676,6 +712,39 @@ Allows pool managers to update the base URI of pools
 |---|---|---|
 | newPoolsURI | string | New base endpoint for pools to point to |
 
+### upgradeTo
+
+```solidity
+function upgradeTo(address newImplementation) external nonpayable
+```
+
+
+
+*Upgrade the implementation of the proxy to `newImplementation`. Calls {_authorizeUpgrade}. Emits an {Upgraded} event.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newImplementation | address | undefined |
+
+### upgradeToAndCall
+
+```solidity
+function upgradeToAndCall(address newImplementation, bytes data) external payable
+```
+
+
+
+*Upgrade the implementation of the proxy to `newImplementation`, and subsequently execute the function call encoded in `data`. Calls {_authorizeUpgrade}. Emits an {Upgraded} event.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newImplementation | address | undefined |
+| data | bytes | undefined |
+
 ### usdc
 
 ```solidity
@@ -696,6 +765,23 @@ function usdc() external view returns (address)
 
 
 ## Events
+
+### AdminChanged
+
+```solidity
+event AdminChanged(address previousAdmin, address newAdmin)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| previousAdmin  | address | undefined |
+| newAdmin  | address | undefined |
 
 ### BaseRetirementFeeUpdate
 
@@ -731,6 +817,38 @@ event BaseWithdrawalFeeUpdate(uint96 withdrawRateBips, address indexed beneficia
 | withdrawRateBips  | uint96 | undefined |
 | beneficiary `indexed` | address | undefined |
 | specific `indexed` | bool | undefined |
+
+### BeaconUpgraded
+
+```solidity
+event BeaconUpgraded(address indexed beacon)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| beacon `indexed` | address | undefined |
+
+### Initialized
+
+```solidity
+event Initialized(uint8 version)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| version  | uint8 | undefined |
 
 ### OwnershipTransferStarted
 
@@ -908,6 +1026,22 @@ event RoleRevoked(bytes32 indexed role, address indexed account, address indexed
 | role `indexed` | bytes32 | undefined |
 | account `indexed` | address | undefined |
 | sender `indexed` | address | undefined |
+
+### Upgraded
+
+```solidity
+event Upgraded(address indexed implementation)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| implementation `indexed` | address | undefined |
 
 
 
