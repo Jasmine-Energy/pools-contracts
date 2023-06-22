@@ -126,7 +126,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
             _policy.vintagePeriod,
             _policy.techType,
             _policy.registry,
-            _policy.certification,
+            _policy.certificateType,
             _policy.endorsement
         );
     }

@@ -75,7 +75,7 @@ const deployFactory: DeployFunction = async function (
             ],
             techType: AnyField,
             registry: AnyField,
-            certification: AnyField,
+            certificateType: AnyField,
             endorsement: AnyField
         }, 'Any Tech \'23', 'a23JLT');
     }

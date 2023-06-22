@@ -35,8 +35,8 @@ task("mint", "Mints an EAT")
     CertificateRegistry.NAR
   )
   .addParam<EnergyCertificateType>(
-    "certification",
-    `EAT certifications. Either ${CertificateArr.join(", ")}`,
+    "certificateType",
+    `EAT certificateTypes. Either ${CertificateArr.join(", ")}`,
     EnergyCertificateType.REC
   )
   .addParam<CertificateEndorsement>(
@@ -129,7 +129,7 @@ task("mint", "Mints an EAT")
         taskArgs.registry,
         new Date(taskArgs.vintage),
         taskArgs.fuel,
-        taskArgs.certification,
+        taskArgs.certificateType,
         taskArgs.endorsement
       );
 

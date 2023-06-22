@@ -366,17 +366,12 @@ abstract contract JasmineBasePool is
         _transferDeposits(recipient, tokenIds, amounts, data);
     }
 
-    //  ─────────────────────────────  Burn Functions  ──────────────────────────────  \\
+    //  ──────────────────────  Deposit Rebalancing Functions  ──────────────────────  \\
 
-    /// @dev Used to rebalance a pool's deposit discrepancies between EAT deposits and JLTs issued
-    function rebalanceDeposits(uint256 amount) 
-        external
-    {
-        if (amount == 0) revert JasmineErrors.InvalidInput();
-        _burn(_msgSender(), amount);
-    }
-
-    // TODO: Need another function which can remove EAT token IDs from ERC1155Manager if no longer held by pool
+    // TODO: Need a function which can remove EAT token IDs from ERC1155Manager if it
+    //       is no longer held by pool and update the totalDeposits accordingly.
+    //       Will also likely need method to mark a deposit as frozen and prevent 
+    //       attempts to withdraw it.
     // ie. in the event of an EAT burned by owner
 
     // ──────────────────────────────────────────────────────────────────────────────
