@@ -26,10 +26,10 @@ import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 
 /**
- * TODO: Write docs
  * @title Jasmine Reference Pool
  * @author Kai Aldag<kai.aldag@jasmine.energy>
- * @notice 
+ * @notice Jasmine Liquidity Pools allow users to deposit Jasmine EAT tokens into a
+ *         pool and receive - pool specific - Jasmine Liquidity Tokens (JLT) in return.
  * @custom:security-contact dev@jasmine.energy
  */
 contract JasminePool is JasmineBasePool, JasmineFeePool {

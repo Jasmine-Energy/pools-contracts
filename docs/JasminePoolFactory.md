@@ -187,7 +187,7 @@ Utility function to calculate deployed address of a pool from its         policy
 ### deployNewBasePool
 
 ```solidity
-function deployNewBasePool(PoolPolicy.DepositPolicy policy, string name, string symbol) external nonpayable returns (address newPool)
+function deployNewBasePool(PoolPolicy.DepositPolicy policy, string name, string symbol, uint160 initialSqrtPriceX96) external nonpayable returns (address newPool)
 ```
 
 
@@ -201,6 +201,7 @@ function deployNewBasePool(PoolPolicy.DepositPolicy policy, string name, string 
 | policy | PoolPolicy.DepositPolicy | undefined |
 | name | string | undefined |
 | symbol | string | undefined |
+| initialSqrtPriceX96 | uint160 | undefined |
 
 #### Returns
 
@@ -211,7 +212,7 @@ function deployNewBasePool(PoolPolicy.DepositPolicy policy, string name, string 
 ### deployNewPool
 
 ```solidity
-function deployNewPool(uint256 version, bytes4 initSelector, bytes initData, string name, string symbol) external nonpayable returns (address newPool)
+function deployNewPool(uint256 version, bytes4 initSelector, bytes initData, string name, string symbol, uint160 initialSqrtPriceX96) external nonpayable returns (address newPool)
 ```
 
 Deploys a new pool from list of pool implementations 
@@ -226,7 +227,8 @@ Deploys a new pool from list of pool implementations
 | initSelector | bytes4 | Method selector of initializer |
 | initData | bytes | Initializer data (excluding method selector, name and symbol) |
 | name | string | New pool&#39;s token name |
-| symbol | string | New pool&#39;s token symbol  |
+| symbol | string | New pool&#39;s token symbol |
+| initialSqrtPriceX96 | uint160 | Initial Uniswap price of pool. If 0, no Uniswap pool will be deployed  |
 
 #### Returns
 

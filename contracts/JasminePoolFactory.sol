@@ -310,13 +310,15 @@ contract JasminePoolFactory is
      * @param policy Deposit Policy for new pool
      * @param name Token name of new pool (per ERC-20)
      * @param symbol Token symbol of new pool (per ERC-20)
+     * @param initialSqrtPriceX96 Initial Uniswap price of pool. If 0, no Uniswap pool will be deployed
      * 
      * @return newPool Address of newly created pool
      */
     function deployNewBasePool(
         PoolPolicy.DepositPolicy calldata policy, 
         string calldata name, 
-        string calldata symbol
+        string calldata symbol,
+        uint160 initialSqrtPriceX96
     )
         external
         onlyPoolManager
@@ -336,7 +338,8 @@ contract JasminePoolFactory is
             IJasminePool.initialize.selector,
             encodedPolicy,
             name,
-            symbol
+            symbol,
+            initialSqrtPriceX96
         );
     }
 
@@ -363,15 +366,17 @@ contract JasminePoolFactory is
      * @param initData Initializer data (excluding method selector, name and symbol)
      * @param name New pool's token name
      * @param symbol New pool's token symbol
+     * @param initialSqrtPriceX96 Initial Uniswap price of pool. If 0, no Uniswap pool will be deployed
      * 
      * @return newPool address of newly created pool
      */
     function deployNewPool(
         uint256 version,
         bytes4  initSelector,
-        bytes  memory   initData, // QUESTION: Consider renaming. This is more a generic deposit policy than init data as name and symbol are appended
-        string calldata name, // TODO: Enforce name and symbol are unique (plus max length?)
-        string calldata symbol
+        bytes  memory   initData,
+        string calldata name,
+        string calldata symbol,
+        uint160 initialSqrtPriceX96
     )
         public
         onlyPoolManager
@@ -381,7 +386,7 @@ contract JasminePoolFactory is
         _validatePoolVersion(version);
 
         // 2. Compute hash of init data
-        bytes32 policyHash = keccak256(initData); // TODO: include version in hash
+        bytes32 policyHash = keccak256(initData);
 
         // 3. Ensure policy does not exist
         if (_pools.contains(policyHash)) revert JasmineErrors.PoolExists(_predictDeploymentAddress(policyHash, version));
@@ -400,10 +405,9 @@ contract JasminePoolFactory is
         emit PoolCreated(initData, address(poolProxy), name, symbol);
 
         // 7. Create Uniswap pool and return new pool
-        // TODO: Pass in initial price as function parameter
-        // QUESTION: How do we want to set initial price? $5/JLT is default
-        _createUniswapPool(address(poolProxy), 177159557114295710296101716160); // NOTE: = $5/JLT
-        // * uint160(10**IJasminePool(address(poolProxy)).decimals())
+        if (initialSqrtPriceX96 != 0) {
+            _createUniswapPool(address(poolProxy), initialSqrtPriceX96);
+        }
         return address(poolProxy);
     }
 
