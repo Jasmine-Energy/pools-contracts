@@ -10,8 +10,9 @@ pragma solidity >=0.8.17;
 // Core Implementations
 import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
 import { IJasmineFeeManager } from "./interfaces/IJasmineFeeManager.sol";
-import { Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+import { Ownable2StepUpgradeable as Ownable2Step } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import { AccessControlUpgradeable as AccessControl } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // External Contracts
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
@@ -45,7 +46,8 @@ contract JasminePoolFactory is
     IJasminePoolFactory,
     IJasmineFeeManager,
     Ownable2Step,
-    AccessControl
+    AccessControl,
+    UUPSUpgradeable
 {
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -142,41 +144,54 @@ contract JasminePoolFactory is
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Deploys Pool Factory with a default pool implementation
+     * @notice Constructor to set immutable external addresses
      * 
-     * @dev Requirements:
-     *     - Pool implementation supports IJasminePool and IERC1155Receiver interface
-     *       per {ERC165-supportsInterface} check
-     *     - Pool implementation is not zero address
+     * @param _uniswapFactory Address of Uniswap V3 Factory
+     * @param _usdc Address of USDC token
+     */
+    constructor(
+        address _uniswapFactory,
+        address _usdc
+    ) {
+        // 1. Validate inputs
+        if (_uniswapFactory == address(0x0) || 
+            _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
+
+        // 2. Set immutable external addresses
+        uniswapFactory = _uniswapFactory;
+        usdc = _usdc;
+    }
+
+    /**
+     * @dev UUPS initializer to set feilds, setup access control roles,
+     *     transfer ownership to initial owner, and add an initial pool
      * 
      * @param _owner Address to receive initial ownership of contract
      * @param _poolImplementation Address containing Jasmine Pool implementation
      * @param _feeBeneficiary Address to receive all pool fees
-     * @param _uniswapFactory Address of Uniswap V3 Factory
-     * @param _usdc Address of USDC token
      * @param _tokensBaseURI Base URI of used for ERC-1046 token URI function
      */
-    constructor(
+    function initialize(
         address _owner,
         address _poolImplementation,
         address _feeBeneficiary,
-        address _uniswapFactory,
-        address _usdc,
         string memory _tokensBaseURI
     )
-        Ownable2Step() AccessControl()
+        external initializer
     {
         // 1. Validate inputs
         _validatePoolImplementation(_poolImplementation);
         _validateFeeReceiver(_feeBeneficiary);
-        if (_owner == address(0x0) || 
-            _uniswapFactory == address(0x0) || 
-            _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
+        if (_owner == address(0x0)) revert JasmineErrors.InvalidInput();
 
-        // 2. Set immutable external addresses and info fields
-        uniswapFactory = _uniswapFactory;
-        usdc = _usdc;
+        // 2. Initialize dependencies
+        __Ownable2Step_init();
+        __AccessControl_init();
+
+        // 3. Set fields
         _poolsBaseURI = _tokensBaseURI;
+        feeBeneficiary = _feeBeneficiary;
+        
 
         // 3. Transfer ownership to initial owner
         _transferOwnership(_owner);
@@ -199,6 +214,7 @@ contract JasminePoolFactory is
         _grantRole(POOL_MANAGER_ROLE, _msgSender());
         addPoolImplementation(_poolImplementation);
         _revokeRole(POOL_MANAGER_ROLE, _msgSender());
+
     }
 
 
@@ -587,6 +603,11 @@ contract JasminePoolFactory is
         emit PoolsBaseURIChanged(newPoolsURI, _poolsBaseURI);
         _poolsBaseURI = newPoolsURI;
     }
+
+    //  ────────────────────────────────  Upgrades  ─────────────────────────────────  \\
+
+    /// @dev `Ownable` owner is authorized to upgrade contract, not the ERC1967 admin
+    function _authorizeUpgrade(address) internal override onlyOwner {} // solhint-disable-line no-empty-blocks
 
 
     //  ─────────────────────────────────────────────────────────────────────────────

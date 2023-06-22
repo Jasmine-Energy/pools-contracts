@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ethers, getNamedAccounts } from "hardhat";
+import { ethers, getNamedAccounts, upgrades } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contracts } from "@/utils";
 import { JasminePool, JasminePoolFactory, JasmineMinter } from "@/typechain";
@@ -69,7 +69,15 @@ describe(Contracts.factory, function () {
     it("Should revert if no pool implementation is provided", async function () {
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
-        PoolFactory.deploy(owner.address, ethers.constants.AddressZero, owner.address, uniswapPoolFactory, USDC, "")
+        upgrades.deployProxy(
+          PoolFactory,
+          [owner.address, ethers.constants.AddressZero, feeBeneficiary.address, ""],
+          {
+            unsafeAllow: ["constructor", "state-variable-immutable"],
+            constructorArgs: [uniswapPoolFactory, USDC],
+            kind: "uups",
+          }
+        )
       ).to.be.reverted;
     });
 
@@ -77,20 +85,29 @@ describe(Contracts.factory, function () {
       // NOTE: This test could be better. Only checks if EAT supports interface
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
-        PoolFactory.deploy(owner.address, await poolImplementation.eat(), owner.address, uniswapPoolFactory, USDC, "")
+        upgrades.deployProxy(
+          PoolFactory,
+          [owner.address, await poolImplementation.eat(), feeBeneficiary.address, ""],
+          {
+            unsafeAllow: ["constructor", "state-variable-immutable"],
+            constructorArgs: [uniswapPoolFactory, USDC],
+            kind: "uups",
+          }
+        )
       ).to.be.revertedWithCustomError(poolFactory, "InvalidConformance");
     });
 
     it("Should revert if fee beneficiary is set to zero address", async function () {
       const PoolFactory = await ethers.getContractFactory(Contracts.factory);
       await expect(
-        PoolFactory.deploy(
-          owner.address,
-          poolImplementation.address,
-          ethers.constants.AddressZero,
-          uniswapPoolFactory,
-          USDC,
-          "",
+        upgrades.deployProxy(
+          PoolFactory,
+          [owner.address, poolImplementation.address, ethers.constants.AddressZero, ""],
+          {
+            unsafeAllow: ["constructor", "state-variable-immutable"],
+            constructorArgs: [uniswapPoolFactory, USDC],
+            kind: "uups",
+          }
         )
       ).to.be.revertedWithCustomError(poolFactory, "InvalidInput");
     });

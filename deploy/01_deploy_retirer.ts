@@ -9,7 +9,7 @@ const deployRetirementService: DeployFunction = async function (
 
     const { deploy, get } = deployments;
     const namedAccounts = await getNamedAccounts();
-    const { deployer } = namedAccounts;
+    const { deployer, owner } = namedAccounts;
 
     // 1. Get deployements
     let eat: string;
@@ -32,6 +32,15 @@ const deployRetirementService: DeployFunction = async function (
             minter,
             eat,
         ],
+        proxy: {
+            proxyContract: 'UUPS',
+            execute: {
+              init: {
+                    methodName: 'initialize',
+                    args: [owner],
+                },
+            },
+        },
         log: hardhatArguments.verbose
     });
 

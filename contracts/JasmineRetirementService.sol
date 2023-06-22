@@ -8,8 +8,11 @@ pragma solidity >=0.8.17;
 //  ─────────────────────────────────────────────────────────────────────────────
 
 // Core Implementations
-import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import { IRetirementService } from "./interfaces/IRetirementService.sol";
+import { ERC1155ReceiverUpgradeable as ERC1155Receiver } from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
+import { IERC1155ReceiverUpgradeable as IERC1155Receiver } from "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155ReceiverUpgradeable.sol";
+import { Ownable2StepUpgradeable as Ownable2Step } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // External Contracts
 import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
@@ -22,7 +25,6 @@ import { Calldata } from "./libraries/Calldata.sol";
 import { ArrayUtils } from "./libraries/ArrayUtils.sol";
 import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
-// TODO: Make Retirement Service UUPS upgradeable
 
 /**
  * @title Jasmine Retirement Service
@@ -30,7 +32,7 @@ import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
  * @notice Facilitates retirements of EATs and JLTs in the Jasmine protocol
  * @custom:security-contact dev@jasmine.energy
  */
-contract JasmineRetirementService is IRetirementService, ERC1155Receiver {
+contract JasmineRetirementService is IRetirementService, ERC1155Receiver, Ownable2Step, UUPSUpgradeable {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -48,8 +50,14 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver {
     constructor(address _minter, address _eat) {
         minter = JasmineMinter(_minter);
         eat = JasmineEAT(_eat);
+    }
 
-        eat.setApprovalForAll(_minter, true);
+    function initialize(address _owner) external initializer {
+        __Ownable2Step_init();
+
+        _transferOwnership(_owner);
+
+        eat.setApprovalForAll(address(minter), true);
     }
 
 
@@ -138,6 +146,15 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver {
             implementer
         );
     }
+
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Upgrades
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /// @dev `Ownable` owner is authorized to upgrade contract, not the ERC1967 admin
+    function _authorizeUpgrade(address) internal override onlyOwner {} // solhint-disable-line no-empty-blocks
+
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal

@@ -27,6 +27,17 @@ function ERC1820_REGISTRY() external view returns (contract IERC1820Registry)
 |---|---|---|
 | _0 | contract IERC1820Registry | undefined |
 
+### acceptOwnership
+
+```solidity
+function acceptOwnership() external nonpayable
+```
+
+
+
+*The new owner accepts the ownership transfer.*
+
+
 ### eat
 
 ```solidity
@@ -43,6 +54,22 @@ function eat() external view returns (contract JasmineEAT)
 | Name | Type | Description |
 |---|---|---|
 | _0 | contract JasmineEAT | undefined |
+
+### initialize
+
+```solidity
+function initialize(address _owner) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _owner | address | undefined |
 
 ### minter
 
@@ -113,6 +140,57 @@ function onERC1155Received(address, address from, uint256 tokenId, uint256 amoun
 |---|---|---|
 | _0 | bytes4 | undefined |
 
+### owner
+
+```solidity
+function owner() external view returns (address)
+```
+
+
+
+*Returns the address of the current owner.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
+### pendingOwner
+
+```solidity
+function pendingOwner() external view returns (address)
+```
+
+
+
+*Returns the address of the pending owner.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
+### proxiableUUID
+
+```solidity
+function proxiableUUID() external view returns (bytes32)
+```
+
+
+
+*Implementation of the ERC1822 {proxiableUUID} function. This returns the storage slot used by the implementation. It is used to validate the implementation&#39;s compatibility when performing an upgrade. IMPORTANT: A proxy pointing at a proxiable contract should not be considered proxiable itself, because this risks bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this function revert if invoked through a proxy. This is guaranteed by the `notDelegated` modifier.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined |
+
 ### registerRetirementRecipient
 
 ```solidity
@@ -129,6 +207,17 @@ Registers a smart contract to receive notifications on retirement events
 |---|---|---|
 | account | address | Address to register retirement recipient for |
 | implementer | address | Smart contract address to register as retirement implementer |
+
+### renounceOwnership
+
+```solidity
+function renounceOwnership() external nonpayable
+```
+
+
+
+*Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner.*
+
 
 ### supportsInterface
 
@@ -152,6 +241,157 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined |
 
+### transferOwnership
+
+```solidity
+function transferOwnership(address newOwner) external nonpayable
+```
+
+
+
+*Starts the ownership transfer of the contract to a new account. Replaces the pending transfer if there is one. Can only be called by the current owner.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newOwner | address | undefined |
+
+### upgradeTo
+
+```solidity
+function upgradeTo(address newImplementation) external nonpayable
+```
+
+
+
+*Upgrade the implementation of the proxy to `newImplementation`. Calls {_authorizeUpgrade}. Emits an {Upgraded} event.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newImplementation | address | undefined |
+
+### upgradeToAndCall
+
+```solidity
+function upgradeToAndCall(address newImplementation, bytes data) external payable
+```
+
+
+
+*Upgrade the implementation of the proxy to `newImplementation`, and subsequently execute the function call encoded in `data`. Calls {_authorizeUpgrade}. Emits an {Upgraded} event.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newImplementation | address | undefined |
+| data | bytes | undefined |
+
+
+
+## Events
+
+### AdminChanged
+
+```solidity
+event AdminChanged(address previousAdmin, address newAdmin)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| previousAdmin  | address | undefined |
+| newAdmin  | address | undefined |
+
+### BeaconUpgraded
+
+```solidity
+event BeaconUpgraded(address indexed beacon)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| beacon `indexed` | address | undefined |
+
+### Initialized
+
+```solidity
+event Initialized(uint8 version)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| version  | uint8 | undefined |
+
+### OwnershipTransferStarted
+
+```solidity
+event OwnershipTransferStarted(address indexed previousOwner, address indexed newOwner)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| previousOwner `indexed` | address | undefined |
+| newOwner `indexed` | address | undefined |
+
+### OwnershipTransferred
+
+```solidity
+event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| previousOwner `indexed` | address | undefined |
+| newOwner `indexed` | address | undefined |
+
+### Upgraded
+
+```solidity
+event Upgraded(address indexed implementation)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| implementation `indexed` | address | undefined |
 
 
 

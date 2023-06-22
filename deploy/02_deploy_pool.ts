@@ -15,7 +15,7 @@ const deployPoolImplementation: DeployFunction = async function (
     const deployerNonce = await deployerSigner.getTransactionCount();
     const poolFactoryFutureAddress = ethers.utils.getContractAddress({
         from: deployer,
-        nonce: deployerNonce + 1,
+        nonce: deployerNonce + 2,
     });
 
     const retirer = await get(Contracts.retirementService);

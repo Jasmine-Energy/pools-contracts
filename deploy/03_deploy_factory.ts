@@ -23,11 +23,14 @@ const deployFactory: DeployFunction = async function (
     const pool = await deployments.get(Contracts.pool);
 
     const constructorArgs = [
+        uniswapPoolFactory,
+        USDC,
+    ];
+
+    const initializerArgs = [
         owner,
         pool.address,
         feeBeneficiary,
-        uniswapPoolFactory,
-        USDC,
         tokenBaseURI
     ];
 
@@ -35,6 +38,15 @@ const deployFactory: DeployFunction = async function (
     const factory = await deploy(Contracts.factory, {
         from: deployer,
         args: constructorArgs,
+        proxy: {
+            proxyContract: 'UUPS',
+            execute: {
+              init: {
+                    methodName: 'initialize',
+                    args: initializerArgs,
+                },
+            },
+        },
         log: hardhatArguments.verbose
     });
 
@@ -47,7 +59,6 @@ const deployFactory: DeployFunction = async function (
             await run('verify:verify', {
                 address: factory.address,
                 constructorArguments: constructorArgs,
-                // TODO: link libraries
             });
         } catch (err) {
             colouredLog.red(`Verification failed. Error: ${err}`);
