@@ -4,9 +4,6 @@ import { tryRequire } from "@/utils/safe_import";
 import { AnyField } from "@/utils/constants";
 import { FuelType, FuelTypesArray } from "@/types/energy-certificate.types";
 
-// TODO: Would be amazing if (1) deploy new pool on public network auto verified newly deployed
-// TODO: proxy on etherscan and (2) created a new ERC-1967 proxy file containing the new pool's
-// TODO name, symbol, policy, and other metadata in docstring
 
 async function main() {
   // 1. Connect to contract
@@ -32,11 +29,12 @@ async function main() {
       ] as [number, number],
       techType: AnyField,
       registry: AnyField,
-      certification: AnyField,
+      certificateType: AnyField,
       endorsement: AnyField,
     },
     "Any Tech Front-Half '23",
-    "aF23JLT"
+    "aF23JLT",
+    177159557114295710296101716160n
   );
 
   const frontHalfDeployedPool = await frontHalfPoolTx.wait();
@@ -51,11 +49,12 @@ async function main() {
       ] as [number, number],
       techType: AnyField,
       registry: AnyField,
-      certification: AnyField,
+      certificateType: AnyField,
       endorsement: AnyField,
     },
     "Any Tech Back-Half '23",
-    "aB23JLT"
+    "aB23JLT",
+    177159557114295710296101716160n
   );
   const backHalfDeployedPool = await backHalfPoolTx.wait();
   const backHalfPoolAddress = backHalfDeployedPool.events?.find((e) => e.event === "PoolCreated")?.args?.at(1);
@@ -69,11 +68,12 @@ async function main() {
       ] as [number, number],
       techType: BigInt(FuelTypesArray.indexOf(FuelType.SOLAR)) & BigInt(2 ** 32 - 1),
       registry: AnyField,
-      certification: AnyField,
+      certificateType: AnyField,
       endorsement: AnyField,
     },
     "Solar Tech",
-    "sJLT"
+    "sJLT",
+    177159557114295710296101716160n
   );
   const solarDeployedPool = await solarPoolTx.wait();
   const solarPoolAddress = solarDeployedPool.events?.find((e) => e.event === "PoolCreated")?.args?.at(1);
@@ -87,11 +87,12 @@ async function main() {
       ] as [number, number],
       techType: BigInt(FuelTypesArray.indexOf(FuelType.WIND)) & BigInt(2 ** 32 - 1),
       registry: AnyField,
-      certification: AnyField,
+      certificateType: AnyField,
       endorsement: AnyField,
     },
     "Wind Tech",
-    "wJLT"
+    "wJLT",
+    177159557114295710296101716160n
   );
   const windDeployedPool = await windPoolTx.wait();
   const windPoolAddress = windDeployedPool.events?.find((e) => e.event === "PoolCreated")?.args?.at(1);

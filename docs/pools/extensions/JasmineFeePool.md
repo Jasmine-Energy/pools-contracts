@@ -461,22 +461,6 @@ function poolFactory() external view returns (address)
 |---|---|---|
 | _0 | address | undefined |
 
-### rebalanceDeposits
-
-```solidity
-function rebalanceDeposits(uint256 amount) external nonpayable
-```
-
-
-
-*Used to rebalance na pool deposit discrepancies between EAT deposits and JLTs issued*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| amount | uint256 | undefined |
-
 ### retire
 
 ```solidity

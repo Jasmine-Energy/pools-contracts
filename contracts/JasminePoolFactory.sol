@@ -10,8 +10,9 @@ pragma solidity >=0.8.17;
 // Core Implementations
 import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
 import { IJasmineFeeManager } from "./interfaces/IJasmineFeeManager.sol";
-import { Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+import { Ownable2StepUpgradeable as Ownable2Step } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import { AccessControlUpgradeable as AccessControl } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // External Contracts
 import { IJasminePool } from "./interfaces/IJasminePool.sol";
@@ -45,7 +46,8 @@ contract JasminePoolFactory is
     IJasminePoolFactory,
     IJasmineFeeManager,
     Ownable2Step,
-    AccessControl
+    AccessControl,
+    UUPSUpgradeable
 {
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -142,41 +144,54 @@ contract JasminePoolFactory is
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Deploys Pool Factory with a default pool implementation
+     * @notice Constructor to set immutable external addresses
      * 
-     * @dev Requirements:
-     *     - Pool implementation supports IJasminePool and IERC1155Receiver interface
-     *       per {ERC165-supportsInterface} check
-     *     - Pool implementation is not zero address
+     * @param _uniswapFactory Address of Uniswap V3 Factory
+     * @param _usdc Address of USDC token
+     */
+    constructor(
+        address _uniswapFactory,
+        address _usdc
+    ) {
+        // 1. Validate inputs
+        if (_uniswapFactory == address(0x0) || 
+            _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
+
+        // 2. Set immutable external addresses
+        uniswapFactory = _uniswapFactory;
+        usdc = _usdc;
+    }
+
+    /**
+     * @dev UUPS initializer to set feilds, setup access control roles,
+     *     transfer ownership to initial owner, and add an initial pool
      * 
      * @param _owner Address to receive initial ownership of contract
      * @param _poolImplementation Address containing Jasmine Pool implementation
      * @param _feeBeneficiary Address to receive all pool fees
-     * @param _uniswapFactory Address of Uniswap V3 Factory
-     * @param _usdc Address of USDC token
      * @param _tokensBaseURI Base URI of used for ERC-1046 token URI function
      */
-    constructor(
+    function initialize(
         address _owner,
         address _poolImplementation,
         address _feeBeneficiary,
-        address _uniswapFactory,
-        address _usdc,
         string memory _tokensBaseURI
     )
-        Ownable2Step() AccessControl()
+        external initializer
     {
         // 1. Validate inputs
         _validatePoolImplementation(_poolImplementation);
         _validateFeeReceiver(_feeBeneficiary);
-        if (_owner == address(0x0) || 
-            _uniswapFactory == address(0x0) || 
-            _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
+        if (_owner == address(0x0)) revert JasmineErrors.InvalidInput();
 
-        // 2. Set immutable external addresses and info fields
-        uniswapFactory = _uniswapFactory;
-        usdc = _usdc;
+        // 2. Initialize dependencies
+        __Ownable2Step_init();
+        __AccessControl_init();
+
+        // 3. Set fields
         _poolsBaseURI = _tokensBaseURI;
+        feeBeneficiary = _feeBeneficiary;
+        
 
         // 3. Transfer ownership to initial owner
         _transferOwnership(_owner);
@@ -199,6 +214,7 @@ contract JasminePoolFactory is
         _grantRole(POOL_MANAGER_ROLE, _msgSender());
         addPoolImplementation(_poolImplementation);
         _revokeRole(POOL_MANAGER_ROLE, _msgSender());
+
     }
 
 
@@ -294,13 +310,15 @@ contract JasminePoolFactory is
      * @param policy Deposit Policy for new pool
      * @param name Token name of new pool (per ERC-20)
      * @param symbol Token symbol of new pool (per ERC-20)
+     * @param initialSqrtPriceX96 Initial Uniswap price of pool. If 0, no Uniswap pool will be deployed
      * 
      * @return newPool Address of newly created pool
      */
     function deployNewBasePool(
         PoolPolicy.DepositPolicy calldata policy, 
         string calldata name, 
-        string calldata symbol
+        string calldata symbol,
+        uint160 initialSqrtPriceX96
     )
         external
         onlyPoolManager
@@ -311,7 +329,7 @@ contract JasminePoolFactory is
             policy.vintagePeriod,
             policy.techType,
             policy.registry,
-            policy.certification,
+            policy.certificateType,
             policy.endorsement
         );
 
@@ -320,7 +338,8 @@ contract JasminePoolFactory is
             IJasminePool.initialize.selector,
             encodedPolicy,
             name,
-            symbol
+            symbol,
+            initialSqrtPriceX96
         );
     }
 
@@ -347,15 +366,17 @@ contract JasminePoolFactory is
      * @param initData Initializer data (excluding method selector, name and symbol)
      * @param name New pool's token name
      * @param symbol New pool's token symbol
+     * @param initialSqrtPriceX96 Initial Uniswap price of pool. If 0, no Uniswap pool will be deployed
      * 
      * @return newPool address of newly created pool
      */
     function deployNewPool(
         uint256 version,
         bytes4  initSelector,
-        bytes  memory   initData, // QUESTION: Consider renaming. This is more a generic deposit policy than init data as name and symbol are appended
-        string calldata name, // TODO: Enforce name and symbol are unique (plus max length?)
-        string calldata symbol
+        bytes  memory   initData,
+        string calldata name,
+        string calldata symbol,
+        uint160 initialSqrtPriceX96
     )
         public
         onlyPoolManager
@@ -365,7 +386,7 @@ contract JasminePoolFactory is
         _validatePoolVersion(version);
 
         // 2. Compute hash of init data
-        bytes32 policyHash = keccak256(initData); // TODO: include version in hash
+        bytes32 policyHash = keccak256(initData);
 
         // 3. Ensure policy does not exist
         if (_pools.contains(policyHash)) revert JasmineErrors.PoolExists(_predictDeploymentAddress(policyHash, version));
@@ -384,10 +405,9 @@ contract JasminePoolFactory is
         emit PoolCreated(initData, address(poolProxy), name, symbol);
 
         // 7. Create Uniswap pool and return new pool
-        // TODO: Pass in initial price as function parameter
-        // QUESTION: How do we want to set initial price? $5/JLT is default
-        _createUniswapPool(address(poolProxy), 177159557114295710296101716160); // NOTE: = $5/JLT
-        // * uint160(10**IJasminePool(address(poolProxy)).decimals())
+        if (initialSqrtPriceX96 != 0) {
+            _createUniswapPool(address(poolProxy), initialSqrtPriceX96);
+        }
         return address(poolProxy);
     }
 
@@ -587,6 +607,11 @@ contract JasminePoolFactory is
         emit PoolsBaseURIChanged(newPoolsURI, _poolsBaseURI);
         _poolsBaseURI = newPoolsURI;
     }
+
+    //  ────────────────────────────────  Upgrades  ─────────────────────────────────  \\
+
+    /// @dev `Ownable` owner is authorized to upgrade contract, not the ERC1967 admin
+    function _authorizeUpgrade(address) internal override onlyOwner {} // solhint-disable-line no-empty-blocks
 
 
     //  ─────────────────────────────────────────────────────────────────────────────

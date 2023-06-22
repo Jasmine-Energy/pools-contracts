@@ -15,7 +15,7 @@ const deployPoolImplementation: DeployFunction = async function (
     const deployerNonce = await deployerSigner.getTransactionCount();
     const poolFactoryFutureAddress = ethers.utils.getContractAddress({
         from: deployer,
-        nonce: deployerNonce + 1,
+        nonce: deployerNonce + 2,
     });
 
     const retirer = await get(Contracts.retirementService);
@@ -47,7 +47,6 @@ const deployPoolImplementation: DeployFunction = async function (
 
     // 3. If on external network, verify contracts
     if (network.tags['public']) {
-        // TODO: Verify on sourcify as well. Run "sourcify" command
         console.log('Verifyiyng on Etherscan...');
         try {
             await run('verify:verify', {

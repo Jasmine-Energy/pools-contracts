@@ -69,16 +69,21 @@ export async function deployCoreFixture() {
 
 
 export async function deployRetirementService() {
-  const { deployer } = await getNamedAccounts();
+  const { deployer, owner } = await getNamedAccounts();
   const deployerSigner = await ethers.getSigner(deployer);
   const { eat, minter } = await loadFixture(deployCoreFixture);
 
   const RetirementService = await ethers.getContractFactory(Contracts.retirementService, {
     signer: deployerSigner,
   });
-  const retirementService = await RetirementService.deploy(
-    minter.address,
-    eat.address,
+  const retirementService = await upgrades.deployProxy(
+    RetirementService,
+    [owner],
+    {
+      unsafeAllow: ["constructor", "state-variable-immutable"],
+      constructorArgs: [minter.address, eat.address],
+      kind: "uups",
+    }
   );
   return retirementService as JasmineRetirementService;
 }
@@ -92,7 +97,7 @@ export async function deployPoolImplementation() {
   const deployerNonce = await deployerSigner.getTransactionCount();
   const poolFactoryFutureAddress = ethers.utils.getContractAddress({
     from: deployerSigner.address,
-    nonce: deployerNonce + 1,
+    nonce: deployerNonce + 2,
   });
 
   const Pool = await ethers.getContractFactory(Contracts.pool, {
@@ -115,13 +120,14 @@ export async function deployPoolFactory() {
 
   const PoolFactory = await ethers.getContractFactory(Contracts.factory, deployerSigner);
 
-  const poolFactory = await PoolFactory.deploy(
-    owner,
-    poolImplementation.address,
-    feeBeneficiary,
-    uniswapPoolFactory,
-    USDC,
-    "https://api.jasmine.energy/v1/pools/",
+  const poolFactory = await upgrades.deployProxy(
+    PoolFactory,
+    [owner, poolImplementation.address, feeBeneficiary, "https://api.jasmine.energy/v1/pools/"],
+    {
+      unsafeAllow: ["constructor", "state-variable-immutable"],
+      constructorArgs: [uniswapPoolFactory, USDC],
+      kind: "uups",
+    }
   );
 
   return poolFactory.connect(ownerSigner) as JasminePoolFactory;
@@ -139,21 +145,24 @@ export async function deployPoolsFixture() {
   await poolFactory.deployNewBasePool(
     createSolarPolicy(),
     "Solar Tech",
-    "sJLT"
+    "sJLT",
+    177159557114295710296101716160n
   );
   const solarPoolAddress = await poolFactory.getPoolAtIndex(0);
 
   await poolFactory.deployNewBasePool(
     createWindPolicy(),
     "Wind Tech",
-    "wJLT"
+    "wJLT",
+    177159557114295710296101716160n
   );
   const windPoolAddress = await poolFactory.getPoolAtIndex(1);
 
   await poolFactory.deployNewBasePool(
     createAnyTechAnnualPolicy(),
     "Any Tech '23",
-    "a23JLT"
+    "a23JLT",
+    177159557114295710296101716160n
   );
   const anyTechPoolAddress = await poolFactory.getPoolAtIndex(2);
 
