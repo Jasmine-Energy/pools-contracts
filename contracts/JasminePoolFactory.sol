@@ -144,12 +144,7 @@ contract JasminePoolFactory is
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Deploys Pool Factory with a default pool implementation
-     * 
-     * @dev Requirements:
-     *     - Pool implementation supports IJasminePool and IERC1155Receiver interface
-     *       per {ERC165-supportsInterface} check
-     *     - Pool implementation is not zero address
+     * @notice Constructor to set immutable external addresses
      * 
      * @param _uniswapFactory Address of Uniswap V3 Factory
      * @param _usdc Address of USDC token
@@ -162,7 +157,7 @@ contract JasminePoolFactory is
         if (_uniswapFactory == address(0x0) || 
             _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
 
-        // 2. Set immutable external addresses and info fields
+        // 2. Set immutable external addresses
         uniswapFactory = _uniswapFactory;
         usdc = _usdc;
     }
