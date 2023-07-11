@@ -140,6 +140,20 @@ contract JasminePoolFactory is
 
 
     //  ─────────────────────────────────────────────────────────────────────────────
+    //  Errors
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /// @dev Emitted if no pool(s) meet query
+    error NoPool();
+
+    /// @dev Emitted if a pool exists with given policy
+    error PoolExists(address pool);
+
+    /// @dev Emitted for failed supportsInterface check - per ERC-165
+    error InvalidConformance(bytes4 interfaceId);
+
+
+    //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
     //  ─────────────────────────────────────────────────────────────────────────────
 
@@ -241,7 +255,7 @@ contract JasminePoolFactory is
         external view
         returns (address pool)
     {
-        if (index >= _pools.length()) revert JasmineErrors.NoPool();
+        if (index >= _pools.length()) revert NoPool();
         return computePoolAddress(_pools.at(index));
     }
 
@@ -389,7 +403,7 @@ contract JasminePoolFactory is
         bytes32 policyHash = keccak256(initData);
 
         // 3. Ensure policy does not exist
-        if (_pools.contains(policyHash)) revert JasmineErrors.PoolExists(_predictDeploymentAddress(policyHash, version));
+        if (_pools.contains(policyHash)) revert PoolExists(_predictDeploymentAddress(policyHash, version));
 
         // 4. Deploy new pool
         BeaconProxy poolProxy = new BeaconProxy{ salt: policyHash }(
@@ -759,15 +773,15 @@ contract JasminePoolFactory is
         private view 
     {
         if (!IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId))
-            revert JasmineErrors.InvalidConformance(type(IJasminePool).interfaceId);
+            revert InvalidConformance(type(IJasminePool).interfaceId);
         
         if (!IERC165(poolImplementation).supportsInterface(type(IERC1155Receiver).interfaceId))
-            revert JasmineErrors.InvalidConformance(type(IERC1155Receiver).interfaceId);
+            revert InvalidConformance(type(IERC1155Receiver).interfaceId);
 
         for (uint i = 0; i < _poolBeacons.length();) {
             UpgradeableBeacon beacon = UpgradeableBeacon(_poolBeacons.at(i));
             if (beacon.implementation() == poolImplementation)
-                revert JasmineErrors.PoolExists(poolImplementation);
+                revert PoolExists(poolImplementation);
             
             unchecked { i++; }
         }

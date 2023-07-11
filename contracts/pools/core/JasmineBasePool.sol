@@ -86,6 +86,17 @@ abstract contract JasmineBasePool is
     string private _symbol;
 
 
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Errors
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /// @dev Emitted if a token does not meet pool's deposit policy
+    error Unqualified(uint256 tokenId);
+
+    /// @dev Emitted if operation would cause inbalance in pool's EAT deposits
+    error InbalancedDeposits();
+
+
     // ──────────────────────────────────────────────────────────────────────────────
     // Setup
     // ──────────────────────────────────────────────────────────────────────────────
@@ -574,8 +585,6 @@ abstract contract JasmineBasePool is
 
     /**
      * @dev Private function for burning JLT and decreasing allowance
-     * 
-     * @dev Throws Prohibited() on failure or InvalidInput() if quantity is 0
      */
     function _spendJLT(address from, uint256 amount)
         private
@@ -595,7 +604,7 @@ abstract contract JasmineBasePool is
      */
     modifier enforceDeposits() {
         _;
-        if (_standardizeDecimal(totalDeposits) < totalSupply()) revert JasmineErrors.InbalancedDeposits();
+        if (_standardizeDecimal(totalDeposits) < totalSupply()) revert InbalancedDeposits();
     }
 
     /**
@@ -622,7 +631,7 @@ abstract contract JasmineBasePool is
      * @param tokenId EAT token ID to check eligibility
      */
     function _enforceEligibility(uint256 tokenId) private view {
-        if (!meetsPolicy(tokenId)) revert JasmineErrors.Unqualified(tokenId);
+        if (!meetsPolicy(tokenId)) revert Unqualified(tokenId);
     }
 
     /**

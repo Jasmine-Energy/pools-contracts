@@ -146,4 +146,15 @@ error InvalidTokenAddress(address received, address expected)
 | received | address | undefined |
 | expected | address | undefined |
 
+### WithdrawsLocked
+
+```solidity
+error WithdrawsLocked()
+```
+
+
+
+*Emitted if withdraws are locked*
+
+
 
