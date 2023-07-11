@@ -340,6 +340,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         private
     {
         uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenId);
+        // TODO: Edge cases (balance == 0, balance < value)
         if (balance == value) {
             uint40 vintage = _getVintageFromTokenId(tokenId);
             if (_tokenIds[vintage].length == 1) {
@@ -378,7 +379,8 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length;) {
             total += values[i];
-            if (balances[i] == 0) {
+            // TODO: Edge cases (balance == 0, balance < value)
+            if (balances[i] == values[i]) {
                 uint40 vintage = _getVintageFromTokenId(tokenIds[i]);
                 if (_tokenIds[vintage].length == 1) {
                     tree.remove(vintage);
