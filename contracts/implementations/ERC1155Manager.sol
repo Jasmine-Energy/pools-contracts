@@ -13,7 +13,6 @@ import { RedBlackTree } from "../libraries/RedBlackTreeLibrary.sol";
 import { ArrayUtils } from "../libraries/ArrayUtils.sol";
 import { JasmineErrors } from "../interfaces/errors/JasmineErrors.sol";
 
-import "hardhat/console.sol";
 
 /**
  * @title ERC-1155 Manager
@@ -39,11 +38,8 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     uint256 public totalDeposits;
     RedBlackTree.Tree private tree;
 
-    /// @dev Maps vintage to token ID
-    mapping(uint40 => uint256) private _tokenIds;
-
     /// @dev Maps vintage to token IDs
-    // mapping(uint40 => uint256[]) private _tokenIds;
+    mapping(uint40 => uint256[]) private _tokenIds;
 
     uint8 private constant WITHDRAWS_LOCK = 1;
     uint8 private constant WITHDRAWS_UNLOCKED = 2;
@@ -163,7 +159,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
      * @return amounts Number of tokens to withdraw for each token ID
      */
     function _selectWithdrawTokens(uint256 amount)
-        internal view
+        public view
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
@@ -176,62 +172,54 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint current = tree.first();
 
         while (sum != amount) {
-            uint256 tokenId = _tokenIds[uint40(current)];
-            console.log("Current: ", current);
-            uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenId);
-            console.log("tokenId: ", tokenId, "balance: ", balance);
-            if (sum + balance < amount) {
-                unchecked {
-                    sum += balance;
-                    i++;
-                    current = tree.next(current);
+            uint256[] memory tokenIdsForVintage = _tokenIds[uint40(current)];
+            for (uint256 j = 0; j < tokenIdsForVintage.length;) {
+                uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenIdsForVintage[j]);
+                if (sum + balance < amount) {
+                    unchecked {
+                        sum += balance;
+                        j++;
+                        i++;
+                    }
+                } else {
+                    unchecked {
+                        finalBalance = amount - sum;
+                        i++;
+                    }
+                    break;
                 }
-                continue;
-            } else {
-                unchecked {
-                    finalBalance = amount - sum;
-                    i++;
-                }
-                break;
             }
-        }
 
-        // while (sum != amount) {
-        //     uint256[] memory tokenIdsForVintage = _tokenIds[uint40(current)];
-        //     for (uint256 j = 0; j < tokenIds.length;) {
-        //         uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenIdsForVintage[j]);
-        //         if (sum + balance < amount) {
-        //             unchecked {
-        //                 sum += balance;
-        //                 j++;
-        //             }
-        //         } else {
-        //             unchecked {
-        //                 finalBalance = amount - sum;
-        //             }
-        //             break;
-        //         }
-        //     }
-        //     unchecked {
-        //         i++;
-        //         current = tree.next(current);
-        //     }
-        // }
+            if (current == tree.last()) break;
+            else current = tree.next(current);
+        }
 
         current = tree.first();
 
+        tokenIds = new uint256[](i);
+
         if (i == 1) {
-            tokenIds = new uint256[](1);
-            tokenIds[0] = _tokenIds[uint40(current)];
+            tokenIds[0] = _tokenIds[uint40(current)][0];
             amounts = new uint256[](1);
-            amounts[0] = finalBalance;
+            amounts[0] = amount;
         } else {
-            tokenIds = new uint256[](i);
             for (uint x = 0; x < i;) {
-                tokenIds[x] = _tokenIds[uint40(current)];
-                current = tree.next(current);
-                unchecked { x++; }
+                uint256[] memory tokenIdsForVintage = _tokenIds[uint40(current)];
+                assembly { // NOTE: Unable to use "memory-safe"
+                    let len := mload(tokenIdsForVintage)
+                    for { let n := 0 } lt(n, len) { n := add(n, 1) } { 
+                        mstore(
+                            add(tokenIds, add(x, mul(add(n, 1), 32))),
+                            mload(add(tokenIdsForVintage, mul(add(n, 1), 32)))
+                        )
+                    }
+                    x := add(x, len)
+                }
+
+                if (current == tree.last()) break;
+                else current = tree.next(current);
             }
+
             amounts = IERC1155(_tokenAddress).balanceOfBatch(ArrayUtils.fill(address(this), i), tokenIds);
             amounts[i-1] = finalBalance;
         }
@@ -239,32 +227,45 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         return (tokenIds, amounts);
     }
 
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Deposit Management Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
     //  ─────────────────────────────  Adding Deposits  ─────────────────────────────  \\
 
+    /**
+     * @dev Adds a deposit to the contract's tree of vintages and token IDs
+     * 
+     * @param tokenId Newly deposited token ID to store
+     * @param value Amount of the token received
+     */
     function _addDeposit(
         uint256 tokenId,
         uint256 value
     )
         private
     {
-        totalDeposits += value;
-
         uint40 vintage = _getVintageFromTokenId(tokenId);
-        if (tree.exists(vintage)) return;
-        tree.insert(vintage);
 
-        // if (!tree.exists(vintage)) {
-        //     tree.insert(vintage);
-        // }
-        // if (_tokenIds[vintage])
+        if (!tree.exists(vintage)) {
+            // If token does not exist in tree, add to tree and set of token IDs
+            tree.insert(vintage);
+            _tokenIds[vintage].push(tokenId);
+        } else if (IERC1155(_tokenAddress).balanceOf(address(this), tokenId) == value) {
+            // If contract's balance of token is equal to value, token ID is new and must be added to token IDs
+            _tokenIds[vintage].push(tokenId);
+        }
 
-        _tokenIds[vintage] = tokenId;
+        totalDeposits += value;
     }
 
+    /**
+     * @dev Adds a deposit to the contract's tree of vintages and token IDs
+     * 
+     * @param tokenIds Newly deposited token IDs to store
+     * @param values Amounts of the token received
+     */
     function _addDeposits(
         uint256[] memory tokenIds,
         uint256[] memory values
@@ -272,16 +273,20 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         private
         returns (uint256 quantity)
     {
+        uint256[] memory balances = IERC1155(_tokenAddress).balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
+
         for (uint256 i = 0; i < tokenIds.length;) {
             quantity += values[i];
 
             uint40 vintage = _getVintageFromTokenId(tokenIds[i]);
-            if (tree.exists(vintage)) { // TODO: check if token exists in tokenIDs
-                unchecked { i++; }
-                continue;
+            if (!tree.exists(vintage)) {
+                // If token does not exist in tree, add to tree and set of token IDs
+                tree.insert(vintage);
+                _tokenIds[vintage].push(tokenIds[i]);
+            } else if (balances[i] == values[i]) {
+                // If contract's balance of token is equal to value, token ID is new and must be added to token IDs
+                _tokenIds[vintage].push(tokenIds[i]);
             }
-            tree.insert(vintage);
-            _tokenIds[vintage] = tokenIds[i];
 
             unchecked { i++; }
         }
@@ -290,6 +295,13 @@ abstract contract ERC1155Manager is ERC1155Receiver {
 
     //  ────────────────────────────  Removing Deposits  ────────────────────────────  \\
 
+    /**
+     * @dev Used to record a token removal from the contract's internal records. Removes
+     * token ID from tree and vintage to token ID mapping if possible.
+     * 
+     * @param tokenId Token ID to remove from internal records
+     * @param value Amount of token being removed
+     */
     function _removeDeposit(
         uint256 tokenId,
         uint256 value
@@ -299,12 +311,31 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenId);
         if (balance == 0) {
             uint40 vintage = _getVintageFromTokenId(tokenId);
-            tree.remove(vintage);
-            delete _tokenIds[vintage];
+            if (_tokenIds[vintage].length == 1) {
+                tree.remove(vintage);
+                delete _tokenIds[vintage];
+            } else {
+                // TODO: Find an optimal way to remove tokenId from _tokenIds[vintage]. This will not suffice
+                for (uint256 i = 0; i < _tokenIds[vintage].length; i++) {
+                    if (_tokenIds[vintage][i] == tokenId) {
+                        _tokenIds[vintage][i] = _tokenIds[vintage][_tokenIds[vintage].length - 1];
+                        _tokenIds[vintage].pop();
+                        break;
+                    }
+                }
+            }
         }
+
         totalDeposits -= value;
     }
 
+    /**
+     * @dev Used to record a token removal from the contract's internal records. Removes
+     * token ID from tree and vintage to token ID mapping if possible.
+     * 
+     * @param tokenIds Token IDs to remove from internal records
+     * @param values Amount per token being removed
+     */
     function _removeDeposits(
         uint256[] memory tokenIds,
         uint256[] memory values
@@ -318,16 +349,28 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             total += values[i];
             if (balances[i] == 0) {
                 uint40 vintage = _getVintageFromTokenId(tokenIds[i]);
-                tree.remove(vintage);
-                delete _tokenIds[vintage];
+                if (_tokenIds[vintage].length == 1) {
+                    tree.remove(vintage);
+                } else {
+                    // TODO: Find an optimal way to remove tokenId from _tokenIds[vintage]. This will not suffice
+                    for (uint256 j = 0; j < _tokenIds[vintage].length; j++) {
+                        if (_tokenIds[vintage][j] == tokenIds[i]) {
+                            _tokenIds[vintage][j] = _tokenIds[vintage][_tokenIds[vintage].length - 1];
+                            _tokenIds[vintage].pop();
+                            break;
+                        }
+                    }
+                }
             }
 
             unchecked { i++; }
         }
+
         totalDeposits -= total;
     }
 
-    function _getVintageFromTokenId(uint256 tokenId) private pure returns (uint40) {
+    /// @dev Returns the vintage given a Jasmine EAT token ID
+    function _getVintageFromTokenId(uint256 tokenId) private pure returns (uint40 vintage) {
         return uint40((tokenId >> 56) & type(uint40).max);
     }
 

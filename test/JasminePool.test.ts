@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers, getNamedAccounts } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contracts } from "@/utils";
+import { Contracts, colouredLog } from "@/utils";
 import { DEFAULT_DECIMAL } from "@/utils/constants";
 import {
   JasminePool,
@@ -409,6 +409,19 @@ describe(Contracts.pool, function () {
 
       expect(await anyTechAnnualPool.withdraw(owner.address, 5, [])).to.be.ok;
       expect(await anyTechAnnualPool.withdraw(owner.address, 5, [])).to.be.ok;
+    });
+
+    it("Should successfully withdraw multiple EATs if required", async function () {
+      const extraToken = await mintEat(owner.address, 5, FuelType.SOLAR);
+      expect(await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        extraToken.id,
+        extraToken.amount,
+        []
+      )).to.be.ok;
+
+      expect(await anyTechAnnualPool.withdraw(owner.address, 10, [])).to.be.ok;
     });
   });
 

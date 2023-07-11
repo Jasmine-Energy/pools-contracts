@@ -53,7 +53,7 @@ library RedBlackTree {
         Tree storage self,
         uint target
     ) internal view returns (uint cursor) {
-        require(target != EMPTY);
+        require(target != EMPTY, "Empty");
         if (self.nodes[target].right != EMPTY) {
             cursor = treeMinimum(self, self.nodes[target].right);
         } else {
