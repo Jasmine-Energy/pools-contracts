@@ -41,23 +41,23 @@ function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint2
 
 
 
-
+*Handles the receipt of a multiple ERC1155 token types. This function is called at the end of a `safeBatchTransferFrom` after the balances have been updated. NOTE: To accept the transfer(s), this must return `bytes4(keccak256(&quot;onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)&quot;))` (i.e. 0xbc197c81, or its own function selector).*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined |
-| from | address | undefined |
+| from | address | The address which previously owned the token |
 | tokenIds | uint256[] | undefined |
-| values | uint256[] | undefined |
+| values | uint256[] | An array containing amounts of each token being transferred (order and length must match ids array) |
 | _4 | bytes | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bytes4 | undefined |
+| _0 | bytes4 | `bytes4(keccak256(&quot;onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)&quot;))` if transfer is allowed |
 
 ### onERC1155Received
 
@@ -67,23 +67,23 @@ function onERC1155Received(address, address from, uint256 tokenId, uint256 value
 
 
 
-
+*Handles the receipt of a single ERC1155 token type. This function is called at the end of a `safeTransferFrom` after the balance has been updated. NOTE: To accept the transfer, this must return `bytes4(keccak256(&quot;onERC1155Received(address,address,uint256,uint256,bytes)&quot;))` (i.e. 0xf23a6e61, or its own function selector).*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined |
-| from | address | undefined |
+| from | address | The address which previously owned the token |
 | tokenId | uint256 | undefined |
-| value | uint256 | undefined |
+| value | uint256 | The amount of tokens being transferred |
 | _4 | bytes | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bytes4 | undefined |
+| _0 | bytes4 | `bytes4(keccak256(&quot;onERC1155Received(address,address,uint256,uint256,bytes)&quot;))` if transfer is allowed |
 
 ### supportsInterface
 

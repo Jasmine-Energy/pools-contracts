@@ -14,7 +14,7 @@ import { IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
 import { IEATBackedPool } from "../../interfaces/pool/IEATBackedPool.sol";
 
 // Implementation Contracts
-import { ERC1155Manager } from "../../implementations/ERC1155Manager.sol";
+import { ERC1155Manager } from "./implementations/ERC1155Manager.sol";
 import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC1155Holder } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
