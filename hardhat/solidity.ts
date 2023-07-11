@@ -6,7 +6,7 @@ const evmVersion = "london";
 export const solidity: SolidityUserConfig = {
   compilers: [
     {
-      version: "0.8.19", // TODO: Bump to 0.8.20
+      version: "0.8.20",
       settings: {
         optimizer: {
           enabled: true,
