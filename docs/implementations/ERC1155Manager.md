@@ -146,6 +146,17 @@ error InvalidTokenAddress(address received, address expected)
 | received | address | undefined |
 | expected | address | undefined |
 
+### ValidationFailed
+
+```solidity
+error ValidationFailed()
+```
+
+
+
+*Emitted if internal validation failed*
+
+
 ### WithdrawsLocked
 
 ```solidity

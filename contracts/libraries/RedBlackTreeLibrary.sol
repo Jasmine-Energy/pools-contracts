@@ -3,6 +3,10 @@
 
 pragma solidity ^0.8.0;
 
+
+import { JasmineErrors } from "../interfaces/errors/JasmineErrors.sol";
+
+
 // ----------------------------------------------------------------------------
 // BokkyPooBah's Red-Black Tree Library v1.0-pre-release-a
 //
@@ -53,7 +57,8 @@ library RedBlackTree {
         Tree storage self,
         uint target
     ) internal view returns (uint cursor) {
-        require(target != EMPTY, "Empty");
+        if (target == EMPTY) revert JasmineErrors.ValidationFailed();
+
         if (self.nodes[target].right != EMPTY) {
             cursor = treeMinimum(self, self.nodes[target].right);
         } else {
@@ -69,7 +74,8 @@ library RedBlackTree {
         Tree storage self,
         uint target
     ) internal view returns (uint cursor) {
-        require(target != EMPTY);
+        if (target == EMPTY) revert JasmineErrors.ValidationFailed();
+
         if (self.nodes[target].left != EMPTY) {
             cursor = treeMaximum(self, self.nodes[target].left);
         } else {
@@ -109,7 +115,8 @@ library RedBlackTree {
             bool _red
         )
     {
-        require(exists(self, key));
+        if (!exists(self, key)) revert JasmineErrors.ValidationFailed();
+        
         return (
             key,
             self.nodes[key].parent,
@@ -120,8 +127,9 @@ library RedBlackTree {
     }
 
     function insert(Tree storage self, uint key) internal {
-        require(key != EMPTY);
-        require(!exists(self, key));
+        if (key == EMPTY) revert JasmineErrors.ValidationFailed();
+        if (exists(self, key)) revert JasmineErrors.ValidationFailed();
+
         uint cursor = EMPTY;
         uint probe = self.root;
         while (probe != EMPTY) {
@@ -149,8 +157,9 @@ library RedBlackTree {
     }
 
     function remove(Tree storage self, uint key) internal {
-        require(key != EMPTY);
-        require(exists(self, key));
+        if (key == EMPTY) revert JasmineErrors.ValidationFailed();
+        if (!exists(self, key)) revert JasmineErrors.ValidationFailed();
+
         uint probe;
         uint cursor;
         if (self.nodes[key].left == EMPTY || self.nodes[key].right == EMPTY) {
