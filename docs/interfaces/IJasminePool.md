@@ -4,7 +4,7 @@
 
 > IJasminePool
 
-
+Jasmine Pools allow users to deposit their EATs given certain conditions         are met to receive pool specific Jasmine Liquidity Tokens (JLT).
 
 
 

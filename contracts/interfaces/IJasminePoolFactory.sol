@@ -8,7 +8,8 @@ import { PoolPolicy } from "../libraries/PoolPolicy.sol";
 /**
  * @title Jasmine Pool Factory Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
- * @notice 
+ * @notice The Jasmine Pool Factory is responsible for creating and managing Jasmine
+ *         liquidity pool implementations and deployments.
  * @custom:security-contact dev@jasmine.energy
  */
 interface IJasminePoolFactory {

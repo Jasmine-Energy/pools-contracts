@@ -8,7 +8,9 @@ import { IERC1155ReceiverUpgradeable as IERC1155Receiver } from "@openzeppelin/c
 /**
  * @title Retirement Service Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
- * @notice 
+ * @notice The Retirement Service facilitates the formatting of ERC-1155 transfer data
+ *         parsed by the bridge to attribute retirements to the correct user. It also
+ *         permits users to register smart contracts to receive retirement hooks.
  * @custom:security-contact dev@jasmine.energy
  */
 interface IRetirementService is IERC1155Receiver {

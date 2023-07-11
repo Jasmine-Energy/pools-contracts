@@ -53,7 +53,13 @@ library PoolPolicy {
 
     //  ────────────────────────────  Policy Utilities  ─────────────────────────────  \\
 
-
+    /**
+     * @dev Checks if a given EAT meets a given policy by querying the Jasmine Oracle
+     * 
+     * @param policy An eligibility cretieria for an EAT
+     * @param oracle The Jasmine Oracle contract to query against
+     * @param tokenId The EAT for which to check eligibility
+     */
     function meetsPolicy(DepositPolicy storage policy, JasmineOracle oracle, uint256 tokenId) internal view returns (bool isEligible) {
         // 1. If policy's vintage is not empty, check token has vintage
         if (policy.vintagePeriod[0] != ANY_VALUE &&
@@ -84,9 +90,5 @@ library PoolPolicy {
         // 6. If above checks pass, token meets policy
         return true;
     }
-
-
-    //  ───────────────────────────────  Comparision  ───────────────────────────────  \\
-
 
 }

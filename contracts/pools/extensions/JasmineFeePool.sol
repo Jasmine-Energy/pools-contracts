@@ -33,8 +33,6 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
  * @notice Extends JasmineBasePool with withdrawal and retirement fees managed by
  *         a universal admin entity.
  * @custom:security-contact dev@jasmine.energy
- * 
- * QUESTION: Should there be a maximum permitted fee?
  */
 abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
 

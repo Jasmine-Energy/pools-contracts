@@ -220,7 +220,6 @@ contract JasminePoolFactory is
         _setRoleAdmin(FEE_MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
 
         // 5. Grant owner pool manager and fee manager roles
-        // QUESTION: Should this be default behaviour?
         _grantRole(POOL_MANAGER_ROLE, _owner);
         _grantRole(FEE_MANAGER_ROLE, _owner);
 

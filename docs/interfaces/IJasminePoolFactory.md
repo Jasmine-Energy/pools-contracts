@@ -4,7 +4,7 @@
 
 > Jasmine Pool Factory Interface
 
-
+The Jasmine Pool Factory is responsible for creating and managing Jasmine         liquidity pool implementations and deployments.
 
 
 

@@ -9,6 +9,7 @@ pragma solidity >=0.8.0;
  * @custom:security-contact dev@jasmine.energy
  */
 interface IRetirementRecipient {
+    
     /**
      * @dev Retirement hook invoked by retirement service if set for address
      * @param retiree Address which is retiring EATs

@@ -21,8 +21,8 @@ import { IERC2612 } from "@openzeppelin/contracts/interfaces/draft-IERC2612.sol"
 /**
  * @title IJasminePool
  * @author Kai Aldag<kai.aldag@jasmine.energy>
- * @notice 
- * @dev 
+ * @notice Jasmine Pools allow users to deposit their EATs given certain conditions
+ *         are met to receive pool specific Jasmine Liquidity Tokens (JLT).
  * @custom:security-contact dev@jasmine.energy
  */
 interface IJasminePool is IEATBackedPool, IQualifiedPool, IRetireablePool,
