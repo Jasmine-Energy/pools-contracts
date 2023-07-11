@@ -582,9 +582,7 @@ abstract contract JasmineBasePool is
     {
         if (amount == 0) revert JasmineErrors.InvalidInput();
         else if (from != _msgSender()) {
-            if (allowance(from, _msgSender()) < amount) revert JasmineErrors.Prohibited();
-
-            _approve(from, _msgSender(), allowance(from, _msgSender()) - amount);
+            _spendAllowance(from, _msgSender(), amount);
         }
 
         _burn(from, amount);

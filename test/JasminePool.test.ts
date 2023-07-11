@@ -20,6 +20,7 @@ import {
 } from "./shared/utilities";
 import {
   FuelType,
+  CertificateRegistry
 } from "@/types/energy-certificate.types";
 
 
@@ -382,6 +383,32 @@ describe(Contracts.pool, function () {
       )
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw")
         .withArgs(owner.address, allowed.address, tokenAmount - 1n);
+    });
+
+    it("Should correctly withdaw tokens by vintage", async function () {
+      const vintage = new Date().valueOf();
+
+      // @ts-ignore
+      const firstToken = await mintEat(owner.address, 5, FuelType.SOLAR, CertificateRegistry.NAR, vintage);
+      // @ts-ignore
+      const secondToken = await mintEat(owner.address, 5, FuelType.WIND, CertificateRegistry.NAR, vintage);
+
+      expect(await eat.safeBatchTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        [firstToken.id, secondToken.id],
+        [firstToken.amount, secondToken.amount],
+        []
+      )).to.be.ok;
+
+      expect(await eat.balanceOfBatch([owner.address, owner.address], [firstToken.id, secondToken.id])).to.deep.equal([0n, 0n]);
+      expect(await eat.balanceOfBatch(
+        [anyTechAnnualPool.address, anyTechAnnualPool.address],
+        [firstToken.id, secondToken.id])
+       ).to.deep.equal([firstToken.amount, secondToken.amount]);
+
+      expect(await anyTechAnnualPool.withdraw(owner.address, 5, [])).to.be.ok;
+      expect(await anyTechAnnualPool.withdraw(owner.address, 5, [])).to.be.ok;
     });
   });
 
