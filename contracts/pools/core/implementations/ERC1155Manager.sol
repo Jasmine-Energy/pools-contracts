@@ -13,6 +13,7 @@ import { IERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/IERC1155
 import { RedBlackTree } from "../../../libraries/RedBlackTreeLibrary.sol";
 import { ArrayUtils } from "../../../libraries/ArrayUtils.sol";
 
+import "hardhat/console.sol";
 
 /**
  * @title ERC-1155 Manager
@@ -95,10 +96,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     {
         _enforceTokenAddress(msg.sender);
 
-        (uint256[] memory tokenIds, uint256[] memory values) = (new uint256[](1), new uint256[](1));
-        tokenIds[0] = tokenId;
-        values[0] = value;
-        _beforeDeposit(from, tokenIds, values);
+        _beforeDeposit(from, _asSingletonArray(tokenId), _asSingletonArray(value));
         _addDeposit(tokenId, value);
         _afterDeposit(from, value);
 
@@ -149,6 +147,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         withdrawsUnlocked
     {
         if (tokenIds.length == 1) {
+            console.log("Transfer single: ", tokenIds[0], values[0]);
             _removeDeposit(tokenIds[0], values[0]);
             IERC1155(_tokenAddress).safeTransferFrom(
                 address(this),
@@ -158,6 +157,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
                 data
             );
         } else {
+            console.log("Transfer batch: ", tokenIds.length, tokenIds[0], values[0]);
             _removeDeposits(tokenIds, values);
             IERC1155(_tokenAddress).safeBatchTransferFrom(
                 address(this),
@@ -198,7 +198,11 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             uint256[] memory tokenIdsForVintage = _tokenIds[uint40(current)];
             for (uint256 j = 0; j < tokenIdsForVintage.length;) {
                 uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenIdsForVintage[j]);
-                if (sum + balance < amount) {
+
+                if (balance == 0) {
+                    // TODO: Should never hit this, but requires checks
+                    console.log("balance is 0 for: ", tokenIdsForVintage[j]);
+                } else if (sum + balance < amount) {
                     unchecked {
                         sum += balance;
                         j++;
@@ -207,6 +211,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
                 } else {
                     unchecked {
                         finalBalance = amount - sum;
+                        sum = amount;
                         i++;
                     }
                     break;
@@ -219,25 +224,23 @@ abstract contract ERC1155Manager is ERC1155Receiver {
 
         current = tree.first();
 
-        tokenIds = new uint256[](i);
-
         if (i == 1) {
-            tokenIds[0] = _tokenIds[uint40(current)][0];
-            amounts = new uint256[](1);
-            amounts[0] = amount;
+            tokenIds = _asSingletonArray(_tokenIds[uint40(current)][0]);
+            amounts  = _asSingletonArray(amount);
         } else {
+            tokenIds = new uint256[](i);
             for (uint x = 0; x < i;) {
                 uint256[] memory tokenIdsForVintage = _tokenIds[uint40(current)];
                 assembly { // NOTE: Unable to use "memory-safe"
                     let len := mload(tokenIdsForVintage)
                     for { let n := 0 } lt(n, len) { n := add(n, 1) } { 
                         mstore(
-                            add(tokenIds, add(x, mul(add(n, 1), 32))),
+                            add(tokenIds, add(mul(x, 32), mul(add(n, 1), 32))),
                             mload(add(tokenIdsForVintage, mul(add(n, 1), 32)))
                         )
                     }
-                    x := add(x, len)
                 }
+                x += tokenIdsForVintage.length;
 
                 if (current == tree.last()) break;
                 else current = tree.next(current);
@@ -279,6 +282,8 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             // If contract's balance of token is equal to value, token ID is new and must be added to token IDs
             _tokenIds[vintage].push(tokenId);
         }
+        console.log("Added single deposit: ", tokenId, value);
+        console.log("Vintage: ", vintage, " has count: ", _tokenIds[vintage].length);
 
         totalDeposits += value;
     }
@@ -306,13 +311,16 @@ abstract contract ERC1155Manager is ERC1155Receiver {
                 // If token does not exist in tree, add to tree and set of token IDs
                 tree.insert(vintage);
                 _tokenIds[vintage].push(tokenIds[i]);
-            } else if (balances[i] == values[i]) {
+            } else if (balances[i] == values[i]) { // TODO: Once efficient contains exists, rewrite the following
                 // If contract's balance of token is equal to value, token ID is new and must be added to token IDs
                 _tokenIds[vintage].push(tokenIds[i]);
             }
 
+            console.log("Added batch deposit: ", tokenIds[i], values[i]);
+            console.log("Vintage: ", vintage, " has count: ", _tokenIds[vintage].length);
             unchecked { i++; }
         }
+
         totalDeposits += quantity;
     }
 
@@ -332,7 +340,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         private
     {
         uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenId);
-        if (balance == 0) {
+        if (balance == value) {
             uint40 vintage = _getVintageFromTokenId(tokenId);
             if (_tokenIds[vintage].length == 1) {
                 tree.remove(vintage);
@@ -395,6 +403,14 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     /// @dev Returns the vintage given a Jasmine EAT token ID
     function _getVintageFromTokenId(uint256 tokenId) private pure returns (uint40 vintage) {
         return uint40((tokenId >> 56) & type(uint40).max);
+    }
+
+    /// @dev Returns element in an array by iteself
+    function _asSingletonArray(uint256 element) private pure returns (uint256[] memory array) {
+        array = new uint256[](1);
+        assembly ("memory-safe") {
+            mstore(add(array, 32), element)
+        }
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────

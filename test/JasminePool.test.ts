@@ -12,6 +12,7 @@ import {
 } from "@/typechain";
 import { deployPoolImplementation, deployCoreFixture, deployPoolFactory, deployPoolsFixture } from "./shared/fixtures";
 
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
 import {
@@ -340,8 +341,9 @@ describe(Contracts.pool, function () {
     it("Should allow any withdrawals", async function () {
       expect(await anyTechAnnualPool.withdraw(owner.address, tokenAmount, []))
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw")
-        .withArgs(owner.address, owner.address, tokenAmount);
-      // TODO: Test JLT token decrease
+        .withArgs(owner.address, owner.address, tokenAmount)
+        .and.to.changeTokenBalance(anyTechAnnualPool, owner.address, -tokenAmount);
+
     });
 
     it("Should allow operator withdrawals", async function () {
@@ -361,8 +363,8 @@ describe(Contracts.pool, function () {
         )
       )
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw")
-        .withArgs(owner.address, operator.address, tokenAmount);
-      // TODO: Test JLT token decrease
+        .withArgs(owner.address, operator.address, tokenAmount)
+        .and.to.changeTokenBalance(anyTechAnnualPool, owner.address, -tokenAmount);
     });
 
     it("Should allow allowance withdrawals", async function () {
@@ -453,19 +455,22 @@ describe(Contracts.pool, function () {
     });
 
     it("Should retire accrued fractions", async function () {
+      const retirementAmount = 2_500_000_000_000_000_000n;
       expect(await anyTechAnnualPool.retireExact(
         owner.address, 
         owner.address, 
-        2_500_000_000_000_000_000n,
+        retirementAmount,
         [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement");
+        .to.emit(anyTechAnnualPool, "Retirement")
+        .withArgs(owner.address, owner.address, retirementAmount);
 
         expect(await anyTechAnnualPool.retireExact(
           owner.address, 
           owner.address, 
-          2_500_000_000_000_000_000n,
+          retirementAmount,
           [])).to.be.ok.and
-          .to.emit(anyTechAnnualPool, "Retirement");
+          .to.emit(anyTechAnnualPool, "Retirement")
+          .withArgs(owner.address, owner.address, retirementAmount);
     });
 
     it("Should support retiring numerous token IDs", async function () {
@@ -487,20 +492,28 @@ describe(Contracts.pool, function () {
     });
 
     it("Should support retiring numerous token IDs with fractional", async function () {
+      const initialRetirementAmount = 3_500_000_000_000_000_000n;
       expect(await anyTechAnnualPool.retireExact(
         owner.address, 
         owner.address, 
-        3_500_000_000_000_000_000n,
+        initialRetirementAmount,
         [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement");
+        .to.emit(anyTechAnnualPool, "Retirement")
+        .withArgs(owner.address, owner.address, initialRetirementAmount)
+        .and.to.emit(eat, "TransferSingle")
+        .withArgs(
+          owner.address, owner.address, anyValue, 
+          tokenId, initialRetirementAmount
+        );
 
       const windDeposit = await mintEat(owner.address, 5, FuelType.WIND);
       const geoDeposit = await mintEat(owner.address, 10, FuelType.GEOTHERMAL);
+      const bioDeposit = await mintEat(owner.address, 15, FuelType.BIOMASS);
       await eat.safeBatchTransferFrom(
         owner.address,
         anyTechAnnualPool.address,
-        [windDeposit.id, geoDeposit.id],
-        [windDeposit.amount, geoDeposit.amount],
+        [windDeposit.id, geoDeposit.id, bioDeposit.id],
+        [windDeposit.amount, geoDeposit.amount, bioDeposit.amount],
         []
       );
 
@@ -510,7 +523,14 @@ describe(Contracts.pool, function () {
         owner.address, 
         balance,
         [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement");
+        .to.emit(anyTechAnnualPool, "Retirement")
+        .withArgs(owner.address, owner.address, balance)
+        .and.to.emit(eat, "TransferBatch")
+        .withArgs(
+          owner.address, owner.address, anyValue, 
+          [tokenId, windDeposit.id, geoDeposit.id, bioDeposit.id],
+          [2, windDeposit.amount, geoDeposit.amount, bioDeposit.amount]
+        );
     });
   });
 
