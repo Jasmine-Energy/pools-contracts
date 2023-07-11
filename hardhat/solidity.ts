@@ -1,6 +1,7 @@
 import { SolidityUserConfig } from "hardhat/types";
 
-const defaultOptimizerRuns = process.env.OPTIMIZER_RUNS ? parseInt(process.env.OPTIMIZER_RUNS) : 200;
+const defaultOptimizerRuns = process.env.OPTIMIZER_RUNS ? parseInt(process.env.OPTIMIZER_RUNS) : 100;
+const evmVersion = "london";
 
 export const solidity: SolidityUserConfig = {
   compilers: [
@@ -11,6 +12,7 @@ export const solidity: SolidityUserConfig = {
           enabled: true,
           runs: defaultOptimizerRuns,
         },
+        evmVersion,
       },
     },
     {
@@ -20,6 +22,7 @@ export const solidity: SolidityUserConfig = {
           enabled: true,
           runs: defaultOptimizerRuns,
         },
+        evmVersion,
       },
     },
   ],
