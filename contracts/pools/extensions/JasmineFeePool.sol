@@ -16,7 +16,7 @@ import { IJasmineRetireablePool as IRetireablePool } from "../../interfaces/pool
 import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
 
 // External Contracts
-import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
+import { IJasmineFeeManager } from "../../interfaces/IJasmineFeeManager.sol";
 
 // Utility Libraries
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -85,7 +85,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
             uint256 feeAmount = Math.ceilDiv(amount, retirementRate());
             _transfer(
                 owner,
-                JasminePoolFactory(poolFactory).feeBeneficiary(),
+                IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
             amount -= feeAmount;
@@ -109,7 +109,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
             uint256 feeAmount = retirementCost(amount) - amount;
             _transfer(
                 owner,
-                JasminePoolFactory(poolFactory).feeBeneficiary(),
+                IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
         }
@@ -137,11 +137,11 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         // 1. If fee is not 0, calculate and take fee from caller
         uint256 feeAmount = JasmineFeePool.withdrawalCost(amount) - super.withdrawalCost(amount);
         if (feeAmount != 0 && 
-            JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
+            IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0))
         {
             _transfer(
                 _msgSender(),
-                JasminePoolFactory(poolFactory).feeBeneficiary(),
+                IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
         }
@@ -170,11 +170,11 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         // 1. If fee is not 0, calculate and take fee from caller
         uint256 feeAmount = JasmineFeePool.withdrawalCost(amount) - super.withdrawalCost(amount);
         if (feeAmount != 0 && 
-            JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
+            IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0))
         {
             _transfer(
                 sender,
-                JasminePoolFactory(poolFactory).feeBeneficiary(),
+                IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
         }
@@ -201,11 +201,11 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         // 1. If fee is not 0, calculate and take fee from caller
         uint256 feeAmount = JasmineFeePool.withdrawalCost(tokenIds, amounts) - super.withdrawalCost(tokenIds, amounts);
         if (feeAmount != 0 && 
-            JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0))
+            IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0))
         {
             _transfer(
                 sender,
-                JasminePoolFactory(poolFactory).feeBeneficiary(),
+                IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
         }
@@ -235,7 +235,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         if (_withdrawalRate != 0) {
             return _withdrawalRate;
         } else {
-            return JasminePoolFactory(poolFactory).baseWithdrawalRate();
+            return IJasmineFeeManager(poolFactory).baseWithdrawalRate();
         }
     }
 
@@ -251,7 +251,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         if (_withdrawalSpecificRate != 0) {
             return _withdrawalSpecificRate;
         } else {
-            return JasminePoolFactory(poolFactory).baseWithdrawalSpecificRate();
+            return IJasmineFeeManager(poolFactory).baseWithdrawalSpecificRate();
         }
     }
 
@@ -266,7 +266,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         if ( _retirementRate != 0) {
             return  _retirementRate;
         } else {
-            return JasminePoolFactory(poolFactory).baseRetirementRate();
+            return IJasmineFeeManager(poolFactory).baseRetirementRate();
         }
     }
 
@@ -291,7 +291,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
             revert JasmineErrors.InvalidInput();
         }
         // NOTE: If no feeBeneficiary is set, fees may not be collected
-        if (JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0)) {
+        if (IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0)) {
             return Math.mulDiv(
                 super.withdrawalCost(tokenIds, amounts), 
                 (withdrawalRate() + 10_000), 
@@ -318,7 +318,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         returns (uint256 cost)
     {
         // NOTE: If no feeBeneficiary is set, fees may not be collected
-        if (JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0)) {
+        if (IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0)) {
             return Math.mulDiv(
                 super.withdrawalCost(amount), 
                 (withdrawalSpecificRate() + 10_000), 
@@ -344,7 +344,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         returns (uint256 cost)
     {
         // NOTE: If no feeBeneficiary is set, fees may not be collected
-        if (JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0)) {
+        if (IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0)) {
             return Math.mulDiv(
                 super.retirementCost(amount), 
                 (retirementRate() + 10_000), 
@@ -447,8 +447,8 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
      * @dev Throws {RequiresRole}
      */
     function _enforceFeeManagerRole() private view {
-        if (!JasminePoolFactory(poolFactory).hasFeeManagerRole(_msgSender())) {
-            revert JasmineErrors.RequiresRole(JasminePoolFactory(poolFactory).FEE_MANAGER_ROLE());
+        if (!IJasmineFeeManager(poolFactory).hasFeeManagerRole(_msgSender())) {
+            revert JasmineErrors.RequiresRole(IJasmineFeeManager(poolFactory).FEE_MANAGER_ROLE());
         }
     }
 }

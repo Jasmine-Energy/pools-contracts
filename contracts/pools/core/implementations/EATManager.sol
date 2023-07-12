@@ -5,7 +5,7 @@ pragma solidity >=0.8.17;
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 import { IERC1155 }         from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import { ERC1155Receiver }  from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
+import { IERC165 }           from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { IERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import { RedBlackTree }     from "../../../libraries/RedBlackTreeLibrary.sol";
 import { ArrayUtils }       from "../../../libraries/ArrayUtils.sol";
@@ -17,7 +17,7 @@ import { ArrayUtils }       from "../../../libraries/ArrayUtils.sol";
  * @notice Manages deposits and withdraws of Jasmine EATs (ERC-1155).
  * @custom:security-contact dev@jasmine.energy
  */
-abstract contract EATManager is ERC1155Receiver {
+abstract contract EATManager is IERC1155Receiver {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
@@ -122,6 +122,15 @@ abstract contract EATManager is ERC1155Receiver {
 
         return this.onERC1155BatchReceived.selector;
     }
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) { //
+        return interfaceId == type(IERC1155Receiver).interfaceId || 
+            interfaceId == type(IERC165).interfaceId;
+    }
+
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Deposit Modifying Functions

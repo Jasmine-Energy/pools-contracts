@@ -40,7 +40,6 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
  */
 abstract contract JasmineBasePool is
     IJasminePool,
-    ERC20,
     ERC20Permit,
     IERC1046,
     EATManager,
@@ -460,7 +459,7 @@ abstract contract JasmineBasePool is
      */
     function supportsInterface(bytes4 interfaceId)
         public view virtual
-        override(ERC1155Receiver, ERC20, ERC20Permit)
+        override(EATManager, ERC20Permit)
         returns (bool)
     {
         return interfaceId == type(IJasminePool).interfaceId ||
