@@ -76,19 +76,19 @@ function allowance(address owner, address spender) external view returns (uint25
 ### approve
 
 ```solidity
-function approve(address spender, uint256 amount) external nonpayable returns (bool)
+function approve(address spender, uint256 value) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-approve}. NOTE: If `amount` is the maximum `uint256`, the allowance is not updated on `transferFrom`. This is semantically equivalent to an infinite approval. Requirements: - `spender` cannot be the zero address.*
+*See {IERC20-approve}. NOTE: If `value` is the maximum `uint256`, the allowance is not updated on `transferFrom`. This is semantically equivalent to an infinite approval. Requirements: - `spender` cannot be the zero address.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | spender | address | undefined |
-| amount | uint256 | undefined |
+| value | uint256 | undefined |
 
 #### Returns
 
@@ -104,7 +104,7 @@ function balanceOf(address account) external view returns (uint256)
 
 
 
-*See {ERC20-balanceOf}*
+*See {IERC20-balanceOf}.*
 
 #### Parameters
 
@@ -138,19 +138,19 @@ function decimals() external view returns (uint8)
 ### decreaseAllowance
 
 ```solidity
-function decreaseAllowance(address spender, uint256 subtractedValue) external nonpayable returns (bool)
+function decreaseAllowance(address spender, uint256 requestedDecrease) external nonpayable returns (bool)
 ```
 
 
 
-*Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `subtractedValue`.*
+*Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `requestedDecrease`. NOTE: Although this function is designed to avoid double spending with {approval}, it can still be frontrunned, preventing any attempt of allowance reduction.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | spender | address | undefined |
-| subtractedValue | uint256 | undefined |
+| requestedDecrease | uint256 | undefined |
 
 #### Returns
 
@@ -676,7 +676,7 @@ function totalSupply() external view returns (uint256)
 
 
 
-*See {ERC20-totalSupply}*
+*See {IERC20-totalSupply}.*
 
 
 #### Returns
@@ -688,19 +688,19 @@ function totalSupply() external view returns (uint256)
 ### transfer
 
 ```solidity
-function transfer(address to, uint256 amount) external nonpayable returns (bool)
+function transfer(address to, uint256 value) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-transfer}. Requirements: - `to` cannot be the zero address. - the caller must have a balance of at least `amount`.*
+*See {IERC20-transfer}. Requirements: - `to` cannot be the zero address. - the caller must have a balance of at least `value`.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | to | address | undefined |
-| amount | uint256 | undefined |
+| value | uint256 | undefined |
 
 #### Returns
 
@@ -711,12 +711,12 @@ function transfer(address to, uint256 amount) external nonpayable returns (bool)
 ### transferFrom
 
 ```solidity
-function transferFrom(address from, address to, uint256 amount) external nonpayable returns (bool)
+function transferFrom(address from, address to, uint256 value) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}. NOTE: Does not update the allowance if the current allowance is the maximum `uint256`. Requirements: - `from` and `to` cannot be the zero address. - `from` must have a balance of at least `amount`. - the caller must have allowance for ``from``&#39;s tokens of at least `amount`.*
+*See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}. NOTE: Does not update the allowance if the current allowance is the maximum `uint256`. Requirements: - `from` and `to` cannot be the zero address. - `from` must have a balance of at least `value`. - the caller must have allowance for ``from``&#39;s tokens of at least `value`.*
 
 #### Parameters
 
@@ -724,7 +724,7 @@ function transferFrom(address from, address to, uint256 amount) external nonpaya
 |---|---|---|
 | from | address | undefined |
 | to | address | undefined |
-| amount | uint256 | undefined |
+| value | uint256 | undefined |
 
 #### Returns
 
@@ -751,7 +751,7 @@ Allows pool fee managers to update the retirement rate
 ### updateWithdrawalRate
 
 ```solidity
-function updateWithdrawalRate(uint96 newWithdrawalRate) external nonpayable
+function updateWithdrawalRate(uint96 newWithdrawalRate, bool isSpecificRate) external nonpayable
 ```
 
 Allows pool fee managers to update the withdrawal rate 
@@ -763,6 +763,7 @@ Allows pool fee managers to update the withdrawal rate
 | Name | Type | Description |
 |---|---|---|
 | newWithdrawalRate | uint96 | New rate on withdrawals in basis points |
+| isSpecificRate | bool | Whether the new rate is for specific tokens or any |
 
 ### withdraw
 
@@ -1055,7 +1056,7 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 ### WithdrawalRateUpdate
 
 ```solidity
-event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
+event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary, bool isSpecificRate)
 ```
 
 
@@ -1068,15 +1069,34 @@ event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
 |---|---|---|
 | withdrawFeeBips  | uint96 | undefined |
 | beneficiary `indexed` | address | undefined |
+| isSpecificRate  | bool | undefined |
 
 
 
 ## Errors
 
-### ERC1155InvalidArrayLength
+### ERC20FailedDecreaseAllowance
 
 ```solidity
-error ERC1155InvalidArrayLength(uint256 idsLength, uint256 valuesLength)
+error ERC20FailedDecreaseAllowance(address spender, uint256 currentAllowance, uint256 requestedDecrease)
+```
+
+
+
+*Indicates a failed `decreaseAllowance` request.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| spender | address | undefined |
+| currentAllowance | uint256 | undefined |
+| requestedDecrease | uint256 | undefined |
+
+### ERC20InsufficientAllowance
+
+```solidity
+error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed)
 ```
 
 
@@ -1087,19 +1107,141 @@ error ERC1155InvalidArrayLength(uint256 idsLength, uint256 valuesLength)
 
 | Name | Type | Description |
 |---|---|---|
-| idsLength | uint256 | undefined |
-| valuesLength | uint256 | undefined |
+| spender | address | undefined |
+| allowance | uint256 | undefined |
+| needed | uint256 | undefined |
 
-### InbalancedDeposits
+### ERC20InsufficientBalance
 
 ```solidity
-error InbalancedDeposits()
+error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)
 ```
 
 
 
-*Emitted if operation would cause inbalance in pool&#39;s EAT deposits*
 
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender | address | undefined |
+| balance | uint256 | undefined |
+| needed | uint256 | undefined |
+
+### ERC20InvalidApprover
+
+```solidity
+error ERC20InvalidApprover(address approver)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| approver | address | undefined |
+
+### ERC20InvalidReceiver
+
+```solidity
+error ERC20InvalidReceiver(address receiver)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| receiver | address | undefined |
+
+### ERC20InvalidSender
+
+```solidity
+error ERC20InvalidSender(address sender)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender | address | undefined |
+
+### ERC20InvalidSpender
+
+```solidity
+error ERC20InvalidSpender(address spender)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| spender | address | undefined |
+
+### ERC2612ExpiredSignature
+
+```solidity
+error ERC2612ExpiredSignature(uint256 deadline)
+```
+
+
+
+*Permit deadline has expired.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| deadline | uint256 | undefined |
+
+### ERC2612InvalidSigner
+
+```solidity
+error ERC2612InvalidSigner(address signer, address owner)
+```
+
+
+
+*Mismatched signature.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| signer | address | undefined |
+| owner | address | undefined |
+
+### InvalidAccountNonce
+
+```solidity
+error InvalidAccountNonce(address account, uint256 currentNonce)
+```
+
+
+
+*The nonce used for an `account` is not the expected current nonce.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| account | address | undefined |
+| currentNonce | uint256 | undefined |
 
 ### InvalidInput
 

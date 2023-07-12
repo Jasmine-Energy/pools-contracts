@@ -16,32 +16,23 @@ import { IJasminePool }    from "../../interfaces/IJasminePool.sol";
 import { IQualifiedPool }  from "../../interfaces/pool/IQualifiedPool.sol";
 import { IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
 import { IEATBackedPool }  from "../../interfaces/pool/IEATBackedPool.sol";
+import { JasmineErrors }   from "../../interfaces/errors/JasmineErrors.sol";
 
 // External Contracts
 import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
 
 // Utility Libraries
-import { Math }       from "@openzeppelin/contracts/utils/math/Math.sol";
-import { ArrayUtils } from "../../libraries/ArrayUtils.sol";
-import { ERC1155Errors } from "../../interfaces/ERC/IERC6093.sol";
-import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
+import { Math }          from "@openzeppelin/contracts/utils/math/Math.sol";
 
 
 /**
  * @title Jasmine Fee Pool
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Extends JasmineBasePool with withdrawal and retirement fees managed by
- *         a universal admin entity.
+ *         a protocol wide fee manager roll.
  * @custom:security-contact dev@jasmine.energy
  */
 abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
-
-    // ──────────────────────────────────────────────────────────────────────────────
-    // Libraries
-    // ──────────────────────────────────────────────────────────────────────────────
-
-    using ArrayUtils for uint256[];
-
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -64,6 +55,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     /**
      * @param _eat Jasmine Energy Attribute Token address
      * @param _poolFactory Jasmine Pool Factory address
+     * @param _minter Address of the Jasmine Minter address
      */
     constructor(
         address _eat,
@@ -78,95 +70,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     // User Functionality
     // ──────────────────────────────────────────────────────────────────────────────
 
-    /**
-     * @notice Returns the pool's JLT withdrawal rate in basis points
-     * 
-     * @dev If pool's withdrawal rate is not set, defer to pool factory's base rate
-     * 
-     * @return Withdrawal fee in basis points
-     */
-    function withdrawalRate() public view returns (uint96) {
-        if (_withdrawalRate != 0) {
-            return _withdrawalRate;
-        } else {
-            return JasminePoolFactory(poolFactory).baseWithdrawalRate();
-        }
-    }
-
-    /**
-     * @notice Returns the pool's JLT withdrawal rate for withdrawing specific tokens,
-     *         in basis points
-     * 
-     * @dev If pool's specific withdrawal rate is not set, defer to pool factory's base rate
-     * 
-     * @return Withdrawal fee in basis points
-     */
-    function withdrawalSpecificRate() public view returns (uint96) {
-        if (_withdrawalSpecificRate != 0) {
-            return _withdrawalSpecificRate;
-        } else {
-            return JasminePoolFactory(poolFactory).baseWithdrawalSpecificRate();
-        }
-    }
-
-    /**
-     * @notice Returns the pool's JLT retirement rate in basis points
-     * 
-     * @dev If pool's retirement rate is not set, defer to pool factory's base rate
-     * 
-     * @return Retirement rate in basis points
-     */
-    function retirementRate() public view returns (uint96) {
-        if ( _retirementRate != 0) {
-            return  _retirementRate;
-        } else {
-            return JasminePoolFactory(poolFactory).baseRetirementRate();
-        }
-    }
-
-
-    // ──────────────────────────────────────────────────────────────────────────────
-    // Admin Functionality
-    // ──────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * @notice Allows pool fee managers to update the withdrawal rate
-     * 
-     * @dev Requirements:
-     *     - Caller must have fee manager role - in pool factory
-     * 
-     * @dev emits WithdrawalRateUpdate
-     * 
-     * @param newWithdrawalRate New rate on withdrawals in basis points
-     */
-    function updateWithdrawalRate(uint96 newWithdrawalRate) 
-        external virtual
-        onlyFeeManager
-    {
-        _updateWithdrawalRate(newWithdrawalRate);
-    }
-
-    /**
-     * @notice Allows pool fee managers to update the retirement rate
-     * 
-     * @dev Requirements:
-     *     - Caller must have fee manager role - in pool factory
-     * 
-     * @dev emits RetirementRateUpdate
-     * 
-     * @param newRetirementRate New rate on retirements in basis points
-     */
-    function updateRetirementRate(uint96 newRetirementRate) 
-        external virtual
-        onlyFeeManager
-    {
-        _updateRetirementRate(newRetirementRate);
-    }
-
-
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Retirement Functions
-    //  ─────────────────────────────────────────────────────────────────────────────
+    //  ──────────────────────────  Retirement Functions  ───────────────────────────  \\
 
     /// @inheritdoc IRetireablePool
     function retire(
@@ -216,9 +120,8 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     }
 
 
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Withdrawal Functions
-    //  ─────────────────────────────────────────────────────────────────────────────
+    //  ──────────────────────────  Withdrawal Functions  ───────────────────────────  \\
+
 
     /// @inheritdoc IEATBackedPool
     function withdraw(
@@ -319,9 +222,54 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     }
 
 
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Costing Functions
-    //  ─────────────────────────────────────────────────────────────────────────────
+    //  ────────────────────────────  Costing Functions  ────────────────────────────  \\
+
+
+    /**
+     * @notice Returns the pool's JLT withdrawal rate in basis points
+     * 
+     * @dev If pool's withdrawal rate is not set, defer to pool factory's base rate
+     * 
+     * @return Withdrawal fee in basis points
+     */
+    function withdrawalRate() public view returns (uint96) {
+        if (_withdrawalRate != 0) {
+            return _withdrawalRate;
+        } else {
+            return JasminePoolFactory(poolFactory).baseWithdrawalRate();
+        }
+    }
+
+    /**
+     * @notice Returns the pool's JLT withdrawal rate for withdrawing specific tokens,
+     *         in basis points
+     * 
+     * @dev If pool's specific withdrawal rate is not set, defer to pool factory's base rate
+     * 
+     * @return Withdrawal fee in basis points
+     */
+    function withdrawalSpecificRate() public view returns (uint96) {
+        if (_withdrawalSpecificRate != 0) {
+            return _withdrawalSpecificRate;
+        } else {
+            return JasminePoolFactory(poolFactory).baseWithdrawalSpecificRate();
+        }
+    }
+
+    /**
+     * @notice Returns the pool's JLT retirement rate in basis points
+     * 
+     * @dev If pool's retirement rate is not set, defer to pool factory's base rate
+     * 
+     * @return Retirement rate in basis points
+     */
+    function retirementRate() public view returns (uint96) {
+        if ( _retirementRate != 0) {
+            return  _retirementRate;
+        } else {
+            return JasminePoolFactory(poolFactory).baseRetirementRate();
+        }
+    }
 
     /**
      * @notice Cost of withdrawing specified amounts of tokens from pool including
@@ -340,10 +288,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         returns (uint256 cost)
     {
         if (tokenIds.length != amounts.length) {
-            revert ERC1155Errors.ERC1155InvalidArrayLength(
-                tokenIds.length,
-                amounts.length
-            );
+            revert JasmineErrors.InvalidInput();
         }
         // NOTE: If no feeBeneficiary is set, fees may not be collected
         if (JasminePoolFactory(poolFactory).feeBeneficiary() != address(0x0)) {
@@ -408,21 +353,75 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         }
     }
 
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Admin Functionality
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Allows pool fee managers to update the withdrawal rate
+     * 
+     * @dev Requirements:
+     *     - Caller must have fee manager role - in pool factory
+     * 
+     * @dev emits WithdrawalRateUpdate
+     * 
+     * @param newWithdrawalRate New rate on withdrawals in basis points
+     * @param isSpecificRate Whether the new rate is for specific tokens or any
+     */
+    function updateWithdrawalRate(uint96 newWithdrawalRate, bool isSpecificRate) external {
+        _enforceFeeManagerRole();
+        _updateWithdrawalRate(newWithdrawalRate, isSpecificRate);
+    }
+
+    /**
+     * @notice Allows pool fee managers to update the retirement rate
+     * 
+     * @dev Requirements:
+     *     - Caller must have fee manager role - in pool factory
+     * 
+     * @dev emits RetirementRateUpdate
+     * 
+     * @param newRetirementRate New rate on retirements in basis points
+     */
+    function updateRetirementRate(uint96 newRetirementRate) external {
+        _enforceFeeManagerRole();
+        _updateRetirementRate(newRetirementRate);
+    }
+
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Miscellaneous Overrides
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /// @inheritdoc JasmineBasePool
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
+        return interfaceId == type(IFeePool).interfaceId ||
+            super.supportsInterface(interfaceId);
+    }
+
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
+
+    //  ─────────────────────────────  Fee Management  ──────────────────────────────  \\
 
     /**
      * @dev Internal method for setting withdrawal rate
      * 
      * @param newWithdrawalRate New rate on withdrawals in basis points
+     * @param isSpecific Whether the rate is for specific or pool selected withdrawals
      */
-    function _updateWithdrawalRate(uint96 newWithdrawalRate) 
-        internal virtual
-    {
-        _withdrawalRate = newWithdrawalRate;
+    function _updateWithdrawalRate(uint96 newWithdrawalRate, bool isSpecific) private {
+        if (isSpecific) {
+            _withdrawalSpecificRate = newWithdrawalRate;
+        } else {
+            _withdrawalRate = newWithdrawalRate;
+        }
 
-        emit WithdrawalRateUpdate(newWithdrawalRate, _msgSender());
+        emit WithdrawalRateUpdate(newWithdrawalRate, _msgSender(), isSpecific);
     }
 
     /**
@@ -430,24 +429,22 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
      * 
      * @param newRetirementRate New fee on retirements in basis points
      */
-    function _updateRetirementRate(uint96 newRetirementRate) 
-        internal virtual
-    {
+    function _updateRetirementRate(uint96 newRetirementRate) private {
          _retirementRate = newRetirementRate;
 
         emit RetirementRateUpdate(newRetirementRate, _msgSender());
     }
     
-    //  ────────────────────────────────  Modifiers  ────────────────────────────────  \\
+    //  ───────────────────────  Access Control Enforcement  ────────────────────────  \\
 
     /**
-     * @dev Enforces caller has fee manager role in pool factory
+     * @dev Enforces caller has fee manager role in pool factory. 
+     * 
+     * @dev Throws {RequiresRole}
      */
-    modifier onlyFeeManager() {
+    function _enforceFeeManagerRole() private view {
         if (!JasminePoolFactory(poolFactory).hasFeeManagerRole(_msgSender())) {
             revert JasmineErrors.RequiresRole(JasminePoolFactory(poolFactory).FEE_MANAGER_ROLE());
         }
-        _;
     }
-
 }

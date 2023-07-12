@@ -113,11 +113,18 @@ describe("Fee Pool", function () {
   });
 
   describe("Setting Pool Fees", async function () {
-    it("Should allow fee manager to set a pool's withdrawal fee", async function () {
+    it("Should allow fee manager to set a pool's any withdrawal fee", async function () {
       const withdrawalRate = 1_000;
-      expect(await solarPool.updateWithdrawalRate(withdrawalRate))
+      expect(await solarPool.updateWithdrawalRate(withdrawalRate, false))
         .to.be.ok.and.to.emit(poolFactory, "WithdrawalRateUpdate")
-        .withArgs(withdrawalRate, await poolFactory.feeBeneficiary());
+        .withArgs(withdrawalRate, await poolFactory.feeBeneficiary(), false);
+    });
+
+    it("Should allow fee manager to set a pool's specific withdrawal fee", async function () {
+      const withdrawalRate = 1_000;
+      expect(await solarPool.updateWithdrawalRate(withdrawalRate, true))
+        .to.be.ok.and.to.emit(poolFactory, "WithdrawalRateUpdate")
+        .withArgs(withdrawalRate, await poolFactory.feeBeneficiary(), true);
     });
 
     it("Should allow fee manager to set a pool's retirement fee", async function () {

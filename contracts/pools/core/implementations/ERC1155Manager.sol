@@ -13,7 +13,6 @@ import { IERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/IERC1155
 import { RedBlackTree } from "../../../libraries/RedBlackTreeLibrary.sol";
 import { ArrayUtils } from "../../../libraries/ArrayUtils.sol";
 
-import "hardhat/console.sol";
 
 /**
  * @title ERC-1155 Manager
@@ -147,7 +146,6 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         withdrawsUnlocked
     {
         if (tokenIds.length == 1) {
-            console.log("Transfer single: ", tokenIds[0], values[0]);
             _removeDeposit(tokenIds[0], values[0]);
             IERC1155(_tokenAddress).safeTransferFrom(
                 address(this),
@@ -157,7 +155,6 @@ abstract contract ERC1155Manager is ERC1155Receiver {
                 data
             );
         } else {
-            console.log("Transfer batch: ", tokenIds.length, tokenIds[0], values[0]);
             _removeDeposits(tokenIds, values);
             IERC1155(_tokenAddress).safeBatchTransferFrom(
                 address(this),
@@ -201,7 +198,6 @@ abstract contract ERC1155Manager is ERC1155Receiver {
 
                 if (balance == 0) {
                     // TODO: Should never hit this, but requires checks
-                    console.log("balance is 0 for: ", tokenIdsForVintage[j]);
                 } else if (sum + balance < amount) {
                     unchecked {
                         sum += balance;
@@ -282,8 +278,6 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             // If contract's balance of token is equal to value, token ID is new and must be added to token IDs
             _tokenIds[vintage].push(tokenId);
         }
-        console.log("Added single deposit: ", tokenId, value);
-        console.log("Vintage: ", vintage, " has count: ", _tokenIds[vintage].length);
 
         totalDeposits += value;
     }
@@ -316,8 +310,6 @@ abstract contract ERC1155Manager is ERC1155Receiver {
                 _tokenIds[vintage].push(tokenIds[i]);
             }
 
-            console.log("Added batch deposit: ", tokenIds[i], values[i]);
-            console.log("Vintage: ", vintage, " has count: ", _tokenIds[vintage].length);
             unchecked { i++; }
         }
 

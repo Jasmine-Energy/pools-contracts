@@ -30,10 +30,12 @@ interface IFeePool is IEATBackedPool, IRetireablePool {
      * 
      * @param withdrawFeeBips New withdrawal fee in basis points
      * @param beneficiary Address to receive fees
+     * @param isSpecificRate Whether fee was update for specific withdrawals or any
      */
     event WithdrawalRateUpdate(
         uint96 withdrawFeeBips,
-        address indexed beneficiary
+        address indexed beneficiary,
+        bool isSpecificRate
     );
 
     /**

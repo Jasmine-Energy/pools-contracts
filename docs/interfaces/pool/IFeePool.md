@@ -386,7 +386,7 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 ### WithdrawalRateUpdate
 
 ```solidity
-event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
+event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary, bool isSpecificRate)
 ```
 
 
@@ -399,6 +399,7 @@ event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary)
 |---|---|---|
 | withdrawFeeBips  | uint96 | New withdrawal fee in basis points |
 | beneficiary `indexed` | address | Address to receive fees |
+| isSpecificRate  | bool | Whether fee was update for specific withdrawals or any |
 
 
 

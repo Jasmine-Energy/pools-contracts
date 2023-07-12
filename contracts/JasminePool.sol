@@ -12,17 +12,13 @@ import { JasmineBasePool } from "./pools/core/JasmineBasePool.sol";
 import { JasmineFeePool }  from "./pools/extensions/JasmineFeePool.sol";
 
 // Implemented Interfaces
-import { IJasminePool }    from "./interfaces/IJasminePool.sol";
-import { IQualifiedPool }  from "./interfaces/pool/IQualifiedPool.sol";
-import { IRetireablePool } from "./interfaces/pool/IRetireablePool.sol";
-import { IEATBackedPool }  from "./interfaces/pool/IEATBackedPool.sol";
+import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 // External Contracts
 import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
 
 // Utility Libraries
 import { PoolPolicy }    from "./libraries/PoolPolicy.sol";
-import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 
 /**
@@ -59,6 +55,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
      * @param _eat Address of the Jasmine Energy Attribution Token (EAT) contract
      * @param _oracle Address of the Jasmine Oracle contract
      * @param _poolFactory Address of the Jasmine Pool Factory contract
+     * @param _minter Address of the Jasmine Minter address
      */
     constructor(
         address _eat,
@@ -115,7 +112,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         return super.meetsPolicy(tokenId) && _policy.meetsPolicy(oracle, tokenId);
     }
 
-    /// @inheritdoc IQualifiedPool
+    /// @inheritdoc JasmineBasePool
     function policyForVersion(uint8 metadataVersion)
         external view override
         returns (bytes memory policy)
@@ -220,7 +217,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
 
     //  ──────────────────────────  Retirement Overrides  ───────────────────────────  \\
 
-    /// @inheritdoc IRetireablePool
+    /// @inheritdoc JasmineBasePool
     function retire(
         address owner,
         address beneficiary,
@@ -242,4 +239,12 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         return super.retirementCost(amount);
     }
 
+    //  ────────────────────────────  ERC-165 Overrides  ────────────────────────────  \\
+
+    /// @inheritdoc JasmineBasePool
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(JasmineFeePool, JasmineBasePool) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
 }
