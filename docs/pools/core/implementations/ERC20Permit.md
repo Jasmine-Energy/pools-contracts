@@ -242,6 +242,28 @@ function permit(address owner, address spender, uint256 value, uint256 deadline,
 | r | bytes32 | undefined |
 | s | bytes32 | undefined |
 
+### supportsInterface
+
+```solidity
+function supportsInterface(bytes4 interfaceId) external view returns (bool)
+```
+
+
+
+*See {IERC165-supportsInterface}.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| interfaceId | bytes4 | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined |
+
 ### symbol
 
 ```solidity

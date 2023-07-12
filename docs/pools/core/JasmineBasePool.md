@@ -27,29 +27,6 @@ function DOMAIN_SEPARATOR() external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined |
 
-### _selectWithdrawTokens
-
-```solidity
-function _selectWithdrawTokens(uint256 amount) external view returns (uint256[] tokenIds, uint256[] amounts)
-```
-
-
-
-*Internal function to select tokens to withdraw from the contract *
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| amount | uint256 | Number of tokens to withdraw from contract  |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| tokenIds | uint256[] | Token IDs to withdraw |
-| amounts | uint256[] | Number of tokens to withdraw for each token ID |
-
 ### allowance
 
 ```solidity
@@ -541,6 +518,29 @@ function retirementService() external view returns (address)
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined |
+
+### selectWithdrawTokens
+
+```solidity
+function selectWithdrawTokens(uint256 amount) external view returns (uint256[] tokenIds, uint256[] amounts)
+```
+
+
+
+*Internal function to select tokens to withdraw from the contract *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| amount | uint256 | Number of tokens to withdraw from contract  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| tokenIds | uint256[] | Token IDs to withdraw |
+| amounts | uint256[] | Number of tokens to withdraw for each token ID |
 
 ### supportsInterface
 

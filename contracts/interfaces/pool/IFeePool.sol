@@ -1,25 +1,22 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
-
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Base
-import { IEATBackedPool } from "./IEATBackedPool.sol";
-import { IRetireablePool } from "./IRetireablePool.sol";
+import { IJasmineEATBackedPool  as IEATBackedPool  } from "./IEATBackedPool.sol";
+import { IJasmineRetireablePool as IRetireablePool } from "./IRetireablePool.sol";
 
 
 /**
- * @title Fee Pool Interface
+ * @title Jasmine Fee Pool Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Contains functionality and events for pools which have fees for
  *         withdrawals and retirements.
  * @custom:security-contact dev@jasmine.energy
  */
-interface IFeePool is IEATBackedPool, IRetireablePool {
+interface IJasmineFeePool is IEATBackedPool, IRetireablePool {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Events

@@ -3,35 +3,31 @@
 pragma solidity >=0.8.17;
 
 
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Core Implementations
 import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
-import { IJasmineFeeManager } from "./interfaces/IJasmineFeeManager.sol";
-import { Ownable2StepUpgradeable as Ownable2Step } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import { IJasmineFeeManager }  from "./interfaces/IJasmineFeeManager.sol";
+import { Ownable2StepUpgradeable  as Ownable2Step } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import { AccessControlUpgradeable as AccessControl } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // External Contracts
-import { IJasminePool } from "./interfaces/IJasminePool.sol";
+import { IJasminePool }      from "./interfaces/IJasminePool.sol";
 import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import { IUniswapV3Pool }    from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import { IERC165 }           from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import { IERC1155Receiver }  from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 
-// Proxies
+// Proxies Contracts
 import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import { BeaconProxy } from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
-
-// Interfaces
-import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import { IERC1155Receiver } from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
+import { BeaconProxy }       from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 
 // Utility Libraries
-import { PoolPolicy } from "./libraries/PoolPolicy.sol";
+import { PoolPolicy }    from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { Create2 }       from "@openzeppelin/contracts/utils/Create2.sol";
+import { Address }       from "@openzeppelin/contracts/utils/Address.sol";
 import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 
@@ -56,7 +52,6 @@ contract JasminePoolFactory is
 
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
-    using PoolPolicy for PoolPolicy.DepositPolicy;
     using Address for address;
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -150,7 +145,7 @@ contract JasminePoolFactory is
     error PoolExists(address pool);
 
     /// @dev Emitted for failed supportsInterface check - per ERC-165
-    error InvalidConformance(bytes4 interfaceId);
+    error MustSupportInterface(bytes4 interfaceId);
 
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -163,10 +158,7 @@ contract JasminePoolFactory is
      * @param _uniswapFactory Address of Uniswap V3 Factory
      * @param _usdc Address of USDC token
      */
-    constructor(
-        address _uniswapFactory,
-        address _usdc
-    ) {
+    constructor(address _uniswapFactory, address _usdc) {
         // 1. Validate inputs
         if (_uniswapFactory == address(0x0) || 
             _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
@@ -238,7 +230,7 @@ contract JasminePoolFactory is
     //  ───────────────  Jasmine Pool Factory Interface Conformance  ────────────────  \\
 
     /// @notice Returns the total number of pools deployed
-    function totalPools() external view returns (uint256) {
+    function totalPools() external view returns (uint256 numberOfPools) {
         return _pools.length();
     }
 
@@ -333,8 +325,7 @@ contract JasminePoolFactory is
         string calldata symbol,
         uint160 initialSqrtPriceX96
     )
-        external
-        onlyPoolManager
+        external onlyPoolManager
         returns (address newPool)
     {
         // 1. Encode packed policy and create hash
@@ -391,8 +382,7 @@ contract JasminePoolFactory is
         string calldata symbol,
         uint160 initialSqrtPriceX96
     )
-        public
-        onlyPoolManager
+        public onlyPoolManager
         returns (address newPool)
     {
         // 1. Validate pool implementation version
@@ -438,8 +428,7 @@ contract JasminePoolFactory is
         address newPoolImplementation,
         uint256 poolIndex
     )
-        external
-        onlyPoolManager
+        external onlyPoolManager
     {
         _validatePoolImplementation(newPoolImplementation);
 
@@ -459,8 +448,7 @@ contract JasminePoolFactory is
      * @param newPoolImplementation New pool implementation address to support
      */
     function addPoolImplementation(address newPoolImplementation) 
-        public
-        onlyPoolManager
+        public onlyPoolManager
         returns (uint256 indexInPools)
     {
         _validatePoolImplementation(newPoolImplementation);
@@ -497,8 +485,7 @@ contract JasminePoolFactory is
      * 
      */
     function removePoolImplementation(uint256 implementationsIndex)
-        external
-        onlyPoolManager
+        external onlyPoolManager
     {
         if (implementationsIndex >= _poolBeacons.length() ||
             _deprecatedPoolImplementations[implementationsIndex]) revert JasmineErrors.ValidationFailed();
@@ -516,8 +503,7 @@ contract JasminePoolFactory is
      * @param implementationsIndex Index of pool to undo removal
      */
     function readdPoolImplementation(uint256 implementationsIndex)
-        external
-        onlyPoolManager
+        external onlyPoolManager
     {
         if (implementationsIndex >= _poolBeacons.length() ||
             !_deprecatedPoolImplementations[implementationsIndex]) revert JasmineErrors.ValidationFailed();
@@ -544,7 +530,9 @@ contract JasminePoolFactory is
      * 
      * @param newWithdrawalRate New base rate for withdrawals in basis points
      */
-    function setBaseWithdrawalRate(uint96 newWithdrawalRate) external onlyFeeManager {
+    function setBaseWithdrawalRate(uint96 newWithdrawalRate)
+        external onlyFeeManager
+    {
         baseWithdrawalRate = newWithdrawalRate;
 
         emit BaseWithdrawalFeeUpdate(newWithdrawalRate, feeBeneficiary, false);
@@ -561,7 +549,9 @@ contract JasminePoolFactory is
      * 
      * @param newWithdrawalRate New base rate for withdrawals in basis points
      */
-    function setBaseWithdrawalSpecificRate(uint96 newWithdrawalRate) external onlyFeeManager {
+    function setBaseWithdrawalSpecificRate(uint96 newWithdrawalRate)
+        external onlyFeeManager
+    {
         if (newWithdrawalRate < baseWithdrawalRate) revert JasmineErrors.InvalidInput();
         baseWithdrawalSpecificRate = newWithdrawalRate;
 
@@ -578,7 +568,9 @@ contract JasminePoolFactory is
      * 
      * @param newRetirementRate New base rate for retirements in basis points
      */
-    function setBaseRetirementRate(uint96 newRetirementRate) external onlyFeeManager {
+    function setBaseRetirementRate(uint96 newRetirementRate) 
+        external onlyFeeManager
+    {
         baseRetirementRate = newRetirementRate;
 
         emit BaseRetirementFeeUpdate(newRetirementRate, feeBeneficiary);
@@ -596,7 +588,9 @@ contract JasminePoolFactory is
      * 
      * @param newFeeBeneficiary Address to receive all pool JLT fees
      */
-    function setFeeBeneficiary(address newFeeBeneficiary) external onlyFeeManager {
+    function setFeeBeneficiary(address newFeeBeneficiary)
+        external onlyFeeManager
+    {
         _validateFeeReceiver(newFeeBeneficiary);
         feeBeneficiary = newFeeBeneficiary;
 
@@ -616,7 +610,9 @@ contract JasminePoolFactory is
      * 
      * @param newPoolsURI New base endpoint for pools to point to
      */
-    function updatePoolsBaseURI(string calldata newPoolsURI) external onlyPoolManager {
+    function updatePoolsBaseURI(string calldata newPoolsURI)
+        external onlyPoolManager
+    {
         emit PoolsBaseURIChanged(newPoolsURI, _poolsBaseURI);
         _poolsBaseURI = newPoolsURI;
     }
@@ -669,7 +665,10 @@ contract JasminePoolFactory is
      * 
      * @param account Account to check fee manager roll against
      */
-    function hasFeeManagerRole(address account) external view returns (bool) {
+    function hasFeeManagerRole(address account)
+        external view
+        returns (bool isFeeManager)
+    {
         return hasRole(FEE_MANAGER_ROLE, account);
     }
 
@@ -677,14 +676,19 @@ contract JasminePoolFactory is
      * @inheritdoc Ownable2Step
      * @dev Revokes admin role for previous owner and grants to newOwner
      */
-    function _transferOwnership(address newOwner) internal virtual override {
+    function _transferOwnership(address newOwner)
+        internal override
+    {
         _revokeRole(DEFAULT_ADMIN_ROLE, owner());
         _grantRole(DEFAULT_ADMIN_ROLE, newOwner);
         super._transferOwnership(newOwner);
     }
 
     /// @notice Renouncing ownership is deliberately disabled
-    function renounceOwnership() public view override onlyOwner {
+    function renounceOwnership() 
+        public view override
+        onlyOwner
+    {
         revert JasmineErrors.Disabled();
     }
 
@@ -763,7 +767,7 @@ contract JasminePoolFactory is
      * @dev Checks if a given address implements JasminePool Interface and IERC1155Receiver, is not
      *      already in list of pool and is not empty
      * 
-     * @dev Throws PoolExists(address pool) if policyHash exists or throws InvalidConformance(bytes4 interfaceId)
+     * @dev Throws PoolExists(address pool) if policyHash exists or throws MustSupportInterface(bytes4 interfaceId)
      *      if implementation fails interface checks or errors if address is empty
      * 
      * @param poolImplementation Address of pool implementation
@@ -771,16 +775,17 @@ contract JasminePoolFactory is
     function _validatePoolImplementation(address poolImplementation)
         private view 
     {
-        if (!IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId))
-            revert InvalidConformance(type(IJasminePool).interfaceId);
-        
-        if (!IERC165(poolImplementation).supportsInterface(type(IERC1155Receiver).interfaceId))
-            revert InvalidConformance(type(IERC1155Receiver).interfaceId);
+        if (!IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId)) {
+            revert MustSupportInterface(type(IJasminePool).interfaceId);
+        } else if (!IERC165(poolImplementation).supportsInterface(type(IERC1155Receiver).interfaceId)) {
+            revert MustSupportInterface(type(IERC1155Receiver).interfaceId);
+        }
 
         for (uint i = 0; i < _poolBeacons.length();) {
             UpgradeableBeacon beacon = UpgradeableBeacon(_poolBeacons.at(i));
-            if (beacon.implementation() == poolImplementation)
+            if (beacon.implementation() == poolImplementation) {
                 revert PoolExists(poolImplementation);
+            }
             
             unchecked { i++; }
         }
@@ -794,8 +799,9 @@ contract JasminePoolFactory is
     function _validatePoolVersion(uint256 poolImplementationVersion)
         private view
     {
-        if (poolImplementationVersion >= _poolBeacons.length() || 
-            _deprecatedPoolImplementations[poolImplementationVersion]) revert JasmineErrors.ValidationFailed();
+        if (poolImplementationVersion >= _poolBeacons.length() || _deprecatedPoolImplementations[poolImplementationVersion]) {
+            revert JasmineErrors.ValidationFailed();
+        }
     }
 
     /**

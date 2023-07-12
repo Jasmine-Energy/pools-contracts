@@ -94,7 +94,7 @@ describe(Contracts.factory, function () {
             kind: "uups",
           }
         )
-      ).to.be.revertedWithCustomError(poolFactory, "InvalidConformance");
+      ).to.be.revertedWithCustomError(poolFactory, "MustSupportInterface");
     });
 
     it("Should revert if fee beneficiary is set to zero address", async function () {

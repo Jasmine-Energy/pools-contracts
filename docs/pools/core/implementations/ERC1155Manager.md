@@ -10,29 +10,6 @@ Manages deposits of ERC-1155 tokens (from a single contract) and enables        
 
 ## Methods
 
-### _selectWithdrawTokens
-
-```solidity
-function _selectWithdrawTokens(uint256 amount) external view returns (uint256[] tokenIds, uint256[] amounts)
-```
-
-
-
-*Internal function to select tokens to withdraw from the contract *
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| amount | uint256 | Number of tokens to withdraw from contract  |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| tokenIds | uint256[] | Token IDs to withdraw |
-| amounts | uint256[] | Number of tokens to withdraw for each token ID |
-
 ### onERC1155BatchReceived
 
 ```solidity
@@ -84,6 +61,29 @@ function onERC1155Received(address, address from, uint256 tokenId, uint256 value
 | Name | Type | Description |
 |---|---|---|
 | _0 | bytes4 | `bytes4(keccak256(&quot;onERC1155Received(address,address,uint256,uint256,bytes)&quot;))` if transfer is allowed |
+
+### selectWithdrawTokens
+
+```solidity
+function selectWithdrawTokens(uint256 amount) external view returns (uint256[] tokenIds, uint256[] amounts)
+```
+
+
+
+*Internal function to select tokens to withdraw from the contract *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| amount | uint256 | Number of tokens to withdraw from contract  |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| tokenIds | uint256[] | Token IDs to withdraw |
+| amounts | uint256[] | Number of tokens to withdraw for each token ID |
 
 ### supportsInterface
 

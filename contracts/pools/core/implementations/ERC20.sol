@@ -3,10 +3,14 @@
 
 pragma solidity ^0.8.17;
 
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
+
 import { IERC20 }         from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { Context }        from "@openzeppelin/contracts/utils/Context.sol";
 import { ERC20Errors }    from "../../../interfaces/ERC/IERC6093.sol";
+import { ERC165 }         from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import { IERC165 }        from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -35,7 +39,7 @@ import { ERC20Errors }    from "../../../interfaces/ERC/IERC6093.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-abstract contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors {
+abstract contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
     mapping(address => uint256) private _balances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
@@ -366,5 +370,15 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors {
                 _approve(owner, spender, currentAllowance - value, false);
             }
         }
+    }
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return
+            interfaceId == type(IERC20).interfaceId ||
+            interfaceId == type(IERC20Metadata).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 }

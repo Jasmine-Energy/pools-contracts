@@ -3,6 +3,8 @@
 
 pragma solidity ^0.8.17;
 
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
+
 import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import { ERC20 }        from "./ERC20.sol";
 import { ECDSA }        from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -80,5 +82,14 @@ abstract contract ERC20Permit is ERC20, IERC20Permit, EIP712, Nonces {
     // solhint-disable-next-line func-name-mixedcase
     function DOMAIN_SEPARATOR() external view virtual returns (bytes32) {
         return _domainSeparatorV4();
+    }
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return
+            interfaceId == type(IERC20Permit).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 }

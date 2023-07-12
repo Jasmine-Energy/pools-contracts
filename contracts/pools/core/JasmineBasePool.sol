@@ -2,23 +2,22 @@
 
 pragma solidity >=0.8.17;
 
-
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Implemented Interfaces
-import { IJasminePool }    from "../../interfaces/IJasminePool.sol";
-import { IQualifiedPool }  from "../../interfaces/pool/IQualifiedPool.sol";
-import { IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
-import { IEATBackedPool }  from "../../interfaces/pool/IEATBackedPool.sol";
+import { IJasminePool }                              from "../../interfaces/IJasminePool.sol";
+import { IJasmineEATBackedPool  as IEATBackedPool  } from "../../interfaces/pool/IEATBackedPool.sol";
+import { IJasmineQualifiedPool  as IQualifiedPool  } from "../../interfaces/pool/IQualifiedPool.sol";
+import { IJasmineRetireablePool as IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
+import { IERC1046 }                                  from "../../interfaces/ERC/IERC1046.sol";
 
-// Implementation Contracts
+// Inheritted Contracts
 import { ERC1155Manager }  from "./implementations/ERC1155Manager.sol";
 import { Initializable }   from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC20 }           from "./implementations/ERC20.sol";
 import { ERC20Permit }     from "./implementations/ERC20Permit.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import { ERC1155Receiver }  from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 
 // External Contracts
 import { JasmineEAT }               from "@jasmine-energy/contracts/src/JasmineEAT.sol";
@@ -31,12 +30,6 @@ import { Calldata }      from "../../libraries/Calldata.sol";
 import { Math }          from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils }    from "../../libraries/ArrayUtils.sol";
 import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
-
-// Interfaces
-import { IERC20 }         from "@openzeppelin/contracts/interfaces/IERC20.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import { IERC1046 }       from "../../interfaces/ERC/IERC1046.sol";
-import { IERC165 }        from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 
 /**
@@ -177,8 +170,7 @@ abstract contract JasmineBasePool is
         }
 
         // 3. Select tokens to withdraw
-        (uint256[] memory tokenIds, uint256[] memory amounts) = (new uint256[](0), new uint256[](0));
-        (tokenIds, amounts) = _selectWithdrawTokens(eatQuantity);
+        (uint256[] memory tokenIds, uint256[] memory amounts) = selectWithdrawTokens(eatQuantity);
 
         // 4. Encode transfer data
         bool hasFractional = eatQuantity > (amount / (10 ** decimals()));
@@ -221,9 +213,9 @@ abstract contract JasmineBasePool is
         uint256 amount
     )
         external virtual
-        onlyEATApproved(from)
         returns (uint256 jltQuantity)
     {
+        _enforceEATApproved(from);
         return _deposit(from, tokenId, amount);
     }
 
@@ -234,18 +226,16 @@ abstract contract JasmineBasePool is
         uint256[] calldata amounts
     )
         external virtual
-        onlyEATApproved(from)
         nonReentrant
         returns (uint256 jltQuantity)
     {
+        _enforceEATApproved(from);
         eat.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
         return _standardizeDecimal(amounts.sum());
     }
 
     /**
      * @dev Internal utility function to deposit EATs to pool
-     * 
-     * @dev Throw ERC1155InsufficientApproval if pool is not an approved operator
      * 
      * @param from Address from which EATs will be transfered
      * @param tokenId ID of EAT to deposit into pool
@@ -281,7 +271,7 @@ abstract contract JasmineBasePool is
             uint256[] memory amounts
         )
     {
-        (tokenIds, amounts) = _selectWithdrawTokens(amount);
+        (tokenIds, amounts) = selectWithdrawTokens(amount);
         _withdraw(
             _msgSender(),
             recipient,
@@ -305,7 +295,7 @@ abstract contract JasmineBasePool is
             uint256[] memory amounts
         )
     {
-        (tokenIds, amounts) = _selectWithdrawTokens(amount);
+        (tokenIds, amounts) = selectWithdrawTokens(amount);
         _withdraw(
             sender,
             recipient,
@@ -436,18 +426,18 @@ abstract contract JasmineBasePool is
 
 
     /**
-     * @inheritdoc IERC20Metadata
+     * @inheritdoc ERC20
      * @dev See {IERC20Metadata-name}
      */
-    function name() public view override(ERC20, IERC20Metadata) returns (string memory) {
+    function name() public view override returns (string memory) {
         return _name;
     }
 
     /**
-     * @inheritdoc IERC20Metadata
+     * @inheritdoc ERC20
      * @dev See {IERC20Metadata-symbol}
      */
-    function symbol() public view override(ERC20, IERC20Metadata) returns (string memory) {
+    function symbol() public view override returns (string memory) {
         return _symbol;
     }
 
@@ -464,14 +454,15 @@ abstract contract JasmineBasePool is
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
     /**
-     * @inheritdoc IERC165
+     * @inheritdoc ERC20
      * @dev See {IERC165-supportsInterface}
      */
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override returns (bool) {
-        return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId ||
-            interfaceId == type(IJasminePool).interfaceId ||
+    function supportsInterface(bytes4 interfaceId)
+        public view virtual
+        override(ERC1155Receiver, ERC20, ERC20Permit)
+        returns (bool)
+    {
+        return interfaceId == type(IJasminePool).interfaceId ||
             interfaceId == type(IERC1046).interfaceId ||
             super.supportsInterface(interfaceId);
     }
@@ -506,7 +497,9 @@ abstract contract JasmineBasePool is
      * 
      * Emits a {Withdraw} event.
      */
-    function _afterDeposit(address from, uint256 quantity) internal override {
+    function _afterDeposit(address from, uint256 quantity) 
+        internal override
+    {
         _mint(
             from,
             _standardizeDecimal(quantity)
@@ -540,10 +533,10 @@ abstract contract JasmineBasePool is
      * @return value Decimal value of input per pool's decimal specificity
      */
     function _standardizeDecimal(uint256 input) 
-        internal view
+        private pure
         returns (uint256 value)
     {
-        return input * (10 ** decimals());
+        return input * (10 ** 18);
     }
 
     /**
@@ -569,7 +562,9 @@ abstract contract JasmineBasePool is
      * 
      * @param tokenIds EAT token IDs to check eligibility
      */
-    function _enforceEligibility(uint256[] memory tokenIds) private view {
+    function _enforceEligibility(uint256[] memory tokenIds)
+        private view
+    {
         for (uint i = 0; i < tokenIds.length;) {
             if (!meetsPolicy(tokenIds[i])) revert Unqualified(tokenIds[i]);
 
@@ -582,8 +577,9 @@ abstract contract JasmineBasePool is
      * 
      * @dev Throws Prohibited() on failure
      */
-    modifier onlyEATApproved(address holder) {
+    function _enforceEATApproved(address holder)
+        private view
+    {
         if (!eat.isApprovedForAll(holder, _msgSender())) revert JasmineErrors.Prohibited();
-        _;
     }
 }

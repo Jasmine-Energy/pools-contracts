@@ -1,8 +1,8 @@
-# IQualifiedPool
+# IJasmineQualifiedPool
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> IQualifiedPool
+> Jasmine Qualified Pool Interface
 
 Interface for any pool that has a deposit policy which constrains deposits.
 

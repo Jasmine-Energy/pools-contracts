@@ -339,7 +339,7 @@ function grantRole(bytes32 role, address account) external nonpayable
 ### hasFeeManagerRole
 
 ```solidity
-function hasFeeManagerRole(address account) external view returns (bool)
+function hasFeeManagerRole(address account) external view returns (bool isFeeManager)
 ```
 
 
@@ -356,7 +356,7 @@ function hasFeeManagerRole(address account) external view returns (bool)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | undefined |
+| isFeeManager | bool | undefined |
 
 ### hasRole
 
@@ -634,7 +634,7 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 ### totalPools
 
 ```solidity
-function totalPools() external view returns (uint256)
+function totalPools() external view returns (uint256 numberOfPools)
 ```
 
 Returns the total number of pools deployed
@@ -646,7 +646,7 @@ Returns the total number of pools deployed
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined |
+| numberOfPools | uint256 | undefined |
 
 ### transferOwnership
 
@@ -1060,10 +1060,21 @@ error Disabled()
 *Emitted if function is disabled*
 
 
-### InvalidConformance
+### InvalidInput
 
 ```solidity
-error InvalidConformance(bytes4 interfaceId)
+error InvalidInput()
+```
+
+
+
+*Emitted if input is invalid*
+
+
+### MustSupportInterface
+
+```solidity
+error MustSupportInterface(bytes4 interfaceId)
 ```
 
 
@@ -1075,17 +1086,6 @@ error InvalidConformance(bytes4 interfaceId)
 | Name | Type | Description |
 |---|---|---|
 | interfaceId | bytes4 | undefined |
-
-### InvalidInput
-
-```solidity
-error InvalidInput()
-```
-
-
-
-*Emitted if input is invalid*
-
 
 ### NoPool
 

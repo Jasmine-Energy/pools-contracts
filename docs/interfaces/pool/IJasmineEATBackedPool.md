@@ -1,12 +1,12 @@
-# IRetireablePool
+# IJasmineEATBackedPool
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> Retireable Pool Interface
+> Jasmine EAT Backed Pool Interface
 
-Extends pools with retirement functionality and events.
+Contains functionality and events for pools which issue JLTs for EATs         deposits and permit withdrawals of EATs.
 
-
+*Due to linearization issues, ERC-20 and ERC-1155 Receiver are not enforced      conformances - but likely should be.*
 
 ## Methods
 
@@ -80,25 +80,6 @@ Used to deposit EATs from another account into the pool to receive JLTs.
 | Name | Type | Description |
 |---|---|---|
 | jltQuantity | uint256 | Number of JLTs issued for deposit  Emits a {Deposit} event. |
-
-### retire
-
-```solidity
-function retire(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
-```
-
-Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;beneficiary&#39;. 
-
-*Internally, calls are routed to Retirement Service to facilitate the retirement. Emits a {Retirement} event. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - Owner cannot be zero address *
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| owner | address | JLT owner from which to burn tokens |
-| beneficiary | address | Address to receive retirement acknowledgment. If none, assume msg.sender |
-| amount | uint256 | Number of JLTs to withdraw |
-| data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |
 
 ### retirementCost
 
@@ -259,24 +240,6 @@ event Deposit(address indexed operator, address indexed owner, uint256 quantity)
 | operator `indexed` | address | Initiator of the deposit |
 | owner `indexed` | address | Token holder depositting to contract |
 | quantity  | uint256 | Number of EATs deposited. Note: JLTs issued are 1-1 with EATs |
-
-### Retirement
-
-```solidity
-event Retirement(address indexed operator, address indexed beneficiary, uint256 quantity)
-```
-
-emitted when tokens from a pool are retired 
-
-*must be accompanied by a token burn event *
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| operator `indexed` | address | Initiator of retirement |
-| beneficiary `indexed` | address | Designate beneficiary of retirement |
-| quantity  | uint256 | Number of JLT being retired |
 
 ### Withdraw
 

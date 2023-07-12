@@ -1,8 +1,8 @@
-# IFeePool
+# IJasmineFeePool
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> Fee Pool Interface
+> Jasmine Fee Pool Interface
 
 Contains functionality and events for pools which have fees for         withdrawals and retirements.
 

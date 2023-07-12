@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
 
 /**
- * @title EAT Backed Pool Interface
+ * @title Jasmine EAT Backed Pool Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Contains functionality and events for pools which issue JLTs for EATs
  *         deposits and permit withdrawals of EATs.
@@ -12,7 +12,7 @@ pragma solidity >=0.8.0;
  *      conformances - but likely should be.
  * @custom:security-contact dev@jasmine.energy
  */
-interface IEATBackedPool {
+interface IJasmineEATBackedPool {
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Events

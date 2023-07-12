@@ -2,16 +2,13 @@
 
 pragma solidity >=0.8.17;
 
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
-
-import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
+import { IERC1155 }         from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import { ERC1155Receiver }  from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import { IERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import { RedBlackTree } from "../../../libraries/RedBlackTreeLibrary.sol";
-import { ArrayUtils } from "../../../libraries/ArrayUtils.sol";
+import { RedBlackTree }     from "../../../libraries/RedBlackTreeLibrary.sol";
+import { ArrayUtils }       from "../../../libraries/ArrayUtils.sol";
 
 
 /**
@@ -90,10 +87,10 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint256 value,
         bytes memory
     )
-        public virtual override
+        external override
         returns (bytes4)
     {
-        _enforceTokenAddress(msg.sender);
+        _enforceTokenCaller();
 
         _beforeDeposit(from, _asSingletonArray(tokenId), _asSingletonArray(value));
         _addDeposit(tokenId, value);
@@ -110,10 +107,10 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint256[] memory values,
         bytes memory
     )
-        public virtual override
+        external override
         returns (bytes4)
     {
-        _enforceTokenAddress(msg.sender);
+        _enforceTokenCaller();
 
         _beforeDeposit(from, tokenIds, values);
         uint256 quantityDepositted = _addDeposits(tokenIds, values);
@@ -178,7 +175,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
      * @return tokenIds Token IDs to withdraw
      * @return amounts Number of tokens to withdraw for each token ID
      */
-    function _selectWithdrawTokens(uint256 amount)
+    function selectWithdrawTokens(uint256 amount)
         public view
         returns (
             uint256[] memory tokenIds,
@@ -411,23 +408,26 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     //  Modifiers and State Enforcement Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-
+    /// @dev Enforces that contract is in an explicitly set unlocked state for transfers
     function _enforceUnlock() private view {
         if (_isUnlocked != WITHDRAWS_UNLOCKED) revert WithdrawsLocked();
     }
 
+    /// @dev Unlocks withdrawals for the contract
     modifier withdrawal() {
         _isUnlocked = WITHDRAWS_UNLOCKED;
         _;
         _isUnlocked = WITHDRAWS_LOCK;
     }
 
+    /// @dev Enforces that withdraw modifier is explicitly stated by invoking function
     modifier withdrawsUnlocked() {
         _enforceUnlock();
         _;
     }
 
-    function _enforceTokenAddress(address tokenAddress) private view {
-        if (_tokenAddress != tokenAddress) revert InvalidTokenAddress(tokenAddress, _tokenAddress);
+    /// @dev Enforces that caller is the expect token address
+    function _enforceTokenCaller() private view {
+        if (_tokenAddress != msg.sender) revert InvalidTokenAddress(msg.sender, _tokenAddress);
     }
 }

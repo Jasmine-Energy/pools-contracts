@@ -3,9 +3,7 @@
 pragma solidity >=0.8.17;
 
 
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Parent Contract
 import { JasmineBasePool } from "./pools/core/JasmineBasePool.sol";
@@ -242,9 +240,11 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     //  ────────────────────────────  ERC-165 Overrides  ────────────────────────────  \\
 
     /// @inheritdoc JasmineBasePool
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override(JasmineFeePool, JasmineBasePool) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public view virtual 
+        override(JasmineFeePool, JasmineBasePool)
+        returns (bool)
+    {
         return super.supportsInterface(interfaceId);
     }
 }

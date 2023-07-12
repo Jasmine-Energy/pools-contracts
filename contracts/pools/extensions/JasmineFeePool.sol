@@ -3,20 +3,17 @@
 pragma solidity >=0.8.17;
 
 
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-// Implementation Contracts
+// Inheritted Contracts
 import { JasmineBasePool } from "../core/JasmineBasePool.sol";
 
 // Implemented Interfaces
-import { IFeePool }        from "../../interfaces/pool/IFeePool.sol";
-import { IJasminePool }    from "../../interfaces/IJasminePool.sol";
-import { IQualifiedPool }  from "../../interfaces/pool/IQualifiedPool.sol";
-import { IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
-import { IEATBackedPool }  from "../../interfaces/pool/IEATBackedPool.sol";
-import { JasmineErrors }   from "../../interfaces/errors/JasmineErrors.sol";
+import { IJasminePool } from "../../interfaces/IJasminePool.sol";
+import { IJasmineEATBackedPool  as IEATBackedPool }  from "../../interfaces/pool/IEATBackedPool.sol";
+import { IJasmineFeePool        as IFeePool }        from "../../interfaces/pool/IFeePool.sol";
+import { IJasmineRetireablePool as IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
+import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
 
 // External Contracts
 import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
@@ -72,7 +69,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
 
     //  ──────────────────────────  Retirement Functions  ───────────────────────────  \\
 
-    /// @inheritdoc IRetireablePool
+    /// @inheritdoc JasmineBasePool
     function retire(
         address owner,
         address beneficiary,
@@ -123,7 +120,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     //  ──────────────────────────  Withdrawal Functions  ───────────────────────────  \\
 
 
-    /// @inheritdoc IEATBackedPool
+    /// @inheritdoc JasmineBasePool
     function withdraw(
         address recipient,
         uint256 amount,
@@ -155,7 +152,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         );
     }
 
-    /// @inheritdoc IEATBackedPool
+    /// @inheritdoc JasmineBasePool
     function withdrawFrom(
         address sender,
         address recipient,

@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
+
+// Jasmine Type Conformances
 import { PoolPolicy } from "../libraries/PoolPolicy.sol";
 
 
