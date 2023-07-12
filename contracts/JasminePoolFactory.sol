@@ -183,16 +183,17 @@ contract JasminePoolFactory is
         address _feeBeneficiary,
         string memory _tokensBaseURI
     )
-        external initializer
+        external initializer onlyProxy
     {
-        // 1. Validate inputs
+        // 1. Initialize dependencies
+        __UUPSUpgradeable_init();
+        __Ownable2Step_init();
+        __AccessControl_init();
+
+        // 2. Validate inputs
         _validatePoolImplementation(_poolImplementation);
         _validateFeeReceiver(_feeBeneficiary);
         if (_owner == address(0x0)) revert JasmineErrors.InvalidInput();
-
-        // 2. Initialize dependencies
-        __Ownable2Step_init();
-        __AccessControl_init();
 
         // 3. Set fields
         _poolsBaseURI = _tokensBaseURI;
@@ -824,7 +825,6 @@ contract JasminePoolFactory is
         }
         _;
     }
-
     
     /// @dev Enforces caller has fee manager role in pool factory
     modifier onlyPoolManager() {

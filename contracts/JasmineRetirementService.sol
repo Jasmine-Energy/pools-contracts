@@ -51,10 +51,12 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, Ownabl
         eat = JasmineEAT(_eat);
     }
 
-    function initialize(address _owner) external initializer {
-        __Ownable2Step_init();
-
+    function initialize(address _owner) external initializer onlyProxy {
         _transferOwnership(_owner);
+
+        __UUPSUpgradeable_init();
+        __Ownable2Step_init();
+        __ERC1155Receiver_init();
 
         eat.setApprovalForAll(address(minter), true);
     }

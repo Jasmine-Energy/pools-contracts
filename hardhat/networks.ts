@@ -51,7 +51,6 @@ export const forkNetwork: HttpNetworkUserConfig = externalNetworks[forkNetworkNa
 const hardhat: HardhatNetworkUserConfig = {
   chainId: 31337,
   loggingEnabled: true,
-  allowUnlimitedContractSize: true,
   accounts,
   forking: {
     url: forkNetwork.url!,

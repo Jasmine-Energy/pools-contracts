@@ -1,9 +1,10 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { Contracts, colouredLog } from '@/utils';
+import { delay } from '@/utils/delay';
 
 const deployRetirementService: DeployFunction = async function (
-    { deployments, network, run, hardhatArguments, getNamedAccounts }: HardhatRuntimeEnvironment
+    { deployments, network, run, hardhatArguments, getNamedAccounts, upgrades }: HardhatRuntimeEnvironment
 ) {
     colouredLog.yellow(`deploying Retirement Service to: ${network.name}`);
 
@@ -44,11 +45,18 @@ const deployRetirementService: DeployFunction = async function (
         log: hardhatArguments.verbose
     });
 
-    colouredLog.blue(`Deployed Retirement Service to: ${retirer.address}`);
+    if (network.tags['public']) {
+        colouredLog.yellow(`Deploying Retirement Service to: ${retirer.address} and waiting for 30 seconds for the contract to be deployed...`);
+        await delay(30 * 1_000);
+    }
+
+    const implementationAddress = await upgrades.erc1967.getImplementationAddress(retirer.address);
+
+    colouredLog.blue(`Deployed Retirement Service to: ${retirer.address} implementation: ${implementationAddress}`);
 
     // 3. If on external network, verify contracts
     if (network.tags['public']) {
-        console.log('Verifyiyng on Etherscan...');
+        colouredLog.yellow('Verifyiyng on Etherscan...');
         try {
             await run('verify:verify', {
                 address: retirer.address,
@@ -57,6 +65,7 @@ const deployRetirementService: DeployFunction = async function (
                     eat,
                 ],
             });
+            colouredLog.green(`Verification successful!`);
         } catch (err) {
             colouredLog.red(`Verification failed. Error: ${err}`);
         }
