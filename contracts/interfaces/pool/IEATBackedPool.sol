@@ -216,9 +216,7 @@ interface IJasmineEATBackedPool {
      * 
      * @return cost Price of withdrawing EATs in JLTs
      */
-    function withdrawalCost(
-        uint256 amount
-    ) external view returns (uint256 cost);
+    function withdrawalCost(uint256 amount) external view returns (uint256 cost);
 
     /**
      * @notice Cost of retiring JLTs from pool.
@@ -227,8 +225,5 @@ interface IJasmineEATBackedPool {
      * 
      * @return cost Price of retiring in JLTs.
      */
-    function retirementCost(
-        uint256 amount
-    ) external view returns (uint256 cost);
-    
+    function retirementCost(uint256 amount) external view returns (uint256 cost);
 }

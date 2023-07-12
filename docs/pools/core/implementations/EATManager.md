@@ -1,14 +1,31 @@
-# ERC1155Manager
+# EATManager
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> ERC-1155 Manager
+> Jasmien EAT Manager
 
-Manages deposits of ERC-1155 tokens (from a single contract) and enables         interactions with the underlying deposits through explicit conventions.
+Manages deposits and withdraws of Jasmine EATs (ERC-1155).
 
 
 
 ## Methods
+
+### eat
+
+```solidity
+function eat() external view returns (address)
+```
+
+
+
+*Address of the ERC-1155 contract*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
 
 ### onERC1155BatchReceived
 
@@ -106,23 +123,6 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined |
-
-### totalDeposits
-
-```solidity
-function totalDeposits() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
 
 
 

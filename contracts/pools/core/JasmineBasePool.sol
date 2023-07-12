@@ -12,12 +12,12 @@ import { IJasmineRetireablePool as IRetireablePool } from "../../interfaces/pool
 import { IERC1046 }                                  from "../../interfaces/ERC/IERC1046.sol";
 
 // Inheritted Contracts
-import { ERC1155Manager }  from "./implementations/ERC1155Manager.sol";
+import { EATManager }      from "./implementations/EATManager.sol";
 import { Initializable }   from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC20 }           from "./implementations/ERC20.sol";
 import { ERC20Permit }     from "./implementations/ERC20Permit.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { ERC1155Receiver }  from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
+import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 
 // External Contracts
 import { JasmineEAT }               from "@jasmine-energy/contracts/src/JasmineEAT.sol";
@@ -43,7 +43,7 @@ abstract contract JasmineBasePool is
     ERC20,
     ERC20Permit,
     IERC1046,
-    ERC1155Manager,
+    EATManager,
     Initializable,
     ReentrancyGuard
 {
@@ -59,9 +59,8 @@ abstract contract JasmineBasePool is
 
     //  ────────────────────────────────  Addresses  ────────────────────────────────  \\
 
-    JasmineEAT public immutable eat;
-    address    public immutable retirementService;
-    address    public immutable poolFactory;
+    address public immutable retirementService;
+    address public immutable poolFactory;
 
     //  ─────────────────────────────  Token Metadata  ──────────────────────────────  \\
 
@@ -87,21 +86,23 @@ abstract contract JasmineBasePool is
      * @param _eat Address of the Jasmine Energy Attribution Token (EAT) contract
      * @param _poolFactory Address of the Jasmine Pool Factory contract
      * @param _retirementService Address of the Jasmine retirement service contract
+     * @param _contractName Name of the pool contract per EIP-712 and ERC-20
+     *        NOTE: as pools are intended to be deployed via proxy, constructor name is not public facing
      */
     constructor(
         address _eat,
         address _poolFactory,
-        address _retirementService
+        address _retirementService,
+        string memory _contractName
     )
-        ERC20("Jasmine Liquidity Token Base", "JLT")
-        ERC20Permit("Jasmine Liquidity Token Base")
-        ERC1155Manager(_eat)
+        ERC20(_contractName, "JLT")
+        ERC20Permit(_contractName)
+        EATManager(_eat)
     {
         if (_eat == address(0x0) || 
             _poolFactory == address(0x0) || 
             _retirementService == address(0x0)) revert JasmineErrors.ValidationFailed();
 
-        eat = JasmineEAT(_eat);
         retirementService = _retirementService;
         poolFactory = _poolFactory;
     }
@@ -163,7 +164,7 @@ abstract contract JasmineBasePool is
         _spendJLT(owner, cost);
 
         // 2. Select quantity of EATs to retire
-        uint256 eatQuantity = totalDeposits - Math.ceilDiv(totalSupply(), 10 ** decimals());
+        uint256 eatQuantity = _totalDeposits - Math.ceilDiv(totalSupply(), 10 ** decimals());
         if (eatQuantity == 0) {
             emit Retirement(owner, beneficiary, amount);
             return;
@@ -230,7 +231,7 @@ abstract contract JasmineBasePool is
         returns (uint256 jltQuantity)
     {
         _enforceEATApproved(from);
-        eat.safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
+        JasmineEAT(eat).safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
         return _standardizeDecimal(amounts.sum());
     }
 
@@ -252,7 +253,7 @@ abstract contract JasmineBasePool is
         nonReentrant
         returns (uint256 jltQuantity)
     {
-        eat.safeTransferFrom(from, address(this), tokenId, amount, "");
+        JasmineEAT(eat).safeTransferFrom(from, address(this), tokenId, amount, "");
         return _standardizeDecimal(amount);
     }
 
@@ -377,8 +378,8 @@ abstract contract JasmineBasePool is
     {
         if (metadataVersion != 1) revert JasmineErrors.UnsupportedMetadataVersion(metadataVersion);
         return abi.encode(
-            eat.exists.selector,
-            eat.frozen.selector
+            JasmineEAT(eat).exists.selector,
+            JasmineEAT(eat).frozen.selector
         );
     }
 
@@ -522,7 +523,7 @@ abstract contract JasmineBasePool is
         private view
         returns (bool isLegit)
     {
-        return eat.exists(tokenId) && !eat.frozen(tokenId);
+        return JasmineEAT(eat).exists(tokenId) && !JasmineEAT(eat).frozen(tokenId);
     }
 
     /**
@@ -580,6 +581,6 @@ abstract contract JasmineBasePool is
     function _enforceEATApproved(address holder)
         private view
     {
-        if (!eat.isApprovedForAll(holder, _msgSender())) revert JasmineErrors.Prohibited();
+        if (!JasmineEAT(eat).isApprovedForAll(holder, _msgSender())) revert JasmineErrors.Prohibited();
     }
 }

@@ -3,10 +3,6 @@
 pragma solidity ^0.8.0;
 
 
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Jasmine Custom Errors
-//  ─────────────────────────────────────────────────────────────────────────────
-
 /**
  * @title Jasmine Errors
  * @author Kai Aldag<kai.aldag@jasmine.energy>
@@ -36,5 +32,4 @@ interface JasmineErrors {
 
     /// @dev Emitted for unauthorized actions
     error Prohibited();
-
 }

@@ -194,7 +194,7 @@ describe(Contracts.pool, function () {
         ).to.be.eq(initalEATtBal);
       });
 
-      it("Should reject tokens depositted to implementation contract", async function () {
+      it("Should reject tokens deposited to implementation contract", async function () {
         await expect(
           eat.safeTransferFrom(
             owner.address,
@@ -291,7 +291,7 @@ describe(Contracts.pool, function () {
         ).to.deep.equal(initalEatBal);
       });
 
-      it("Should reject tokens depositted to implementation contract", async function () {
+      it("Should reject tokens deposited to implementation contract", async function () {
         await expect(
           eat.safeBatchTransferFrom(
             owner.address,

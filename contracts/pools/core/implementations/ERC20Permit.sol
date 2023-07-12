@@ -39,7 +39,7 @@ abstract contract ERC20Permit is ERC20, IERC20Permit, EIP712, Nonces {
      *
      * It's a good idea to use the same `name` that is defined as the ERC20 token name.
      */
-    constructor(string memory name) EIP712(name, "1") {}
+    constructor(string memory name) EIP712(name, "1") {} // solhint-disable-line no-empty-blocks
 
     /**
      * @dev See {IERC20Permit-permit}.
@@ -72,7 +72,11 @@ abstract contract ERC20Permit is ERC20, IERC20Permit, EIP712, Nonces {
     /**
      * @dev See {IERC20Permit-nonces}.
      */
-    function nonces(address owner) public view virtual override(IERC20Permit, Nonces) returns (uint256) {
+    function nonces(address owner)
+        public view virtual
+        override(IERC20Permit, Nonces)
+        returns (uint256)
+    {
         return super.nonces(owner);
     }
 
@@ -80,14 +84,21 @@ abstract contract ERC20Permit is ERC20, IERC20Permit, EIP712, Nonces {
      * @dev See {IERC20Permit-DOMAIN_SEPARATOR}.
      */
     // solhint-disable-next-line func-name-mixedcase
-    function DOMAIN_SEPARATOR() external view virtual returns (bytes32) {
+    function DOMAIN_SEPARATOR()
+        external view virtual
+        returns (bytes32)
+    {
         return _domainSeparatorV4();
     }
 
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public view virtual
+        override
+        returns (bool)
+    {
         return
             interfaceId == type(IERC20Permit).interfaceId ||
             super.supportsInterface(interfaceId);

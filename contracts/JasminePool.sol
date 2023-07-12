@@ -61,7 +61,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         address _poolFactory,
         address _minter
     )
-        JasmineFeePool(_eat, _poolFactory, _minter)
+        JasmineFeePool(_eat, _poolFactory, _minter, "Jasmine Liquidity Pool (V1)")
     {
         // NOTE: EAT, Pool Factory and Minting contracts are validated in JasmineBasePool
         if ( _oracle == address(0x0)) revert JasmineErrors.InvalidInput();

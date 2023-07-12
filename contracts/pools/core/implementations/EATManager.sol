@@ -12,13 +12,12 @@ import { ArrayUtils }       from "../../../libraries/ArrayUtils.sol";
 
 
 /**
- * @title ERC-1155 Manager
+ * @title Jasmien EAT Manager
  * @author Kai Aldag<kai.aldag@jasmine.energy>
- * @notice Manages deposits of ERC-1155 tokens (from a single contract) and enables
- *         interactions with the underlying deposits through explicit conventions.
+ * @notice Manages deposits and withdraws of Jasmine EATs (ERC-1155).
  * @custom:security-contact dev@jasmine.energy
  */
-abstract contract ERC1155Manager is ERC1155Receiver {
+abstract contract EATManager is ERC1155Receiver {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
@@ -30,10 +29,15 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
 
-    address private immutable _tokenAddress;
+    /// @dev Address of the ERC-1155 contract
+    address public immutable eat;
+    // address public immutable eat;
 
-    uint256 public totalDeposits;
-    RedBlackTree.Tree private tree;
+    /// @dev Total number of ERC-1155 deposits
+    uint256 internal _totalDeposits;
+
+    /// @dev RBTree for storing vintage to token IDs mappings
+    RedBlackTree.Tree private _tree;
 
     /// @dev Maps vintage to token IDs
     mapping(uint40 => uint256[]) private _tokenIds;
@@ -60,10 +64,10 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @param tokenAddress_ ERC-1155 contract to restrict deposits from
+     * @param _eat Jasmine EAT contract whose tokens may be deposited
      */
-    constructor(address tokenAddress_) {
-        _tokenAddress = tokenAddress_;
+    constructor(address _eat) {
+        eat = _eat;
 
         _isUnlocked = WITHDRAWS_LOCK;
     }
@@ -113,8 +117,8 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         _enforceTokenCaller();
 
         _beforeDeposit(from, tokenIds, values);
-        uint256 quantityDepositted = _addDeposits(tokenIds, values);
-        _afterDeposit(from, quantityDepositted);
+        uint256 quantityDeposited = _addDeposits(tokenIds, values);
+        _afterDeposit(from, quantityDeposited);
 
         return this.onERC1155BatchReceived.selector;
     }
@@ -144,7 +148,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     {
         if (tokenIds.length == 1) {
             _removeDeposit(tokenIds[0], values[0]);
-            IERC1155(_tokenAddress).safeTransferFrom(
+            IERC1155(eat).safeTransferFrom(
                 address(this),
                 recipient,
                 tokenIds[0],
@@ -153,7 +157,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             );
         } else {
             _removeDeposits(tokenIds, values);
-            IERC1155(_tokenAddress).safeBatchTransferFrom(
+            IERC1155(eat).safeBatchTransferFrom(
                 address(this),
                 recipient,
                 tokenIds,
@@ -186,12 +190,12 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         uint256 i = 0;
         uint256 finalBalance;
 
-        uint current = tree.first();
+        uint current = _tree.first();
 
         while (sum != amount) {
             uint256[] memory tokenIdsForVintage = _tokenIds[uint40(current)];
             for (uint256 j = 0; j < tokenIdsForVintage.length;) {
-                uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenIdsForVintage[j]);
+                uint256 balance = IERC1155(eat).balanceOf(address(this), tokenIdsForVintage[j]);
 
                 if (balance == 0) {
                     // TODO: Should never hit this, but requires checks
@@ -211,11 +215,11 @@ abstract contract ERC1155Manager is ERC1155Receiver {
                 }
             }
 
-            if (current == tree.last()) break;
-            else current = tree.next(current);
+            if (current == _tree.last()) break;
+            else current = _tree.next(current);
         }
 
-        current = tree.first();
+        current = _tree.first();
 
         if (i == 1) {
             tokenIds = _asSingletonArray(_tokenIds[uint40(current)][0]);
@@ -235,11 +239,11 @@ abstract contract ERC1155Manager is ERC1155Receiver {
                 }
                 x += tokenIdsForVintage.length;
 
-                if (current == tree.last()) break;
-                else current = tree.next(current);
+                if (current == _tree.last()) break;
+                else current = _tree.next(current);
             }
 
-            amounts = IERC1155(_tokenAddress).balanceOfBatch(ArrayUtils.fill(address(this), i), tokenIds);
+            amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), i), tokenIds);
             amounts[i-1] = finalBalance;
         }
 
@@ -267,16 +271,16 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     {
         uint40 vintage = _getVintageFromTokenId(tokenId);
 
-        if (!tree.exists(vintage)) {
+        if (!_tree.exists(vintage)) {
             // If token does not exist in tree, add to tree and set of token IDs
-            tree.insert(vintage);
+            _tree.insert(vintage);
             _tokenIds[vintage].push(tokenId);
-        } else if (IERC1155(_tokenAddress).balanceOf(address(this), tokenId) == value) {
+        } else if (IERC1155(eat).balanceOf(address(this), tokenId) == value) {
             // If contract's balance of token is equal to value, token ID is new and must be added to token IDs
             _tokenIds[vintage].push(tokenId);
         }
 
-        totalDeposits += value;
+        _totalDeposits += value;
     }
 
     /**
@@ -292,15 +296,15 @@ abstract contract ERC1155Manager is ERC1155Receiver {
         private
         returns (uint256 quantity)
     {
-        uint256[] memory balances = IERC1155(_tokenAddress).balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
+        uint256[] memory balances = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
 
         for (uint256 i = 0; i < tokenIds.length;) {
             quantity += values[i];
 
             uint40 vintage = _getVintageFromTokenId(tokenIds[i]);
-            if (!tree.exists(vintage)) {
+            if (!_tree.exists(vintage)) {
                 // If token does not exist in tree, add to tree and set of token IDs
-                tree.insert(vintage);
+                _tree.insert(vintage);
                 _tokenIds[vintage].push(tokenIds[i]);
             } else if (balances[i] == values[i]) { // TODO: Once efficient contains exists, rewrite the following
                 // If contract's balance of token is equal to value, token ID is new and must be added to token IDs
@@ -310,7 +314,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             unchecked { i++; }
         }
 
-        totalDeposits += quantity;
+        _totalDeposits += quantity;
     }
 
     //  ────────────────────────────  Removing Deposits  ────────────────────────────  \\
@@ -328,12 +332,12 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     )
         private
     {
-        uint256 balance = IERC1155(_tokenAddress).balanceOf(address(this), tokenId);
+        uint256 balance = IERC1155(eat).balanceOf(address(this), tokenId);
         // TODO: Edge cases (balance == 0, balance < value)
         if (balance == value) {
             uint40 vintage = _getVintageFromTokenId(tokenId);
             if (_tokenIds[vintage].length == 1) {
-                tree.remove(vintage);
+                _tree.remove(vintage);
                 delete _tokenIds[vintage];
             } else {
                 // TODO: Find an optimal way to remove tokenId from _tokenIds[vintage]. This will not suffice
@@ -347,7 +351,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             }
         }
 
-        totalDeposits -= value;
+        _totalDeposits -= value;
     }
 
     /**
@@ -363,7 +367,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     )
         private
     {
-        uint256[] memory balances = IERC1155(_tokenAddress).balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
+        uint256[] memory balances = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
 
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length;) {
@@ -372,7 +376,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             if (balances[i] == values[i]) {
                 uint40 vintage = _getVintageFromTokenId(tokenIds[i]);
                 if (_tokenIds[vintage].length == 1) {
-                    tree.remove(vintage);
+                    _tree.remove(vintage);
                 } else {
                     // TODO: Find an optimal way to remove tokenId from _tokenIds[vintage]. This will not suffice
                     for (uint256 j = 0; j < _tokenIds[vintage].length; j++) {
@@ -388,7 +392,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
             unchecked { i++; }
         }
 
-        totalDeposits -= total;
+        _totalDeposits -= total;
     }
 
     /// @dev Returns the vintage given a Jasmine EAT token ID
@@ -409,7 +413,7 @@ abstract contract ERC1155Manager is ERC1155Receiver {
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /// @dev Enforces that contract is in an explicitly set unlocked state for transfers
-    function _enforceUnlock() private view {
+    function _enforceUnlocked() private view {
         if (_isUnlocked != WITHDRAWS_UNLOCKED) revert WithdrawsLocked();
     }
 
@@ -422,12 +426,12 @@ abstract contract ERC1155Manager is ERC1155Receiver {
 
     /// @dev Enforces that withdraw modifier is explicitly stated by invoking function
     modifier withdrawsUnlocked() {
-        _enforceUnlock();
+        _enforceUnlocked();
         _;
     }
 
     /// @dev Enforces that caller is the expect token address
     function _enforceTokenCaller() private view {
-        if (_tokenAddress != msg.sender) revert InvalidTokenAddress(msg.sender, _tokenAddress);
+        if (eat != msg.sender) revert InvalidTokenAddress(msg.sender, eat);
     }
 }

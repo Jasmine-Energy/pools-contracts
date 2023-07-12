@@ -19,7 +19,7 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
 import { JasminePoolFactory } from "../../JasminePoolFactory.sol";
 
 // Utility Libraries
-import { Math }          from "@openzeppelin/contracts/utils/math/Math.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 
 /**
@@ -53,13 +53,15 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
      * @param _eat Jasmine Energy Attribute Token address
      * @param _poolFactory Jasmine Pool Factory address
      * @param _minter Address of the Jasmine Minter address
+     * @param _contractName Name of the pool contract per EIP-712 and ERC-20
      */
     constructor(
         address _eat,
         address _poolFactory,
-        address _minter
+        address _minter,
+        string memory _contractName
     )
-        JasmineBasePool(_eat, _poolFactory, _minter)
+        JasmineBasePool(_eat, _poolFactory, _minter, _contractName)
     { } // solhint-disable-line no-empty-blocks
 
 
@@ -281,7 +283,8 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         uint256[] memory tokenIds,
         uint256[] memory amounts
     )
-        public view virtual override(IEATBackedPool, JasmineBasePool)
+        public view virtual 
+        override(IEATBackedPool, JasmineBasePool)
         returns (uint256 cost)
     {
         if (tokenIds.length != amounts.length) {
@@ -310,7 +313,8 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     function withdrawalCost(
         uint256 amount
     )
-        public view virtual override(IEATBackedPool, JasmineBasePool)
+        public view virtual 
+        override(IEATBackedPool, JasmineBasePool)
         returns (uint256 cost)
     {
         // NOTE: If no feeBeneficiary is set, fees may not be collected
@@ -335,7 +339,8 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     function retirementCost(
         uint256 amount
     )
-        public view virtual override(IEATBackedPool, JasmineBasePool)
+        public view virtual 
+        override(IEATBackedPool, JasmineBasePool)
         returns (uint256 cost)
     {
         // NOTE: If no feeBeneficiary is set, fees may not be collected
@@ -391,9 +396,11 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /// @inheritdoc JasmineBasePool
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public view virtual
+        override
+        returns (bool)
+    {
         return interfaceId == type(IFeePool).interfaceId ||
             super.supportsInterface(interfaceId);
     }

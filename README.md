@@ -138,7 +138,7 @@ The project make use of [Slither](https://github.com/crytic/slither) to run stat
 1. **Minting EATs**: `npx hardhat mint ADDRESS` Default network is localhost (aka running hardhat chain)
 2. **Listing Pools**: `npx hardhat pool:list`
 3. **Get Pool from Factory**: `npx hardhat pool:at` Get address of a pool from deployment index
-4. **Transfer 1155**: `npx hardhat transfer` Convenience utility to transfer EATs. *Tip:* EATs may be depositted into a pool via an 1155 transfer
+4. **Transfer 1155**: `npx hardhat transfer` Convenience utility to transfer EATs. *Tip:* EATs may be deposited into a pool via an 1155 transfer
 
 ## Linting
 

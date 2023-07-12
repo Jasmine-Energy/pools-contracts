@@ -209,7 +209,7 @@ Used to deposit EATs from another account into the pool to receive JLTs.
 ### eat
 
 ```solidity
-function eat() external view returns (contract JasmineEAT)
+function eat() external view returns (address)
 ```
 
 
@@ -221,7 +221,7 @@ function eat() external view returns (contract JasmineEAT)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract JasmineEAT | undefined |
+| _0 | address | undefined |
 
 ### eip712Domain
 
@@ -650,23 +650,6 @@ Gets an ERC-721-like token URI
 | Name | Type | Description |
 |---|---|---|
 | _0 | string | undefined |
-
-### totalDeposits
-
-```solidity
-function totalDeposits() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
 
 ### totalSupply
 

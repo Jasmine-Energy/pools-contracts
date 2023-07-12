@@ -419,4 +419,15 @@ error Prohibited()
 *Emitted for unauthorized actions*
 
 
+### ValidationFailed
+
+```solidity
+error ValidationFailed()
+```
+
+
+
+*Emitted if internal validation failed*
+
+
 

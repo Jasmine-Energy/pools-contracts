@@ -375,7 +375,11 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public view virtual
+        override
+        returns (bool)
+    {
         return
             interfaceId == type(IERC20).interfaceId ||
             interfaceId == type(IERC20Metadata).interfaceId ||
