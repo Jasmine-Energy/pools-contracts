@@ -91,4 +91,5 @@ const deployFactory: DeployFunction = async function (
 };
 deployFactory.tags = ['Factory', 'all'];
 deployFactory.dependencies = ['Libraries', 'Pool', 'Core'];
+deployFactory.runAtTheEnd = true;
 export default deployFactory;
