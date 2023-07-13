@@ -1058,6 +1058,17 @@ event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary, 
 
 ## Errors
 
+### Disabled
+
+```solidity
+error Disabled()
+```
+
+
+
+*Emitted if function is disabled*
+
+
 ### ERC20FailedDecreaseAllowance
 
 ```solidity
@@ -1264,6 +1275,17 @@ error InvalidTokenAddress(address received, address expected)
 |---|---|---|
 | received | address | undefined |
 | expected | address | undefined |
+
+### Prohibited
+
+```solidity
+error Prohibited()
+```
+
+
+
+*Emitted for unauthorized actions*
+
 
 ### RequiresRole
 

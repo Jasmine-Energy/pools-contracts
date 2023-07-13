@@ -903,6 +903,17 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 
 ## Errors
 
+### Disabled
+
+```solidity
+error Disabled()
+```
+
+
+
+*Emitted if function is disabled*
+
+
 ### ERC20FailedDecreaseAllowance
 
 ```solidity
@@ -1109,6 +1120,33 @@ error InvalidTokenAddress(address received, address expected)
 |---|---|---|
 | received | address | undefined |
 | expected | address | undefined |
+
+### Prohibited
+
+```solidity
+error Prohibited()
+```
+
+
+
+*Emitted for unauthorized actions*
+
+
+### RequiresRole
+
+```solidity
+error RequiresRole(bytes32 role)
+```
+
+
+
+*Emitted if access control check fails*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| role | bytes32 | undefined |
 
 ### StringTooLong
 

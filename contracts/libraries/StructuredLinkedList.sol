@@ -20,59 +20,6 @@ library StructuredLinkedList {
         mapping(uint256 => mapping(bool => uint256)) list;
     }
 
-
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Jasmine Specific Logic
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    function isLessThan(uint256 a, uint256 b) internal pure returns (bool) {
-        (,uint256 aVintage,,, uint256 aBalance) = _decodeDeposit(a);
-        (,uint256 bVintage,,, uint256 bBalance) = _decodeDeposit(b);
-
-        if (aVintage < bVintage) {
-            // If vintage is less than, order before
-            return true;
-        } else if (aVintage == bVintage) {
-            // If vintages are equal, order by lowest balance
-            return aBalance < bBalance;
-        } else {
-            // If vintage is more than, order after
-            return false;
-        }
-    }
-
-    /**
-     * @dev Decode a deposit from linked list to EAT token ID and balance
-     * 
-     * @param deposit Encoded deposit id to decode to EAT token ID
-     * @return tokenId EAT token ID
-     * @return balance Balance held by pool of EAT
-     */
-    function _decodeDeposit(uint256 deposit) private pure 
-    returns (
-        uint256 tokenId,
-        uint56 balance,
-        uint256 vintage,
-        uint256 uuid,
-        uint256 registry
-    ) {
-        (vintage, uuid, registry, balance) = (
-          deposit >> 216,
-          (deposit >> 88) & type(uint128).max,
-          (deposit >> 56) & type(uint32).max,
-          uint56(deposit & type(uint40).max)
-        );
-
-        tokenId = (uuid << 128) |
-                    (registry << 96) |
-                    (vintage << 56);
-    }
-
-
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Linked List Logic
-    //  ─────────────────────────────────────────────────────────────────────────────
-
     /**
      * @dev Checks if the list exists
      * @param self stored linked list from contract
@@ -168,18 +115,17 @@ library StructuredLinkedList {
      * @dev Get the node and then `insertBefore` or `insertAfter` basing on your list order.
      * @dev If you want to order basing on other than `structure.getValue()` override this function
      * @param self stored linked list from contract
-     * @param _structure the structure instance
      * @param _value value to seek
      * @return uint256 next node with a value less than _value
      */
-    function getSortedSpot(List storage self, address _structure, uint256 _value) internal view returns (uint256) {
+    function getSortedSpot(List storage self, uint256 _value) internal view returns (uint256) {
         if (sizeOf(self) == 0) {
             return 0;
         }
 
         uint256 next;
         (, next) = getAdjacent(self, _HEAD, _NEXT);
-        while ((next != 0) && ((isLessThan(_value, next)) != _NEXT)) {
+        while ((next != 0) && ((_value < next) != _NEXT)) {
             next = self.list[next][_NEXT];
         }
         return next;

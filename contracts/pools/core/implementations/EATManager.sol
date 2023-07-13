@@ -8,7 +8,6 @@ import { JasmineErrors }        from "../../../interfaces/errors/JasmineErrors.s
 import { IERC1155 }             from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import { IERC165 }              from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { IERC1155Receiver }     from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import { RedBlackTree }         from "../../../libraries/RedBlackTreeLibrary.sol";
 import { StructuredLinkedList } from "../../../libraries/StructuredLinkedList.sol";
 import { ArrayUtils }           from "../../../libraries/ArrayUtils.sol";
 
@@ -25,7 +24,6 @@ abstract contract EATManager is IERC1155Receiver {
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
 
-    using RedBlackTree for RedBlackTree.Tree;
     using StructuredLinkedList for StructuredLinkedList.List;
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -39,19 +37,18 @@ abstract contract EATManager is IERC1155Receiver {
     /// @dev Total number of ERC-1155 deposits
     uint256 internal _totalDeposits;
 
-    /// @dev RBTree for storing vintage to token IDs mappings
-    RedBlackTree.Tree private _tree;
-
     /// @dev Sorted link list to store token IDs by vintage
     StructuredLinkedList.List private _depositsList;
 
     /// @dev Maps vintage to token IDs
-    mapping(uint40 => uint256[]) private _tokenIds;
+    mapping(uint256 => uint256) private _balances;
 
     uint8 private constant WITHDRAWS_LOCK = 1;
     uint8 private constant WITHDRAWS_UNLOCKED = 2;
 
     uint8 private _isUnlocked;
+
+    uint256 private constant LIST_HEAD = 0;
 
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -205,62 +202,40 @@ abstract contract EATManager is IERC1155Receiver {
         uint256 i = 0;
         uint256 finalBalance;
 
-        uint current = _tree.first();
+        uint256 current = LIST_HEAD;
 
-        while (sum != amount) {
-            uint256[] memory tokenIdsForVintage = _tokenIds[uint40(current)];
-            for (uint256 j = 0; j < tokenIdsForVintage.length;) {
-                uint256 balance = IERC1155(eat).balanceOf(address(this), tokenIdsForVintage[j]);
+        while (sum != amount && i < _depositsList.sizeOf()) {
+            bool exists;
+            (exists, current) = _depositsList.getNextNode(current);
 
-                if (balance == 0) {
-                    // TODO: Should never hit this, but requires checks
-                } else if (sum + balance < amount) {
-                    unchecked {
-                        sum += balance;
-                        j++;
-                        i++;
-                    }
-                } else {
-                    unchecked {
-                        finalBalance = amount - sum;
-                        sum = amount;
-                        i++;
-                    }
-                    break;
+            if (!exists) continue;
+
+            uint256 balance = _balances[current];
+
+            if (sum + balance < amount) {
+                unchecked {
+                    sum += balance;
+                    i++;
                 }
+            } else {
+                unchecked {
+                    finalBalance = amount - sum;
+                    sum = amount;
+                    i++;
+                }
+                break;
             }
-
-            if (current == _tree.last()) break;
-            else current = _tree.next(current);
         }
 
-        current = _tree.first();
-
-        if (i == 1) {
-            tokenIds = _asSingletonArray(_tokenIds[uint40(current)][0]);
-            amounts  = _asSingletonArray(amount);
-        } else {
-            tokenIds = new uint256[](i);
-            for (uint x = 0; x < i;) {
-                uint256[] memory tokenIdsForVintage = _tokenIds[uint40(current)];
-                assembly { // NOTE: Unable to use "memory-safe"
-                    let len := mload(tokenIdsForVintage)
-                    for { let n := 0 } lt(n, len) { n := add(n, 1) } { 
-                        mstore(
-                            add(tokenIds, add(mul(x, 32), mul(add(n, 1), 32))),
-                            mload(add(tokenIdsForVintage, mul(add(n, 1), 32)))
-                        )
-                    }
-                }
-                x += tokenIdsForVintage.length;
-
-                if (current == _tree.last()) break;
-                else current = _tree.next(current);
-            }
-
-            amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), i), tokenIds);
-            amounts[i-1] = finalBalance;
+        current = LIST_HEAD;
+        tokenIds = new uint256[](i);
+        for (uint x = 0; x < i;) {
+            (,current) = _depositsList.getNextNode(current);
+            tokenIds[x] = _decodeDeposit(current);
+            x++;
         }
+        amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), i), tokenIds);
+        amounts[i-1] = finalBalance;
 
         return (tokenIds, amounts);
     }
@@ -284,40 +259,21 @@ abstract contract EATManager is IERC1155Receiver {
     )
         private
     {
-        _totalDeposits += value;
-
         // 1. Encode the token ID to deposit format
         uint256 encodedDeposit;
-        if (value < type(uint56).max) {
-            encodedDeposit = _encodeDeposit(tokenId, uint56(value));
-        } else {
-            encodedDeposit = _encodeDeposit(tokenId, uint56(type(uint56).max));
-        }
+        encodedDeposit = _encodeDeposit(tokenId);
 
-        // 2. Add encoded deposit to linked list
-        if (!_depositsList.listExists()) {
-            require(_depositsList.pushFront(encodedDeposit));
-            _totalDeposits += value;
-            return;
-        }
-
+        // 2. Get next node in list and check if it exists
         (bool exists, uint256 next,) = _depositsList.getNode(encodedDeposit);
 
-        // 3. If node exists, remove from list, double balance, and reinsert
-        if (exists) {
-            // NOTE: because balance is stored in encoded deposit, we can simply double
-            _depositsList.remove(encodedDeposit);
-
-            value *= 2;
-            encodedDeposit = _encodeDeposit(tokenId, uint56(value));
-
-            // NOTE: As ordering also depends on balance, we must reevaluate ordering
-            (exists, next,) = _depositsList.getNode(encodedDeposit);
-            if (exists) revert JasmineErrors.ValidationFailed(); // Node should not exist at this point
+        // 3. If node does not exist, add to list
+        if (!exists) {
+            _depositsList.insertBefore(next, encodedDeposit);
         }
 
-        // 4. If it doesn't insert to list
-        _depositsList.insertBefore(next, encodedDeposit);
+        // 4. Update balance and total deposits
+        _balances[encodedDeposit] += value;
+        _totalDeposits += value;
     }
 
     /**
@@ -359,11 +315,11 @@ abstract contract EATManager is IERC1155Receiver {
         private
     {
         uint256 balance = IERC1155(eat).balanceOf(address(this), tokenId);
+        uint256 encodedDeposit = _encodeDeposit(tokenId);
         if (balance == 0) {
-
-        } else {
-
+            _depositsList.remove(encodedDeposit);
         }
+        _balances[encodedDeposit] -= value;
         _totalDeposits -= value;
     }
 
@@ -385,22 +341,12 @@ abstract contract EATManager is IERC1155Receiver {
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length;) {
             total += values[i];
-            // TODO: Edge cases (balance == 0, balance < value)
-            if (balances[i] == values[i]) {
-                uint40 vintage = _getVintageFromTokenId(tokenIds[i]);
-                if (_tokenIds[vintage].length == 1) {
-                    _tree.remove(vintage);
-                } else {
-                    // TODO: Find an optimal way to remove tokenId from _tokenIds[vintage]. This will not suffice
-                    for (uint256 j = 0; j < _tokenIds[vintage].length; j++) {
-                        if (_tokenIds[vintage][j] == tokenIds[i]) {
-                            _tokenIds[vintage][j] = _tokenIds[vintage][_tokenIds[vintage].length - 1];
-                            _tokenIds[vintage].pop();
-                            break;
-                        }
-                    }
-                }
+
+            uint256 encodedDeposit = _encodeDeposit(tokenIds[i]);
+            if (balances[i] == 0) {
+                _depositsList.remove(encodedDeposit);
             }
+            _balances[encodedDeposit] = values[i];
 
             unchecked { i++; }
         }
@@ -415,12 +361,14 @@ abstract contract EATManager is IERC1155Receiver {
 
     /**
      * @dev Encodes an EAT ID for internal storage by ordering vintage. 
+     * @dev Encodes an EAT ID for internal storage by ordering vintage. 
+     *      Additionally, stores balance in 56 bit of expected padding.
+     * @dev Encodes an EAT ID for internal storage by ordering vintage.
      *      Additionally, stores balance in 56 bit of expected padding.
      * 
      * @param tokenId EAT token ID to format for storage
-     * @param balance Balance of the EAT being deposited in uint56
      */
-    function _encodeDeposit(uint256 tokenId, uint56 balance) private pure returns (uint256 formatted) {
+    function _encodeDeposit(uint256 tokenId) private pure returns (uint256 formatted) {
         (uint256 uuid, uint256 registry, uint256 vintage, uint256 pad) = (
           tokenId >> 128,
           (tokenId >> 96) & type(uint32).max,
@@ -432,8 +380,7 @@ abstract contract EATManager is IERC1155Receiver {
 
         formatted = (vintage << 216) |
                       (uuid << 88)     |
-                      (registry << 56) |
-                      (balance << 40);
+                      (registry << 56);
     }
 
     /**
@@ -441,18 +388,12 @@ abstract contract EATManager is IERC1155Receiver {
      * 
      * @param deposit Encoded deposit id to decode to EAT token ID
      * @return tokenId EAT token ID
-     * @return balance Balance held by pool of EAT
      */
-    function _decodeDeposit(uint256 deposit) private pure returns (uint256 tokenId, uint56 balance) {
-        uint256 vintage;
-        uint256 uuid;
-        uint256 registry;
-
-        (vintage, uuid, registry, balance) = (
+    function _decodeDeposit(uint256 deposit) private pure returns (uint256 tokenId) {
+        (uint256 vintage, uint256 uuid, uint256 registry) = (
           deposit >> 216,
           (deposit >> 88) & type(uint128).max,
-          (deposit >> 56) & type(uint32).max,
-          uint56(deposit & type(uint40).max)
+          (deposit >> 56) & type(uint32).max
         );
 
         tokenId = (uuid << 128) |
