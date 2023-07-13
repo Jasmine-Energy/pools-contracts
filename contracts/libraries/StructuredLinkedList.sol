@@ -202,6 +202,41 @@ library StructuredLinkedList {
     }
 
     /**
+     * @dev Pops multiple nodes from front of the list
+     * @param self stored linked list from contract
+     * @param _count Number of items to pop from the front
+     * @return uint256[] the removed nodes
+     */
+    function popFront(List storage self, uint256 _count) internal returns (uint256[] memory) {
+        require(_count <= sizeOf(self));
+
+        // Create an array to store the removed nodes
+        uint256[] memory nodes = new uint256[](_count);
+        (, uint256 next) = getNextNode(self, _HEAD);
+        uint i;
+        while (i < _count) {
+            nodes[i] = next;
+            (, next) = getNextNode(self, next);
+            i++;
+        }
+
+        // Create link between HEAD and new first node
+        // _createLink(self, _HEAD, next, _NEXT);
+        i = 0;
+        while (i < _count) {
+            // Delete from the list
+            delete self.list[nodes[i]][_PREV];
+            delete self.list[nodes[i]][_NEXT];
+            i++;
+        }
+
+        // Decrease the size of the list
+        self.size -= _count;
+
+        return nodes;
+    }
+
+    /**
      * @dev Pops the first entry from the tail of the linked list
      * @param self stored linked list from contract
      * @return uint256 the removed node

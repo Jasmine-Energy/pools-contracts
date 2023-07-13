@@ -2,7 +2,7 @@
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> Jasmien EAT Manager
+> Jasmine EAT Manager
 
 Manages deposits and withdraws of Jasmine EATs (ERC-1155).
 

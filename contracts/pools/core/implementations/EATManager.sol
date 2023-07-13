@@ -11,9 +11,10 @@ import { IERC1155Receiver }     from "@openzeppelin/contracts/token/ERC1155/IERC
 import { StructuredLinkedList } from "../../../libraries/StructuredLinkedList.sol";
 import { ArrayUtils }           from "../../../libraries/ArrayUtils.sol";
 
+import "hardhat/console.sol";
 
 /**
- * @title Jasmien EAT Manager
+ * @title Jasmine EAT Manager
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Manages deposits and withdraws of Jasmine EATs (ERC-1155).
  * @custom:security-contact dev@jasmine.energy
@@ -179,9 +180,68 @@ abstract contract EATManager is IERC1155Receiver {
         }
     }
 
+    function _transferQueuedDeposits(
+        uint256 amount,
+        address recipient,
+        bytes memory data
+    ) 
+        internal
+        withdrawsUnlocked
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        (uint256 withdrawLength, uint256 finalAmount) = _queuedTokenLength(amount);
+        tokenIds = _depositsList.popFront(withdrawLength);
+        amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), withdrawLength), tokenIds);
+        amounts[withdrawLength-1] = finalAmount;
+
+        _transferDeposits(recipient, tokenIds, amounts, data);
+    }
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Withdrawal Internal Utilities
     //  ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @dev Determines the number of token IDs required to get "amount" withdrawn
+     * 
+     * @param amount Number of tokens to withdraw from contract
+     */
+    function _queuedTokenLength(uint256 amount)
+        private view 
+        returns (
+            uint256 length,
+            uint256 finalWithdrawAmount
+        ) 
+    {
+        uint256 sum = 0;
+        uint256 current = LIST_HEAD;
+
+        while (sum != amount && length < _depositsList.sizeOf()) {
+            bool exists;
+            (exists, current) = _depositsList.getNextNode(current);
+
+            if (!exists) continue;
+
+            uint256 balance = _balances[current];
+
+            if (sum + balance < amount) {
+                unchecked {
+                    sum += balance;
+                    length++;
+                }
+            } else {
+                unchecked {
+                    finalWithdrawAmount = amount - sum;
+                    sum = amount;
+                    length++;
+                }
+                break;
+            }
+        }
+    }
 
     /**
      * @dev Internal function to select tokens to withdraw from the contract
@@ -198,44 +258,18 @@ abstract contract EATManager is IERC1155Receiver {
             uint256[] memory amounts
         )
     {
-        uint256 sum = 0;
-        uint256 i = 0;
-        uint256 finalBalance;
+        (uint256 withdrawLength, uint256 finalAmount) = _queuedTokenLength(amount);
 
         uint256 current = LIST_HEAD;
-
-        while (sum != amount && i < _depositsList.sizeOf()) {
-            bool exists;
-            (exists, current) = _depositsList.getNextNode(current);
-
-            if (!exists) continue;
-
-            uint256 balance = _balances[current];
-
-            if (sum + balance < amount) {
-                unchecked {
-                    sum += balance;
-                    i++;
-                }
-            } else {
-                unchecked {
-                    finalBalance = amount - sum;
-                    sum = amount;
-                    i++;
-                }
-                break;
-            }
-        }
-
-        current = LIST_HEAD;
-        tokenIds = new uint256[](i);
-        for (uint x = 0; x < i;) {
+        tokenIds = new uint256[](withdrawLength);
+        for (uint i = 0; i < withdrawLength;) {
             (,current) = _depositsList.getNextNode(current);
-            tokenIds[x] = _decodeDeposit(current);
-            x++;
+            tokenIds[i] = _decodeDeposit(current);
+            console.log("Token at: ", i, tokenIds[i]);
+            i++;
         }
-        amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), i), tokenIds);
-        amounts[i-1] = finalBalance;
+        amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), withdrawLength), tokenIds);
+        amounts[withdrawLength-1] = finalAmount;
 
         return (tokenIds, amounts);
     }

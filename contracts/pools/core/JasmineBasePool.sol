@@ -31,7 +31,7 @@ import { Calldata }      from "../../libraries/Calldata.sol";
 import { Math }          from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils }    from "../../libraries/ArrayUtils.sol";
 
-
+import "hardhat/console.sol";
 
 /**
  * @title Jasmine Base Pool
@@ -182,11 +182,16 @@ abstract contract JasmineBasePool is
             retirementData = abi.encodePacked(retirementData, data);
         }
 
-        // 4. Select tokens to withdraw
+        // 4. Send to retirement service and emit retirement event
         (uint256[] memory tokenIds, uint256[] memory amounts) = selectWithdrawTokens(eatQuantity);
 
-        // 5. Send to retirement service and emit retirement event
-        _transferDeposits(retirementService, tokenIds, amounts, retirementData);
+        // _transferDeposits(retirementService, tokenIds, amounts, retirementData);
+        (uint256[] memory tokenIds2, uint256[] memory amounts2) = _transferQueuedDeposits(eatQuantity, retirementService, retirementData);
+
+        // for (uint256 i; i < eatQuantity; i++) {
+        //     console.log(tokenIds[i], tokenIds2[i]);
+        // }
+
         emit Retirement(owner, beneficiary, amount);
     }
 
