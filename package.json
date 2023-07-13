@@ -21,6 +21,7 @@
     "contracts:layout": "npx hardhat check",
     "contracts:size": "npx hardhat size-contracts"
   },
+  "types": "dist/typechain/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Jasmine-Energy/v1-pools-contracts.git"
@@ -85,5 +86,13 @@
     "tsconfig-paths": "^4.1.2",
     "typechain": "^8.1.1",
     "typescript": "^4.9.5"
+  },
+  "exports": {
+    ".": {
+      "default": "./typechain/index.ts"
+    },
+    "./typechain": {
+      "default": "./typechain/index.ts"
+    }
   }
 }
