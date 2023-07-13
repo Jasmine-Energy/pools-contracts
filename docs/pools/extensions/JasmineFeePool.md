@@ -1248,17 +1248,6 @@ error InvalidTokenAddress(address received, address expected)
 | received | address | undefined |
 | expected | address | undefined |
 
-### Prohibited
-
-```solidity
-error Prohibited()
-```
-
-
-
-*Emitted for unauthorized actions*
-
-
 ### RequiresRole
 
 ```solidity

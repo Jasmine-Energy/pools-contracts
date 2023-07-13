@@ -247,15 +247,4 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     {
         return super.retirementCost(amount);
     }
-
-    //  ────────────────────────────  ERC-165 Overrides  ────────────────────────────  \\
-
-    /// @inheritdoc JasmineBasePool
-    function supportsInterface(bytes4 interfaceId)
-        public view 
-        override(JasmineFeePool, JasmineBasePool)
-        returns (bool)
-    {
-        return super.supportsInterface(interfaceId);
-    }
 }

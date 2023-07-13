@@ -403,21 +403,6 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
 
 
     //  ─────────────────────────────────────────────────────────────────────────────
-    //  Miscellaneous Overrides
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    /// @inheritdoc JasmineBasePool
-    function supportsInterface(bytes4 interfaceId)
-        public view virtual
-        override
-        returns (bool)
-    {
-        return interfaceId == type(IFeePool).interfaceId ||
-            super.supportsInterface(interfaceId);
-    }
-
-
-    //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
 

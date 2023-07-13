@@ -211,7 +211,6 @@ abstract contract JasmineBasePool is
         external virtual
         returns (uint256 jltQuantity)
     {
-        _enforceEATApproved(from);
         return _deposit(from, tokenId, amount);
     }
 
@@ -225,7 +224,6 @@ abstract contract JasmineBasePool is
         nonReentrant
         returns (uint256 jltQuantity)
     {
-        _enforceEATApproved(from);
         JasmineEAT(eat).safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
         return _standardizeDecimal(amounts.sum());
     }
@@ -409,6 +407,8 @@ abstract contract JasmineBasePool is
     // Overrides
     // ──────────────────────────────────────────────────────────────────────────────
 
+    //  ───────────────────────  ERC-20 Metadata Conformance  ───────────────────────  \\
+
     /**
      * @inheritdoc ERC20
      * @dev See {IERC20Metadata-name}
@@ -425,11 +425,13 @@ abstract contract JasmineBasePool is
         return _symbol;
     }
 
+    //  ──────────────────────────  ERC-1046 Conformance  ───────────────────────────  \\
+
     /**
      * @inheritdoc IERC1046
      * @dev Appends token symbol to end of base URI
      */
-    function tokenURI() public view virtual returns (string memory) {
+    function tokenURI() external view virtual returns (string memory) {
         return string(
             abi.encodePacked(JasminePoolFactory(poolFactory).poolsBaseURI(), _symbol)
         );
@@ -555,16 +557,5 @@ abstract contract JasmineBasePool is
 
             unchecked { i++; }
         }
-    }
-
-    /**
-     * @dev Enforce caller is approved for holder's EATs - or caller is holder
-     * 
-     * @dev Throws Prohibited() on failure
-     */
-    function _enforceEATApproved(address holder)
-        private view
-    {
-        if (!JasmineEAT(eat).isApprovedForAll(holder, _msgSender())) revert JasmineErrors.Prohibited();
     }
 }
