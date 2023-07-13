@@ -69,16 +69,15 @@ interface IJasmineFeePool is IEATBackedPool, IRetireablePool {
      * @notice Retires an exact amount of JLTs. If fees or other conversions are set,
      *         cost of retirement will be greater than amount.
      * 
-     * @param owner JLT holder to retire from
+     * @param spender JLT holder to retire from
      * @param beneficiary Address to receive retirement attestation
      * @param amount Exact number of JLTs to retire
      * @param data Optional calldata to relay to retirement service via onERC1155Received
      */
     function retireExact(
-        address owner, 
+        address spender, 
         address beneficiary, 
         uint256 amount, 
         bytes calldata data
     ) external;
-
 }

@@ -2,15 +2,15 @@
 
 pragma solidity >=0.8.17;
 
-
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Core Implementations
-import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
-import { IJasmineFeeManager }  from "./interfaces/IJasmineFeeManager.sol";
-import { Ownable2StepUpgradeable  as Ownable2Step } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import { IJasminePoolFactory }                       from "./interfaces/IJasminePoolFactory.sol";
+import { IJasmineFeeManager }                        from "./interfaces/IJasmineFeeManager.sol";
+import { Ownable2StepUpgradeable  as Ownable2Step }  from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import { AccessControlUpgradeable as AccessControl } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { UUPSUpgradeable }                           from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { JasmineErrors }                             from "./interfaces/errors/JasmineErrors.sol";
 
 // External Contracts
 import { IJasminePool }      from "./interfaces/IJasminePool.sol";
@@ -28,7 +28,6 @@ import { PoolPolicy }    from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Create2 }       from "@openzeppelin/contracts/utils/Create2.sol";
 import { Address }       from "@openzeppelin/contracts/utils/Address.sol";
-import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 
 /**

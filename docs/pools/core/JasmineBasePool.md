@@ -351,7 +351,7 @@ function nonces(address owner) external view returns (uint256)
 ### onERC1155BatchReceived
 
 ```solidity
-function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
+function onERC1155BatchReceived(address operator, address from, uint256[] tokenIds, uint256[] values, bytes) external nonpayable returns (bytes4)
 ```
 
 
@@ -362,7 +362,7 @@ function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint2
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | undefined |
+| operator | address | The address which initiated the batch transfer (i.e. msg.sender) |
 | from | address | The address which previously owned the token |
 | tokenIds | uint256[] | undefined |
 | values | uint256[] | An array containing amounts of each token being transferred (order and length must match ids array) |
@@ -377,7 +377,7 @@ function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint2
 ### onERC1155Received
 
 ```solidity
-function onERC1155Received(address, address from, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
+function onERC1155Received(address operator, address from, uint256 tokenId, uint256 value, bytes) external nonpayable returns (bytes4)
 ```
 
 
@@ -388,7 +388,7 @@ function onERC1155Received(address, address from, uint256 tokenId, uint256 value
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | undefined |
+| operator | address | The address which initiated the transfer (i.e. msg.sender) |
 | from | address | The address which previously owned the token |
 | tokenId | uint256 | undefined |
 | value | uint256 | The amount of tokens being transferred |
@@ -690,7 +690,7 @@ Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#3
 ### withdrawFrom
 
 ```solidity
-function withdrawFrom(address sender, address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
+function withdrawFrom(address from, address recipient, uint256 amount, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
 Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#39;. 
@@ -701,7 +701,7 @@ Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#3
 
 | Name | Type | Description |
 |---|---|---|
-| sender | address | undefined |
+| from | address | undefined |
 | recipient | address | Address to receive withdrawn EATs |
 | amount | uint256 | undefined |
 | data | bytes | Optional calldata to relay to recipient via onERC1155Received  |
@@ -716,7 +716,7 @@ Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#3
 ### withdrawSpecific
 
 ```solidity
-function withdrawSpecific(address sender, address recipient, uint256[] tokenIds, uint256[] amounts, bytes data) external nonpayable
+function withdrawSpecific(address from, address recipient, uint256[] tokenIds, uint256[] amounts, bytes data) external nonpayable
 ```
 
 Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in JLTs from &#39;owner&#39;. 
@@ -727,7 +727,7 @@ Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in J
 
 | Name | Type | Description |
 |---|---|---|
-| sender | address | undefined |
+| from | address | undefined |
 | recipient | address | Address to receive withdrawn EATs |
 | tokenIds | uint256[] | EAT token IDs to withdraw from pool |
 | amounts | uint256[] | undefined |

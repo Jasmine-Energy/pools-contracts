@@ -77,7 +77,7 @@ abstract contract EATManager is IERC1155Receiver {
     //  ─────────────────────────────────────────────────────────────────────────────
 
     function _beforeDeposit(address from, uint256[] memory tokenIds, uint256[] memory values) internal virtual;
-    function _afterDeposit(address from, uint256 quantity) internal virtual;
+    function _afterDeposit(address operator, address from, uint256 quantity) internal virtual;
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  ERC-1155 Deposit Functions
@@ -85,7 +85,7 @@ abstract contract EATManager is IERC1155Receiver {
 
     /// @inheritdoc IERC1155Receiver
     function onERC1155Received(
-        address,
+        address operator,
         address from,
         uint256 tokenId,
         uint256 value,
@@ -98,14 +98,14 @@ abstract contract EATManager is IERC1155Receiver {
 
         _beforeDeposit(from, _asSingletonArray(tokenId), _asSingletonArray(value));
         _addDeposit(tokenId, value);
-        _afterDeposit(from, value);
+        _afterDeposit(operator, from, value);
 
         return this.onERC1155Received.selector;
     }
 
     /// @inheritdoc IERC1155Receiver
     function onERC1155BatchReceived(
-        address,
+        address operator,
         address from,
         uint256[] memory tokenIds,
         uint256[] memory values,
@@ -118,7 +118,7 @@ abstract contract EATManager is IERC1155Receiver {
 
         _beforeDeposit(from, tokenIds, values);
         uint256 quantityDeposited = _addDeposits(tokenIds, values);
-        _afterDeposit(from, quantityDeposited);
+        _afterDeposit(operator, from, quantityDeposited);
 
         return this.onERC1155BatchReceived.selector;
     }

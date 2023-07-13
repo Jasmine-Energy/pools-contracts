@@ -68,14 +68,12 @@ abstract contract JasmineBasePool is
     /// @notice Token Symbol - per ERC-20
     string private _symbol;
 
-
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Errors
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /// @dev Emitted if a token does not meet pool's deposit policy
     error Unqualified(uint256 tokenId);
-
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Setup
@@ -164,20 +162,15 @@ abstract contract JasmineBasePool is
 
         // 2. Select quantity of EATs to retire
         uint256 eatQuantity = _totalDeposits - Math.ceilDiv(totalSupply(), 10 ** decimals());
-        if (eatQuantity == 0) {
-            emit Retirement(owner, beneficiary, amount);
-            return;
-        }
 
-        // 3. Select tokens to withdraw
-        (uint256[] memory tokenIds, uint256[] memory amounts) = selectWithdrawTokens(eatQuantity);
-
-        // 4. Encode transfer data
+        // 3. Encode transfer data
         bool hasFractional = eatQuantity > (amount / (10 ** decimals()));
         bytes memory retirementData;
 
-        // If it's a fractional retirement and only one EAT is to be retired, only encode fractional data
-        if (hasFractional && eatQuantity == 1) {
+        if (eatQuantity == 0) {
+            emit Retirement(owner, beneficiary, amount);
+            return;
+        } else if (hasFractional && eatQuantity == 1) {
             retirementData = Calldata.encodeFractionalRetirementData();
         } else {
             retirementData = Calldata.encodeRetirementData(beneficiary, hasFractional);
@@ -186,6 +179,9 @@ abstract contract JasmineBasePool is
         if (data.length != 0) {
             retirementData = abi.encodePacked(retirementData, data);
         }
+
+        // 4. Select tokens to withdraw
+        (uint256[] memory tokenIds, uint256[] memory amounts) = selectWithdrawTokens(eatQuantity);
 
         // 5. Send to retirement service and emit retirement event
         _transferDeposits(retirementService, tokenIds, amounts, retirementData);
@@ -265,7 +261,7 @@ abstract contract JasmineBasePool is
         uint256 amount,
         bytes calldata data
     )
-        public virtual
+        external virtual
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
@@ -284,12 +280,12 @@ abstract contract JasmineBasePool is
 
     /// @inheritdoc IEATBackedPool
     function withdrawFrom(
-        address sender,
+        address from,
         address recipient,
         uint256 amount,
         bytes calldata data
     )
-        public virtual
+        external virtual
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
@@ -297,7 +293,7 @@ abstract contract JasmineBasePool is
     {
         (tokenIds, amounts) = selectWithdrawTokens(amount);
         _withdraw(
-            sender,
+            from,
             recipient,
             tokenIds,
             amounts,
@@ -308,7 +304,7 @@ abstract contract JasmineBasePool is
 
     /// @inheritdoc IEATBackedPool
     function withdrawSpecific(
-        address sender,
+        address from,
         address recipient,
         uint256[] calldata tokenIds,
         uint256[] calldata amounts,
@@ -317,7 +313,7 @@ abstract contract JasmineBasePool is
         external virtual
     {
         _withdraw(
-            sender,
+            from,
             recipient,
             tokenIds,
             amounts,
@@ -329,14 +325,14 @@ abstract contract JasmineBasePool is
      * @dev Internal utility function for withdrawing EATs from pool
      *      in exchange for JLTs
      * 
-     * @param sender JLT holder from which token will be burned
+     * @param from JLT holder from which token will be burned
      * @param recipient Address to receive EATs
      * @param tokenIds EAT token IDs to withdraw
      * @param amounts EAT token amounts to withdraw
      * @param data Calldata relayed during EAT transfer
      */
     function _withdraw(
-        address sender,
+        address from,
         address recipient,
         uint256[] memory tokenIds,
         uint256[] memory amounts,
@@ -345,16 +341,15 @@ abstract contract JasmineBasePool is
         internal virtual
         withdrawal nonReentrant
     {
-        // 1. Ensure sender has sufficient JLTs and lengths match
+        // 1. Ensure spender has sufficient JLTs and lengths match
         uint256 cost = JasmineBasePool.withdrawalCost(tokenIds, amounts);
 
         // 2. Burn Tokens
-        _spendJLT(sender, cost);
+        _spendJLT(from, cost);
 
         // 3. Transfer Select Tokens
         _transferDeposits(recipient, tokenIds, amounts, data);
     }
-
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Jasmine Qualified Pool Implementations
@@ -401,29 +396,18 @@ abstract contract JasmineBasePool is
     }
 
     /// @inheritdoc IEATBackedPool
-    function withdrawalCost(
-        uint256 amount
-    )
-        public view virtual
-        returns (uint256 cost)
-    {
+    function withdrawalCost(uint256 amount) public view virtual returns (uint256 cost) {
         return _standardizeDecimal(amount);
     }
 
-    /// @inheritdoc IEATBackedPool
-    function retirementCost(
-        uint256 amount
-    )
-        public view virtual
-        returns (uint256 cost)
-    {
+    /// @inheritdoc IRetireablePool
+    function retirementCost(uint256 amount) public view virtual returns (uint256 cost) {
         return amount;
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Overrides
     // ──────────────────────────────────────────────────────────────────────────────
-
 
     /**
      * @inheritdoc ERC20
@@ -492,12 +476,13 @@ abstract contract JasmineBasePool is
     /**
      * @dev Mint JLTs to depositor following EAT deposit
      * 
+     * @param operator Address which initiated the deposit
      * @param from Address from which ERC-1155 tokens were transferred
      * @param quantity Number of ERC-1155 tokens received
      * 
      * Emits a {Withdraw} event.
      */
-    function _afterDeposit(address from, uint256 quantity) 
+    function _afterDeposit(address operator, address from, uint256 quantity) 
         internal override
     {
         _mint(
@@ -505,7 +490,7 @@ abstract contract JasmineBasePool is
             _standardizeDecimal(quantity)
         );
 
-        emit Deposit(from, from, quantity);
+        emit Deposit(operator, from, quantity);
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────

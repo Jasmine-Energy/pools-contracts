@@ -35,7 +35,6 @@ interface IJasmineRetireablePool is IEATBackedPool {
         uint256 quantity
     );
 
-
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Retirement Functionality
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -65,4 +64,12 @@ interface IJasmineRetireablePool is IEATBackedPool {
         bytes calldata data
     ) external;
 
+    /**
+     * @notice Cost of retiring JLTs from pool.
+     * 
+     * @param amount Amount of JLTs to retire.
+     * 
+     * @return cost Price of retiring in JLTs.
+     */
+    function retirementCost(uint256 amount) external view returns (uint256 cost);
 }

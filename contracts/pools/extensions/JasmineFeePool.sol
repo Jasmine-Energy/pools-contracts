@@ -2,18 +2,17 @@
 
 pragma solidity >=0.8.17;
 
-
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Inheritted Contracts
 import { JasmineBasePool } from "../core/JasmineBasePool.sol";
 
 // Implemented Interfaces
-import { IJasminePool } from "../../interfaces/IJasminePool.sol";
+import { IJasminePool }                              from "../../interfaces/IJasminePool.sol";
 import { IJasmineEATBackedPool  as IEATBackedPool }  from "../../interfaces/pool/IEATBackedPool.sol";
 import { IJasmineFeePool        as IFeePool }        from "../../interfaces/pool/IFeePool.sol";
 import { IJasmineRetireablePool as IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
-import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
+import { JasmineErrors }                             from "../../interfaces/errors/JasmineErrors.sol";
 
 // External Contracts
 import { IJasmineFeeManager } from "../../interfaces/IJasmineFeeManager.sol";
@@ -73,18 +72,23 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
 
     /// @inheritdoc JasmineBasePool
     function retire(
-        address owner,
+        address spender,
         address beneficiary,
         uint256 amount,
         bytes calldata data
     )
-        external virtual override(IRetireablePool, JasmineBasePool)
+        external virtual 
+        override(IRetireablePool, JasmineBasePool)
     {
         // 1. If fee is set, calculate fee to take from amount given
-        if (retirementRate() != 0 && beneficiary != address(0x0)) {
+        if (retirementRate() != 0) {
             uint256 feeAmount = Math.ceilDiv(amount, retirementRate());
+            // 1.1 If spender if not caller, decrease allowance
+            if (spender != _msgSender()) {
+                _spendAllowance(spender, _msgSender(), feeAmount);
+            }
             _transfer(
-                owner,
+                spender,
                 IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
@@ -92,12 +96,12 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         }
 
         // 2. Execute retirement
-        _retire(owner, beneficiary, amount, data);
+        _retire(spender, beneficiary, amount, data);
     }
 
     /// @inheritdoc IFeePool
     function retireExact(
-        address owner, 
+        address spender, 
         address beneficiary, 
         uint256 amount, 
         bytes calldata data
@@ -105,17 +109,21 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         external virtual
     {
         // 1. If fee is set, calculate excess fee on top of given amount
-        if (retirementRate() != 0 && beneficiary != address(0x0)) {
+        if (retirementRate() != 0) {
             uint256 feeAmount = retirementCost(amount) - amount;
+            // 1.1 If spender if not caller, decrease allowance
+            if (spender != _msgSender()) {
+                _spendAllowance(spender, _msgSender(), feeAmount);
+            }
             _transfer(
-                owner,
+                spender,
                 IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
         }
         
         // 2. Execute retirement
-        _retire(owner, beneficiary, amount, data);
+        _retire(spender, beneficiary, amount, data);
     }
 
 
@@ -128,17 +136,16 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         uint256 amount,
         bytes calldata data
     )
-        public virtual override(IEATBackedPool, JasmineBasePool)
+        external virtual
+        override(IEATBackedPool, JasmineBasePool)
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
         // 1. If fee is not 0, calculate and take fee from caller
-        uint256 feeAmount = JasmineFeePool.withdrawalCost(amount) - super.withdrawalCost(amount);
-        if (feeAmount != 0 && 
-            IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0))
-        {
+        if (withdrawalRate() != 0) {
+            uint256 feeAmount = JasmineFeePool.withdrawalCost(amount) - super.withdrawalCost(amount);
             _transfer(
                 _msgSender(),
                 IJasmineFeeManager(poolFactory).feeBeneficiary(),
@@ -147,64 +154,77 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         }
 
         // 2. Execute withdrawal
-        return super.withdraw(
+        (tokenIds, amounts) = selectWithdrawTokens(amount);
+        _withdraw(
+            _msgSender(),
             recipient,
-            amount,
+            tokenIds,
+            amounts,
             data
         );
+        return (tokenIds, amounts);
     }
 
     /// @inheritdoc JasmineBasePool
     function withdrawFrom(
-        address sender,
+        address from,
         address recipient,
         uint256 amount,
         bytes calldata data
     )
-        public virtual override(IEATBackedPool, JasmineBasePool)
+        external virtual 
+        override(IEATBackedPool, JasmineBasePool)
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
         // 1. If fee is not 0, calculate and take fee from caller
-        uint256 feeAmount = JasmineFeePool.withdrawalCost(amount) - super.withdrawalCost(amount);
-        if (feeAmount != 0 && 
-            IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0))
-        {
+        if (withdrawalRate() != 0) {
+            uint256 feeAmount = JasmineFeePool.withdrawalCost(amount) - super.withdrawalCost(amount);
+            // 1.1 If spender if not caller, decrease allowance
+            if (from != _msgSender()) {
+                _spendAllowance(from, _msgSender(), feeAmount);
+            }
             _transfer(
-                sender,
+                from,
                 IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
         }
 
         // 2. Execute withdrawal
-        return super.withdrawFrom(
-            sender,
+        (tokenIds, amounts) = selectWithdrawTokens(amount);
+        _withdraw(
+            from,
             recipient,
-            amount,
+            tokenIds,
+            amounts,
             data
         );
+        return (tokenIds, amounts);
     }
 
     /// @inheritdoc IEATBackedPool
     function withdrawSpecific(
-        address sender,
+        address from,
         address recipient,
         uint256[] calldata tokenIds,
         uint256[] calldata amounts,
         bytes calldata data
     ) 
-        external virtual override(IEATBackedPool, JasmineBasePool)
+        external virtual 
+        override(IEATBackedPool, JasmineBasePool)
     {
         // 1. If fee is not 0, calculate and take fee from caller
-        uint256 feeAmount = JasmineFeePool.withdrawalCost(tokenIds, amounts) - super.withdrawalCost(tokenIds, amounts);
-        if (feeAmount != 0 && 
-            IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0))
-        {
+        if (withdrawalSpecificRate() != 0) {
+            uint256 feeAmount = JasmineFeePool.withdrawalCost(tokenIds, amounts) - super.withdrawalCost(tokenIds, amounts);
+            // 1.1 If spender if not caller, decrease allowance
+            if (from != _msgSender()) {
+                _spendAllowance(from, _msgSender(), feeAmount);
+            }
             _transfer(
-                sender,
+                from,
                 IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
@@ -212,7 +232,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
 
         // 2. Execute withdrawal
         _withdraw(
-            sender,
+            from,
             recipient,
             tokenIds,
             amounts,
@@ -232,7 +252,9 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
      * @return Withdrawal fee in basis points
      */
     function withdrawalRate() public view returns (uint96) {
-        if (_withdrawalRate != 0) {
+        if (IJasmineFeeManager(poolFactory).feeBeneficiary() == address(0x0)) {
+            return 0;
+        } else if (_withdrawalRate != 0) {
             return _withdrawalRate;
         } else {
             return IJasmineFeeManager(poolFactory).baseWithdrawalRate();
@@ -248,7 +270,9 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
      * @return Withdrawal fee in basis points
      */
     function withdrawalSpecificRate() public view returns (uint96) {
-        if (_withdrawalSpecificRate != 0) {
+        if (IJasmineFeeManager(poolFactory).feeBeneficiary() == address(0x0)) {
+            return 0;
+        } else if (_withdrawalSpecificRate != 0) {
             return _withdrawalSpecificRate;
         } else {
             return IJasmineFeeManager(poolFactory).baseWithdrawalSpecificRate();
@@ -263,7 +287,9 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
      * @return Retirement rate in basis points
      */
     function retirementRate() public view returns (uint96) {
-        if ( _retirementRate != 0) {
+        if (IJasmineFeeManager(poolFactory).feeBeneficiary() == address(0x0)) {
+            return 0;
+        } else if ( _retirementRate != 0) {
             return  _retirementRate;
         } else {
             return IJasmineFeeManager(poolFactory).baseRetirementRate();
@@ -290,16 +316,11 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         if (tokenIds.length != amounts.length) {
             revert JasmineErrors.InvalidInput();
         }
-        // NOTE: If no feeBeneficiary is set, fees may not be collected
-        if (IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0)) {
-            return Math.mulDiv(
-                super.withdrawalCost(tokenIds, amounts), 
-                (withdrawalRate() + 10_000), 
-                10_000
-            );
-        } else {
-            return super.withdrawalCost(tokenIds, amounts);
-        }
+        return Math.mulDiv(
+            super.withdrawalCost(tokenIds, amounts), 
+            (withdrawalRate() + 10_000), 
+            10_000
+        );
     }
 
     /**
@@ -317,16 +338,11 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         override(IEATBackedPool, JasmineBasePool)
         returns (uint256 cost)
     {
-        // NOTE: If no feeBeneficiary is set, fees may not be collected
-        if (IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0)) {
-            return Math.mulDiv(
-                super.withdrawalCost(amount), 
-                (withdrawalSpecificRate() + 10_000), 
-                10_000
-            );
-        } else {
-            return super.withdrawalCost(amount);
-        }
+        return Math.mulDiv(
+            super.withdrawalCost(amount), 
+            (withdrawalSpecificRate() + 10_000), 
+            10_000
+        );
     }
 
     /**
@@ -340,19 +356,14 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         uint256 amount
     )
         public view virtual 
-        override(IEATBackedPool, JasmineBasePool)
+        override(IRetireablePool, JasmineBasePool)
         returns (uint256 cost)
     {
-        // NOTE: If no feeBeneficiary is set, fees may not be collected
-        if (IJasmineFeeManager(poolFactory).feeBeneficiary() != address(0x0)) {
-            return Math.mulDiv(
-                super.retirementCost(amount), 
-                (retirementRate() + 10_000), 
-                10_000
-            );
-        } else {
-            return super.retirementCost(amount);
-        }
+        return Math.mulDiv(
+            super.retirementCost(amount), 
+            (retirementRate() + 10_000), 
+            10_000
+        );
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -434,7 +445,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
      * @param newRetirementRate New fee on retirements in basis points
      */
     function _updateRetirementRate(uint96 newRetirementRate) private {
-         _retirementRate = newRetirementRate;
+        _retirementRate = newRetirementRate;
 
         emit RetirementRateUpdate(newRetirementRate, _msgSender());
     }

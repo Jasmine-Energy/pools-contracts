@@ -147,7 +147,7 @@ interface IJasmineEATBackedPool {
      *     - Owner must have sufficient JLTs
      *     - If recipient is a contract, it must implement onERC1155Received & onERC1155BatchReceived
      * 
-     * @param owner JLT owner from which to burn tokens
+     * @param spender JLT owner from which to burn tokens
      * @param recipient Address to receive withdrawn EATs
      * @param quantity Number of JLTs to withdraw
      * @param data Optional calldata to relay to recipient via onERC1155Received
@@ -158,7 +158,7 @@ interface IJasmineEATBackedPool {
      * Emits a {Withdraw} event.
      */
     function withdrawFrom(
-        address owner, 
+        address spender, 
         address recipient, 
         uint256 quantity, 
         bytes calldata data
@@ -174,7 +174,7 @@ interface IJasmineEATBackedPool {
      *     - If recipient is a contract, it must implement onERC1155Received & onERC1155BatchReceived
      *     - Owner and Recipient cannot be zero address
      * 
-     * @param owner JLT owner from which to burn tokens
+     * @param spender JLT owner from which to burn tokens
      * @param recipient Address to receive withdrawn EATs
      * @param tokenIds EAT token IDs to withdraw from pool
      * @param quantities Number of EATs for tokenId at same index to deposit
@@ -183,7 +183,7 @@ interface IJasmineEATBackedPool {
      * Emits a {Withdraw} event.
      */
     function withdrawSpecific(
-        address owner, 
+        address spender, 
         address recipient, 
         uint256[] calldata tokenIds, 
         uint256[] calldata quantities, 
@@ -217,13 +217,4 @@ interface IJasmineEATBackedPool {
      * @return cost Price of withdrawing EATs in JLTs
      */
     function withdrawalCost(uint256 amount) external view returns (uint256 cost);
-
-    /**
-     * @notice Cost of retiring JLTs from pool.
-     * 
-     * @param amount Amount of JLTs to retire.
-     * 
-     * @return cost Price of retiring in JLTs.
-     */
-    function retirementCost(uint256 amount) external view returns (uint256 cost);
 }
