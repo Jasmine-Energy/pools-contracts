@@ -4,11 +4,13 @@ pragma solidity >=0.8.17;
 
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-import { IERC1155 }         from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import { IERC165 }          from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import { IERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import { RedBlackTree }     from "../../../libraries/RedBlackTreeLibrary.sol";
-import { ArrayUtils }       from "../../../libraries/ArrayUtils.sol";
+import { JasmineErrors }        from "../../../interfaces/errors/JasmineErrors.sol";
+import { IERC1155 }             from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import { IERC165 }              from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import { IERC1155Receiver }     from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
+import { RedBlackTree }         from "../../../libraries/RedBlackTreeLibrary.sol";
+import { StructuredLinkedList } from "../../../libraries/StructuredLinkedList.sol";
+import { ArrayUtils }           from "../../../libraries/ArrayUtils.sol";
 
 
 /**
@@ -24,6 +26,7 @@ abstract contract EATManager is IERC1155Receiver {
     // ──────────────────────────────────────────────────────────────────────────────
 
     using RedBlackTree for RedBlackTree.Tree;
+    using StructuredLinkedList for StructuredLinkedList.List;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -38,6 +41,9 @@ abstract contract EATManager is IERC1155Receiver {
 
     /// @dev RBTree for storing vintage to token IDs mappings
     RedBlackTree.Tree private _tree;
+
+    /// @dev Sorted link list to store token IDs by vintage
+    StructuredLinkedList.List private _depositsList;
 
     /// @dev Maps vintage to token IDs
     mapping(uint40 => uint256[]) private _tokenIds;
@@ -91,7 +97,7 @@ abstract contract EATManager is IERC1155Receiver {
         uint256 value,
         bytes memory
     )
-        external override
+        external
         returns (bytes4)
     {
         _enforceTokenCaller();
@@ -111,7 +117,7 @@ abstract contract EATManager is IERC1155Receiver {
         uint256[] memory values,
         bytes memory
     )
-        external override
+        external
         returns (bytes4)
     {
         _enforceTokenCaller();
@@ -278,18 +284,40 @@ abstract contract EATManager is IERC1155Receiver {
     )
         private
     {
-        uint40 vintage = _getVintageFromTokenId(tokenId);
+        _totalDeposits += value;
 
-        if (!_tree.exists(vintage)) {
-            // If token does not exist in tree, add to tree and set of token IDs
-            _tree.insert(vintage);
-            _tokenIds[vintage].push(tokenId);
-        } else if (IERC1155(eat).balanceOf(address(this), tokenId) == value) {
-            // If contract's balance of token is equal to value, token ID is new and must be added to token IDs
-            _tokenIds[vintage].push(tokenId);
+        // 1. Encode the token ID to deposit format
+        uint256 encodedDeposit;
+        if (value < type(uint56).max) {
+            encodedDeposit = _encodeDeposit(tokenId, uint56(value));
+        } else {
+            encodedDeposit = _encodeDeposit(tokenId, uint56(type(uint56).max));
         }
 
-        _totalDeposits += value;
+        // 2. Add encoded deposit to linked list
+        if (!_depositsList.listExists()) {
+            require(_depositsList.pushFront(encodedDeposit));
+            _totalDeposits += value;
+            return;
+        }
+
+        (bool exists, uint256 next,) = _depositsList.getNode(encodedDeposit);
+
+        // 3. If node exists, remove from list, double balance, and reinsert
+        if (exists) {
+            // NOTE: because balance is stored in encoded deposit, we can simply double
+            _depositsList.remove(encodedDeposit);
+
+            value *= 2;
+            encodedDeposit = _encodeDeposit(tokenId, uint56(value));
+
+            // NOTE: As ordering also depends on balance, we must reevaluate ordering
+            (exists, next,) = _depositsList.getNode(encodedDeposit);
+            if (exists) revert JasmineErrors.ValidationFailed(); // Node should not exist at this point
+        }
+
+        // 4. If it doesn't insert to list
+        _depositsList.insertBefore(next, encodedDeposit);
     }
 
     /**
@@ -305,25 +333,14 @@ abstract contract EATManager is IERC1155Receiver {
         private
         returns (uint256 quantity)
     {
-        uint256[] memory balances = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
-
+        quantity = _totalDeposits;
         for (uint256 i = 0; i < tokenIds.length;) {
-            quantity += values[i];
-
-            uint40 vintage = _getVintageFromTokenId(tokenIds[i]);
-            if (!_tree.exists(vintage)) {
-                // If token does not exist in tree, add to tree and set of token IDs
-                _tree.insert(vintage);
-                _tokenIds[vintage].push(tokenIds[i]);
-            } else if (balances[i] == values[i]) { // TODO: Once efficient contains exists, rewrite the following
-                // If contract's balance of token is equal to value, token ID is new and must be added to token IDs
-                _tokenIds[vintage].push(tokenIds[i]);
+            _addDeposit(tokenIds[i], values[i]);
+            unchecked {
+                i++;
             }
-
-            unchecked { i++; }
         }
-
-        _totalDeposits += quantity;
+        quantity = _totalDeposits - quantity;
     }
 
     //  ────────────────────────────  Removing Deposits  ────────────────────────────  \\
@@ -342,24 +359,11 @@ abstract contract EATManager is IERC1155Receiver {
         private
     {
         uint256 balance = IERC1155(eat).balanceOf(address(this), tokenId);
-        // TODO: Edge cases (balance == 0, balance < value)
-        if (balance == value) {
-            uint40 vintage = _getVintageFromTokenId(tokenId);
-            if (_tokenIds[vintage].length == 1) {
-                _tree.remove(vintage);
-                delete _tokenIds[vintage];
-            } else {
-                // TODO: Find an optimal way to remove tokenId from _tokenIds[vintage]. This will not suffice
-                for (uint256 i = 0; i < _tokenIds[vintage].length; i++) {
-                    if (_tokenIds[vintage][i] == tokenId) {
-                        _tokenIds[vintage][i] = _tokenIds[vintage][_tokenIds[vintage].length - 1];
-                        _tokenIds[vintage].pop();
-                        break;
-                    }
-                }
-            }
-        }
+        if (balance == 0) {
 
+        } else {
+
+        }
         _totalDeposits -= value;
     }
 
@@ -407,6 +411,53 @@ abstract contract EATManager is IERC1155Receiver {
     /// @dev Returns the vintage given a Jasmine EAT token ID
     function _getVintageFromTokenId(uint256 tokenId) private pure returns (uint40 vintage) {
         return uint40((tokenId >> 56) & type(uint40).max);
+    }
+
+    /**
+     * @dev Encodes an EAT ID for internal storage by ordering vintage. 
+     *      Additionally, stores balance in 56 bit of expected padding.
+     * 
+     * @param tokenId EAT token ID to format for storage
+     * @param balance Balance of the EAT being deposited in uint56
+     */
+    function _encodeDeposit(uint256 tokenId, uint56 balance) private pure returns (uint256 formatted) {
+        (uint256 uuid, uint256 registry, uint256 vintage, uint256 pad) = (
+          tokenId >> 128,
+          (tokenId >> 96) & type(uint32).max,
+          (tokenId >> 56) & type(uint40).max,
+          tokenId & type(uint56).max
+        );
+
+        if (pad != 0) revert JasmineErrors.ValidationFailed();
+
+        formatted = (vintage << 216) |
+                      (uuid << 88)     |
+                      (registry << 56) |
+                      (balance << 40);
+    }
+
+    /**
+     * @dev Decode a deposit from linked list to EAT token ID and balance
+     * 
+     * @param deposit Encoded deposit id to decode to EAT token ID
+     * @return tokenId EAT token ID
+     * @return balance Balance held by pool of EAT
+     */
+    function _decodeDeposit(uint256 deposit) private pure returns (uint256 tokenId, uint56 balance) {
+        uint256 vintage;
+        uint256 uuid;
+        uint256 registry;
+
+        (vintage, uuid, registry, balance) = (
+          deposit >> 216,
+          (deposit >> 88) & type(uint128).max,
+          (deposit >> 56) & type(uint32).max,
+          uint56(deposit & type(uint40).max)
+        );
+
+        tokenId = (uuid << 128) |
+                    (registry << 96) |
+                    (vintage << 56);
     }
 
     /// @dev Returns element in an array by iteself

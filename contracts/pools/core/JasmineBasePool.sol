@@ -10,6 +10,7 @@ import { IJasmineEATBackedPool  as IEATBackedPool  } from "../../interfaces/pool
 import { IJasmineQualifiedPool  as IQualifiedPool  } from "../../interfaces/pool/IQualifiedPool.sol";
 import { IJasmineRetireablePool as IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
 import { IERC1046 }                                  from "../../interfaces/ERC/IERC1046.sol";
+import { JasmineErrors }                             from "../../interfaces/errors/JasmineErrors.sol";
 
 // Inheritted Contracts
 import { EATManager }      from "./implementations/EATManager.sol";
@@ -29,7 +30,7 @@ import { PoolPolicy }    from "../../libraries/PoolPolicy.sol";
 import { Calldata }      from "../../libraries/Calldata.sol";
 import { Math }          from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils }    from "../../libraries/ArrayUtils.sol";
-import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
+
 
 
 /**
@@ -40,6 +41,7 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
  */
 abstract contract JasmineBasePool is
     IJasminePool,
+    JasmineErrors,
     ERC20Permit,
     IERC1046,
     EATManager,
