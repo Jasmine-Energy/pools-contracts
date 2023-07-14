@@ -9,6 +9,7 @@ import { IERC1155 }             from "@openzeppelin/contracts/token/ERC1155/IERC
 import { IERC165 }              from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { IERC1155Receiver }     from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import { StructuredLinkedList } from "../../../libraries/StructuredLinkedList.sol";
+import { BitMaps }              from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 import { ArrayUtils }           from "../../../libraries/ArrayUtils.sol";
 
 
@@ -25,6 +26,7 @@ abstract contract EATManager is IERC1155Receiver {
     // ──────────────────────────────────────────────────────────────────────────────
 
     using StructuredLinkedList for StructuredLinkedList.List;
+    using BitMaps for BitMaps.BitMap;
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
@@ -44,7 +46,7 @@ abstract contract EATManager is IERC1155Receiver {
     mapping(uint256 => uint256) private _balances;
 
     /// @dev Maps deposit ID to whether it is frozen
-    mapping(uint256 => bool) private _frozenDeposits;
+    BitMaps.BitMap private _frozenDeposits;
 
     uint8 private constant WITHDRAWS_LOCK = 1;
     uint8 private constant WITHDRAWS_UNLOCKED = 2;
@@ -162,7 +164,7 @@ abstract contract EATManager is IERC1155Receiver {
         withdrawsUnlocked
     {
         for (uint256 i; i < tokenIds.length;) {
-            if (_frozenDeposits[_encodeDeposit(tokenIds[i])]) revert JasmineErrors.Prohibited();
+            if (_frozenDeposits.get(_encodeDeposit(tokenIds[i]))) revert JasmineErrors.Prohibited();
             unchecked {
                 i++;
             }
@@ -447,9 +449,9 @@ abstract contract EATManager is IERC1155Receiver {
     function _updateTokenStatus(uint256 tokenId, bool isWithdrawable) internal returns (bool wasUpdated) {
         uint256 encodedDeposit = _encodeDeposit(tokenId);
 
-        wasUpdated = _frozenDeposits[encodedDeposit] != isWithdrawable;
+        wasUpdated = _frozenDeposits.get(encodedDeposit) != isWithdrawable;
 
-        _frozenDeposits[encodedDeposit] = !isWithdrawable;
+        _frozenDeposits.setTo(encodedDeposit, !isWithdrawable);
 
         if (!isWithdrawable) {
             _depositsList.remove(encodedDeposit);
@@ -501,7 +503,7 @@ abstract contract EATManager is IERC1155Receiver {
     function _isTokenInRecords(uint256 tokenId) internal view returns (bool isRecorded) {
         uint256 encodedDeposit = _encodeDeposit(tokenId);
         (bool exists,,) = _depositsList.getNode(encodedDeposit);
-        isRecorded = exists || _frozenDeposits[encodedDeposit];
+        isRecorded = exists || _frozenDeposits.get(encodedDeposit);
     }
 
 
