@@ -782,7 +782,7 @@ contract JasminePoolFactory is
             revert MustSupportInterface(type(IERC1155Receiver).interfaceId);
         }
 
-        for (uint i = 0; i < _poolBeacons.length();) {
+        for (uint256 i = 0; i < _poolBeacons.length();) {
             UpgradeableBeacon beacon = UpgradeableBeacon(_poolBeacons.at(i));
             if (beacon.implementation() == poolImplementation) {
                 revert PoolExists(poolImplementation);

@@ -604,7 +604,7 @@ abstract contract JasmineBasePool is
     function _enforceEligibility(uint256[] memory tokenIds)
         private view
     {
-        for (uint i = 0; i < tokenIds.length;) {
+        for (uint256 i = 0; i < tokenIds.length;) {
             if (!meetsPolicy(tokenIds[i])) revert Unqualified(tokenIds[i]);
 
             unchecked {

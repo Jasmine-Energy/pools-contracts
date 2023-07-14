@@ -224,7 +224,7 @@ library StructuredLinkedList {
         // Create an array to store the removed nodes
         uint256[] memory nodes = new uint256[](_count);
         (, uint256 next) = getNextNode(self, _HEAD);
-        uint i;
+        uint256 i;
         while (i < _count) {
             nodes[i] = next;
             (, next) = getNextNode(self, next);

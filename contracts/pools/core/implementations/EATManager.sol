@@ -161,7 +161,7 @@ abstract contract EATManager is IERC1155Receiver {
         internal
         withdrawsUnlocked
     {
-        for (uint i; i < tokenIds.length;) {
+        for (uint256 i; i < tokenIds.length;) {
             if (_frozenDeposits[_encodeDeposit(tokenIds[i])]) revert JasmineErrors.Prohibited();
             unchecked {
                 i++;
@@ -298,7 +298,7 @@ abstract contract EATManager is IERC1155Receiver {
 
         uint256 current = LIST_HEAD;
         tokenIds = new uint256[](withdrawLength);
-        for (uint i = 0; i < withdrawLength;) {
+        for (uint256 i = 0; i < withdrawLength;) {
             (,current) = _depositsList.getNextNode(current);
             tokenIds[i] = _decodeDeposit(current);
 
