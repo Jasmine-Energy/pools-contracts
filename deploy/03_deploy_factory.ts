@@ -12,7 +12,7 @@ const deployFactory: DeployFunction = async function (
 
     // 1. Get deployments, accounts and constructor args
     const { deploy } = deployments;
-    const { owner, deployer, feeBeneficiary, uniswapPoolFactory, USDC } = await getNamedAccounts();
+    const { owner, deployer, poolManager, feeManager, feeBeneficiary, uniswapPoolFactory, USDC } = await getNamedAccounts();
 
     let tokenBaseURI: string;
     if (network.live) {
@@ -31,6 +31,8 @@ const deployFactory: DeployFunction = async function (
     const initializerArgs = [
         owner,
         pool.address,
+        poolManager,
+        feeManager,
         feeBeneficiary,
         tokenBaseURI
     ];

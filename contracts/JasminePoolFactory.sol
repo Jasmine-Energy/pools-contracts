@@ -177,12 +177,16 @@ contract JasminePoolFactory is
      * 
      * @param _owner Address to receive initial ownership of contract
      * @param _poolImplementation Address containing Jasmine Pool implementation
+     * @param _poolManager Address of initial pool manager. May be zero address
+     * @param _feeManager Address of initial fee manager. May be zero address
      * @param _feeBeneficiary Address to receive all pool fees
      * @param _tokensBaseURI Base URI of used for ERC-1046 token URI function
      */
     function initialize(
         address _owner,
         address _poolImplementation,
+        address _poolManager,
+        address _feeManager,
         address _feeBeneficiary,
         string memory _tokensBaseURI
     )
@@ -218,6 +222,9 @@ contract JasminePoolFactory is
         // 5. Grant owner pool manager and fee manager roles
         _grantRole(POOL_MANAGER_ROLE, _owner);
         _grantRole(FEE_MANAGER_ROLE, _owner);
+
+        if (_poolManager != address(0x0)) _grantRole(POOL_MANAGER_ROLE, _feeManager);
+        if (_feeManager != address(0x0)) _grantRole(FEE_MANAGER_ROLE, _feeManager);
 
         // 6. Setup default pool implementation
         _grantRole(POOL_MANAGER_ROLE, _msgSender());

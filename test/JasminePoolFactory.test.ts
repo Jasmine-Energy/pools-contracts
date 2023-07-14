@@ -71,7 +71,7 @@ describe(Contracts.factory, function () {
       await expect(
         upgrades.deployProxy(
           PoolFactory,
-          [owner.address, ethers.constants.AddressZero, feeBeneficiary.address, ""],
+          [owner.address, ethers.constants.AddressZero, ethers.constants.AddressZero, ethers.constants.AddressZero, feeBeneficiary.address, ""],
           {
             unsafeAllow: ["constructor", "state-variable-immutable"],
             constructorArgs: [uniswapPoolFactory, USDC],
@@ -87,7 +87,7 @@ describe(Contracts.factory, function () {
       await expect(
         upgrades.deployProxy(
           PoolFactory,
-          [owner.address, await poolImplementation.eat(), feeBeneficiary.address, ""],
+          [owner.address, await poolImplementation.eat(), ethers.constants.AddressZero, ethers.constants.AddressZero, feeBeneficiary.address, ""],
           {
             unsafeAllow: ["constructor", "state-variable-immutable"],
             constructorArgs: [uniswapPoolFactory, USDC],
@@ -102,7 +102,7 @@ describe(Contracts.factory, function () {
       await expect(
         upgrades.deployProxy(
           PoolFactory,
-          [owner.address, poolImplementation.address, ethers.constants.AddressZero, ""],
+          [owner.address, poolImplementation.address, ethers.constants.AddressZero, ethers.constants.AddressZero, ethers.constants.AddressZero, ""],
           {
             unsafeAllow: ["constructor", "state-variable-immutable"],
             constructorArgs: [uniswapPoolFactory, USDC],

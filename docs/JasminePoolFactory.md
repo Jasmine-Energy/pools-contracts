@@ -384,7 +384,7 @@ function hasRole(bytes32 role, address account) external view returns (bool)
 ### initialize
 
 ```solidity
-function initialize(address _owner, address _poolImplementation, address _feeBeneficiary, string _tokensBaseURI) external nonpayable
+function initialize(address _owner, address _poolImplementation, address _poolManager, address _feeManager, address _feeBeneficiary, string _tokensBaseURI) external nonpayable
 ```
 
 
@@ -397,6 +397,8 @@ function initialize(address _owner, address _poolImplementation, address _feeBen
 |---|---|---|
 | _owner | address | Address to receive initial ownership of contract |
 | _poolImplementation | address | Address containing Jasmine Pool implementation |
+| _poolManager | address | Address of initial pool manager. May be zero address |
+| _feeManager | address | Address of initial fee manager. May be zero address |
 | _feeBeneficiary | address | Address to receive all pool fees |
 | _tokensBaseURI | string | Base URI of used for ERC-1046 token URI function |
 

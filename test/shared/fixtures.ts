@@ -113,7 +113,7 @@ export async function deployPoolImplementation() {
 }
 
 export async function deployPoolFactory() {
-  const { owner, deployer, feeBeneficiary, uniswapPoolFactory, USDC } = await getNamedAccounts();
+  const { owner, deployer, poolManager, feeManager, feeBeneficiary, uniswapPoolFactory, USDC } = await getNamedAccounts();
   const deployerSigner = await ethers.getSigner(deployer);
   const ownerSigner = await ethers.getSigner(owner);
   const poolImplementation = await loadFixture(deployPoolImplementation);
@@ -122,7 +122,7 @@ export async function deployPoolFactory() {
 
   const poolFactory = await upgrades.deployProxy(
     PoolFactory,
-    [owner, poolImplementation.address, feeBeneficiary, "https://api.jasmine.energy/v1/pools/"],
+    [owner, poolImplementation.address, poolManager, feeManager, feeBeneficiary, "https://api.jasmine.energy/v1/pools/"],
     {
       unsafeAllow: ["constructor", "state-variable-immutable"],
       constructorArgs: [uniswapPoolFactory, USDC],
