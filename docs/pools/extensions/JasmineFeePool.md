@@ -731,6 +731,28 @@ Allows pool fee managers to update the withdrawal rate
 | newWithdrawalRate | uint96 | New rate on withdrawals in basis points |
 | isSpecificRate | bool | Whether the new rate is for specific tokens or any |
 
+### validateDepositValidity
+
+```solidity
+function validateDepositValidity(uint256 tokenId) external nonpayable returns (bool isValid)
+```
+
+
+
+*Checks if an EAT depositted into the pool is frozen and validates internal      balance for token. If frozen, it is internally removed from the pool&#39;s      list of withdrawable tokens. If internal count does not match balance,      caller will have their JLT burned to rectify the inbalance. *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenId | uint256 | EAT token ID to check |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| isValid | bool | undefined |
+
 ### withdraw
 
 ```solidity

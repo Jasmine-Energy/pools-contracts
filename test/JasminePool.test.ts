@@ -607,4 +607,79 @@ describe(Contracts.pool, function () {
       expect(await solarPool.tokenURI()).to.be.eq(baseURI.concat(solarSymbol));
     });
   });
+
+  describe("Invalidated Deposits", async function () {
+    let frozenTokenId: bigint;
+    let unfrozenTokenId: bigint;
+
+    beforeEach(async function () {
+      const token1 = await mintEat(owner.address, 5, FuelType.SOLAR);
+      frozenTokenId = token1.id;
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        token1.id,
+        token1.amount,
+        []
+      );
+      const token2 = await mintEat(owner.address, 5, FuelType.WIND);
+      unfrozenTokenId = token2.id;
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        token2.id,
+        token2.amount,
+        []
+      );
+
+      await eat.freeze(frozenTokenId);
+    });
+
+    it("Should allow withdrawals with frozen tokens in the pool", async function () {
+      expect(await anyTechAnnualPool.validateDepositValidity(frozenTokenId)).to.be.ok;
+
+      expect(await anyTechAnnualPool.withdraw(owner.address, 1, [])).to.be.ok
+        .and.to.emit(anyTechAnnualPool, "Withdraw")
+        .and.to.emit(anyTechAnnualPool, "TransferSingle")
+        .withArgs(
+          owner.address, owner.address, anyValue, 
+          unfrozenTokenId, anyValue
+        );
+    });
+
+    it("Should prohibit withdrawals with of frozen tokens in the pool", async function () {
+      expect(await anyTechAnnualPool.validateDepositValidity(frozenTokenId)).to.be.ok;
+
+      await expect(
+        anyTechAnnualPool.withdrawSpecific(owner.address, owner.address, [frozenTokenId], [1], [])
+      ).to.be.revertedWithCustomError(anyTechAnnualPool, "Prohibited");
+    });
+
+    it("Should allow withdrawals after a deposit is unfrozen", async function () {
+      expect(await eat.thaw(frozenTokenId)).to.be.ok;
+      expect(await anyTechAnnualPool.validateDepositValidity(frozenTokenId)).to.be.ok;
+
+      expect(await anyTechAnnualPool.withdraw(owner.address, 10, [])).to.be.ok
+        .and.to.emit(anyTechAnnualPool, "Withdraw")
+        .and.to.emit(anyTechAnnualPool, "TransferBatch")
+        .withArgs(
+          owner.address, owner.address, anyValue, 
+          [frozenTokenId, unfrozenTokenId], anyValue
+        );
+    });
+
+    it("Should allow burn JLT from caller is deposit becomes burned by owner", async function () {
+      expect(await eat.slash(anyTechAnnualPool.address, frozenTokenId, 5)).to.be.ok;
+      expect(await anyTechAnnualPool.validateDepositValidity(frozenTokenId)).to.be.ok
+        .and.to.emit(anyTechAnnualPool, "Transfer")
+        .withArgs(
+          anyTechAnnualPool.address, ethers.constants.AddressZero, anyValue,
+        )
+        .and.to.emit(anyTechAnnualPool, "TransferSingle")
+        .withArgs(
+          anyTechAnnualPool.address, ethers.constants.AddressZero, anyValue, 
+          frozenTokenId, anyValue
+        );
+    });
+  });
 });

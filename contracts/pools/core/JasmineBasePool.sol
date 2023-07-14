@@ -387,7 +387,7 @@ abstract contract JasmineBasePool is
         public view virtual
         returns (bool isEligible)
     {
-        isEligible = _isLegitimateToken(tokenId);
+        return JasmineEAT(eat).exists(tokenId) && !JasmineEAT(eat).frozen(tokenId);
     }
 
     /// @inheritdoc IQualifiedPool
@@ -485,7 +485,7 @@ abstract contract JasmineBasePool is
     //  Token Transfer Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    //  ─────────────────────────  ERC-1155 Deposit Hooks  ──────────────────────────  \\
+    //  ───────────────────────  EAT Manager Deposit Hooks  ─────────────────────────  \\
 
     /**
      * @dev Enforce EAT eligibility before deposits
@@ -522,22 +522,46 @@ abstract contract JasmineBasePool is
         emit Deposit(operator, from, quantity);
     }
 
+    //  ──────────────────────  Deposit Flagging Functions  ─────────────────────────  \\
+
+    /**
+     * @dev Checks if an EAT depositted into the pool is frozen and validates internal
+     *      balance for token. If frozen, it is internally removed from the pool's
+     *      list of withdrawable tokens. If internal count does not match balance,
+     *      caller will have their JLT burned to rectify the inbalance.
+     * 
+     * @param tokenId EAT token ID to check
+     */
+    function validateDepositValidity(uint256 tokenId) external returns (bool isValid) {
+        if (!_isTokenInRecords(tokenId)) {
+            if (JasmineEAT(eat).balanceOf(address(this), tokenId) != 0) {
+                // TODO: Add to list of withdrawable tokens
+                revert JasmineErrors.InvalidInput();
+            } else {
+                revert JasmineErrors.InvalidInput();
+            }
+        }
+
+        uint256 preTotalDeposits = _totalDeposits;
+        bool isFrozen = JasmineEAT(eat).frozen(tokenId);
+        bool wasUpdated = _updateTokenStatus(tokenId, !isFrozen) || _validateInternalBalance(tokenId);
+        
+        if (wasUpdated) {
+            uint256 changeInDeposits = Math.max(_totalDeposits, preTotalDeposits) - Math.min(_totalDeposits, preTotalDeposits);
+            isValid = changeInDeposits == 0;
+            if (isValid) return true;
+
+            if (preTotalDeposits < _totalDeposits) {
+                _burn(_msgSender(), _standardizeDecimal(changeInDeposits));
+            } else {
+                _mint(_msgSender(), _standardizeDecimal(changeInDeposits));
+            }
+        }
+    }
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * @dev Used to check a token exists and is not frozen
-     * 
-     * @param tokenId EAT token ID to check
-     * @return isLegit Boolean if token passed legitimacy check
-     */
-    function _isLegitimateToken(uint256 tokenId)
-        private view
-        returns (bool isLegit)
-    {
-        return JasmineEAT(eat).exists(tokenId) && !JasmineEAT(eat).frozen(tokenId);
-    }
 
     /**
      * @dev Standardizes an integers input to the pool's ERC-20 decimal storage value

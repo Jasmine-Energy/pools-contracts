@@ -43,6 +43,9 @@ abstract contract EATManager is IERC1155Receiver {
     /// @dev Maps vintage to token IDs
     mapping(uint256 => uint256) private _balances;
 
+    /// @dev Maps deposit ID to whether it is frozen
+    mapping(uint256 => bool) private _frozenDeposits;
+
     uint8 private constant WITHDRAWS_LOCK = 1;
     uint8 private constant WITHDRAWS_UNLOCKED = 2;
 
@@ -158,6 +161,12 @@ abstract contract EATManager is IERC1155Receiver {
         internal
         withdrawsUnlocked
     {
+        for (uint i; i < tokenIds.length;) {
+            if (_frozenDeposits[_encodeDeposit(tokenIds[i])]) revert JasmineErrors.Prohibited();
+            unchecked {
+                i++;
+            }
+        }
         if (tokenIds.length == 1) {
             _removeDeposit(tokenIds[0], values[0]);
             IERC1155(eat).safeTransferFrom(
@@ -421,10 +430,82 @@ abstract contract EATManager is IERC1155Receiver {
         _totalDeposits -= total;
     }
 
-    /// @dev Returns the vintage given a Jasmine EAT token ID
-    function _getVintageFromTokenId(uint256 tokenId) private pure returns (uint40 vintage) {
-        return uint40((tokenId >> 56) & type(uint40).max);
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Internal Upkeep Functionality
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @dev Updates the status of a token ID to be frozen or unfrozen. If frozen,
+     *      removes from deposits list. If unfrozen, adds to deposits list.
+     * 
+     * @param tokenId EAT ID to set status of
+     * @param isWithdrawable Whether the token ID is withdrawable
+     * 
+     * @return wasUpdated Whether the token status was updated
+     */
+    function _updateTokenStatus(uint256 tokenId, bool isWithdrawable) internal returns (bool wasUpdated) {
+        uint256 encodedDeposit = _encodeDeposit(tokenId);
+
+        wasUpdated = _frozenDeposits[encodedDeposit] != isWithdrawable;
+
+        _frozenDeposits[encodedDeposit] = !isWithdrawable;
+
+        if (!isWithdrawable) {
+            _depositsList.remove(encodedDeposit);
+        } else {
+            (bool exists, uint256 next,) = _depositsList.getNode(encodedDeposit);
+            if (!exists) {
+                _depositsList.insertBefore(next, encodedDeposit);
+            }
+        }
     }
+
+    /**
+     * @dev Checks the balance of a token ID held by contract. If different, updates 
+     *      internal records and returns true.
+     * 
+     * @param tokenId EAT ID to check balance of
+     * 
+     * @return wasUpdated Whether the balance was updated
+     */
+    function _validateInternalBalance(uint256 tokenId) internal returns (bool wasUpdated) {
+        uint256 encodedDeposit = _encodeDeposit(tokenId);
+        uint256 balance = IERC1155(eat).balanceOf(address(this), tokenId);
+
+        wasUpdated = _balances[encodedDeposit] != balance;
+        if (wasUpdated) {
+            if (balance == 0) {
+                _totalDeposits -= _balances[encodedDeposit];
+            } else if (_balances[encodedDeposit] == 0) {
+                _frozenDeposits[encodedDeposit] = true;
+            } else if (balance < _balances[encodedDeposit]) {
+                _totalDeposits -= _balances[encodedDeposit] - balance;
+            } else {
+                _totalDeposits += balance - _balances[encodedDeposit];
+            }
+            _balances[encodedDeposit] = balance;
+        }
+    }
+
+    /**
+     * @dev Checks if a token ID is in the contract's internal records (either deposits
+     *      list or frozen deposits set)
+     * 
+     * @param tokenId EAT ID to check if in contract's records
+     * 
+     * @return isRecorded Whether the token is in records
+     */
+    function _isTokenInRecords(uint256 tokenId) internal view returns (bool isRecorded) {
+        uint256 encodedDeposit = _encodeDeposit(tokenId);
+        (bool exists,,) = _depositsList.getNode(encodedDeposit);
+        isRecorded = exists || _frozenDeposits[encodedDeposit];
+    }
+
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Encoding and Decoding Functions
+    //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
      * @dev Encodes an EAT ID for internal storage by ordering vintage. 
@@ -451,7 +532,7 @@ abstract contract EATManager is IERC1155Receiver {
     }
 
     /// @dev Batch version of decodeDeposit
-    function _decodeDeposits(uint256[] memory deposits) private view returns (uint256[] memory tokenIds) {
+    function _decodeDeposits(uint256[] memory deposits) private pure returns (uint256[] memory tokenIds) {
         tokenIds = new uint256[](deposits.length);
         for (uint256 i = 0; i < deposits.length;) {
             tokenIds[i] = _decodeDeposit(deposits[i]);
