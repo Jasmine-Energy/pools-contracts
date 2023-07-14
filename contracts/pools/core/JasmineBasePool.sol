@@ -16,6 +16,7 @@ import { JasmineErrors }                             from "../../interfaces/erro
 import { EATManager }      from "./implementations/EATManager.sol";
 import { Initializable }   from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { ERC20 }           from "./implementations/ERC20.sol";
+import { IERC20Metadata }  from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { ERC20Permit }     from "./implementations/ERC20Permit.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
@@ -440,7 +441,7 @@ abstract contract JasmineBasePool is
      * @inheritdoc ERC20
      * @dev See {IERC20Metadata-name}
      */
-    function name() public view override returns (string memory) {
+    function name() public view override(ERC20, IERC20Metadata) returns (string memory) {
         return _name;
     }
 
@@ -448,7 +449,7 @@ abstract contract JasmineBasePool is
      * @inheritdoc ERC20
      * @dev See {IERC20Metadata-symbol}
      */
-    function symbol() public view override returns (string memory) {
+    function symbol() public view override(ERC20, IERC20Metadata) returns (string memory) {
         return _symbol;
     }
 

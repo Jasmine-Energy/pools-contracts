@@ -16,7 +16,6 @@ import { JasmineErrors }                             from "./interfaces/errors/J
 import { IJasminePool }      from "./interfaces/IJasminePool.sol";
 import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import { IUniswapV3Pool }    from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import { IERC165 }           from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { IERC1155Receiver }  from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 
 // Proxies Contracts
@@ -26,6 +25,7 @@ import { BeaconProxy }       from "@openzeppelin/contracts/proxy/beacon/BeaconPr
 // Utility Libraries
 import { PoolPolicy }    from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { ERC165Checker } from "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import { Create2 }       from "@openzeppelin/contracts/utils/Create2.sol";
 import { Address }       from "@openzeppelin/contracts/utils/Address.sol";
 
@@ -51,6 +51,7 @@ contract JasminePoolFactory is
 
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using ERC165Checker for address;
     using Address for address;
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -775,9 +776,9 @@ contract JasminePoolFactory is
     function _validatePoolImplementation(address poolImplementation)
         private view 
     {
-        if (!IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId)) {
+        if (!poolImplementation.supportsInterface(type(IJasminePool).interfaceId)) {
             revert MustSupportInterface(type(IJasminePool).interfaceId);
-        } else if (!IERC165(poolImplementation).supportsInterface(type(IERC1155Receiver).interfaceId)) {
+        } else if (!poolImplementation.supportsInterface(type(IERC1155Receiver).interfaceId)) {
             revert MustSupportInterface(type(IERC1155Receiver).interfaceId);
         }
 

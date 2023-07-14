@@ -96,7 +96,7 @@ function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint2
 
 
 
-
+*inheritdoc ERC1155Receiver*
 
 #### Parameters
 
@@ -122,7 +122,7 @@ function onERC1155Received(address, address from, uint256 tokenId, uint256 amoun
 
 
 
-
+*inheritdoc ERC1155Receiver*
 
 #### Parameters
 

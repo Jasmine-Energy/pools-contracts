@@ -66,6 +66,7 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, Ownabl
     //  ERC-1155 Receiver Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
+    /// @dev inheritdoc ERC1155Receiver
     function onERC1155Received(
         address,
         address from,
@@ -94,6 +95,7 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, Ownabl
         return this.onERC1155Received.selector;
     }
 
+    /// @dev inheritdoc ERC1155Receiver
     function onERC1155BatchReceived(
         address,
         address from,

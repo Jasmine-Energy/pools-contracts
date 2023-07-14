@@ -132,7 +132,7 @@ abstract contract EATManager is IERC1155Receiver {
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) { //
+    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
         return interfaceId == type(IERC1155Receiver).interfaceId || 
             interfaceId == type(IERC165).interfaceId;
     }
@@ -478,7 +478,9 @@ abstract contract EATManager is IERC1155Receiver {
             if (balance == 0) {
                 _totalDeposits -= _balances[encodedDeposit];
             } else if (_balances[encodedDeposit] == 0) {
-                _frozenDeposits[encodedDeposit] = true;
+                // TODO: WTF do we do here?
+                // NOTE: WE cannot simply add to frozen, as calling validate again will cause it to be unfrozen if that is the state in the Jasmine EAT contract
+                // _frozenDeposits[encodedDeposit] = true;
             } else if (balance < _balances[encodedDeposit]) {
                 _totalDeposits -= _balances[encodedDeposit] - balance;
             } else {
