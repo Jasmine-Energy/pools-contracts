@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-
 /**
  * @title StructuredLinkedList
  * @author Vittorio Minacori (https://github.com/vittominacori)
