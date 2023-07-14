@@ -192,6 +192,16 @@ library StructuredLinkedList {
         return _push(self, _node, _PREV);
     }
 
+    /// @dev Gets first first node in list. If empty, returns 0.
+    function front(List storage self) internal view returns (uint256) {
+        (bool exists, uint256 node) = getNextNode(self, _HEAD);
+        if (exists) {
+            return node;
+        } else {
+            return 0;
+        }
+    }
+
     /**
      * @dev Pops the first entry from the head of the linked list
      * @param self stored linked list from contract
@@ -204,10 +214,11 @@ library StructuredLinkedList {
     /**
      * @dev Pops multiple nodes from front of the list
      * @param self stored linked list from contract
+     * @param _keepLast If true, last item will not be removed
      * @param _count Number of items to pop from the front
      * @return uint256[] the removed nodes
      */
-    function popFront(List storage self, uint256 _count) internal returns (uint256[] memory) {
+    function popFront(List storage self, uint256 _count, bool _keepLast) internal returns (uint256[] memory) {
         require(_count <= sizeOf(self));
 
         // Create an array to store the removed nodes
@@ -220,7 +231,14 @@ library StructuredLinkedList {
             i++;
         }
 
+        if (_keepLast) {
+            (, next) = getPreviousNode(self, next);
+        }
+
         // Create link between HEAD and new first node
+        if (nodeExists(self, next)) {
+            _createLink(self, _HEAD, next, _NEXT);
+        }
         // _createLink(self, _HEAD, next, _NEXT);
         i = 0;
         while (i < _count) {

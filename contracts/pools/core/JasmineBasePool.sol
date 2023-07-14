@@ -31,7 +31,6 @@ import { Calldata }      from "../../libraries/Calldata.sol";
 import { Math }          from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils }    from "../../libraries/ArrayUtils.sol";
 
-import "hardhat/console.sol";
 
 /**
  * @title Jasmine Base Pool
@@ -127,75 +126,6 @@ abstract contract JasmineBasePool is
     // User Functionality
     // ──────────────────────────────────────────────────────────────────────────────
 
-    //  ──────────────────────────  Retirement Functions  ───────────────────────────  \\
-
-    /// @inheritdoc IRetireablePool
-    function retire(
-        address owner, 
-        address beneficiary,
-        uint256 amount, 
-        bytes calldata data
-    )
-        external virtual
-    {
-        _retire(owner, beneficiary, amount, data);
-    }
-
-    /**
-     * @dev Internal function to execute retirements
-     * 
-     * @param owner Address from which to burn JLT
-     * @param beneficiary Address to receive retirement accredidation
-     * @param amount Number of JLT to return
-     * @param data Additional data to encode in retirement
-     */
-    function _retire(
-        address owner, 
-        address beneficiary,
-        uint256 amount, 
-        bytes calldata data
-    )
-        internal virtual
-        withdrawal nonReentrant
-    {
-        // 1. Burn JLTs from owner
-        uint256 cost = JasmineBasePool.retirementCost(amount);
-        _spendJLT(owner, cost);
-
-        // 2. Select quantity of EATs to retire
-        uint256 eatQuantity = _totalDeposits - Math.ceilDiv(totalSupply(), 10 ** decimals());
-
-        // 3. Encode transfer data
-        bool hasFractional = eatQuantity > (amount / (10 ** decimals()));
-        bytes memory retirementData;
-
-        if (eatQuantity == 0) {
-            emit Retirement(owner, beneficiary, amount);
-            return;
-        } else if (hasFractional && eatQuantity == 1) {
-            retirementData = Calldata.encodeFractionalRetirementData();
-        } else {
-            retirementData = Calldata.encodeRetirementData(beneficiary, hasFractional);
-        }
-
-        if (data.length != 0) {
-            retirementData = abi.encodePacked(retirementData, data);
-        }
-
-        // 4. Send to retirement service and emit retirement event
-        (uint256[] memory tokenIds, uint256[] memory amounts) = selectWithdrawTokens(eatQuantity);
-
-        // _transferDeposits(retirementService, tokenIds, amounts, retirementData);
-        (uint256[] memory tokenIds2, uint256[] memory amounts2) = _transferQueuedDeposits(eatQuantity, retirementService, retirementData);
-
-        // for (uint256 i; i < eatQuantity; i++) {
-        //     console.log(tokenIds[i], tokenIds2[i]);
-        // }
-
-        emit Retirement(owner, beneficiary, amount);
-    }
-
-
     //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
 
     /// @inheritdoc IEATBackedPool
@@ -272,15 +202,12 @@ abstract contract JasmineBasePool is
             uint256[] memory amounts
         )
     {
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
+        return _withdraw(
             _msgSender(),
             recipient,
-            tokenIds,
-            amounts,
+            amount,
             data
         );
-        return (tokenIds, amounts);
     }
 
     /// @inheritdoc IEATBackedPool
@@ -296,15 +223,12 @@ abstract contract JasmineBasePool is
             uint256[] memory amounts
         )
     {
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
+        return _withdraw(
             from,
             recipient,
-            tokenIds,
-            amounts,
+            amount,
             data
         );
-        return (tokenIds, amounts);
     }
 
     /// @inheritdoc IEATBackedPool
@@ -324,6 +248,39 @@ abstract contract JasmineBasePool is
             amounts,
             data
         );
+    }
+
+    /**
+     * @dev Internal utility function for withdrawing EATs where 
+     *      the pool selects the EATs to withdraw
+     * 
+     * @param from JLT holder from which token will be burned
+     * @param recipient Address to receive EATs
+     * @param tokenIds EAT token IDs to withdraw
+     * @param amounts EAT token amounts to withdraw
+     * @param data Calldata relayed during EAT transfer
+     */
+    function _withdraw(
+        address from,
+        address recipient,
+        uint256 amount,
+        bytes memory data
+    ) 
+        internal virtual
+        withdrawal nonReentrant
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        // 1. Ensure spender has sufficient JLTs and lengths match
+        uint256 cost = JasmineBasePool.withdrawalCost(amount);
+
+        // 2. Burn Tokens
+        _spendJLT(from, cost);
+
+        // 3. Transfer Select Tokens
+        return _transferQueuedDeposits(recipient, amount, data);
     }
 
     /**
@@ -355,6 +312,69 @@ abstract contract JasmineBasePool is
         // 3. Transfer Select Tokens
         _transferDeposits(recipient, tokenIds, amounts, data);
     }
+
+
+    //  ──────────────────────────  Retirement Functions  ───────────────────────────  \\
+
+    /// @inheritdoc IRetireablePool
+    function retire(
+        address owner, 
+        address beneficiary,
+        uint256 amount, 
+        bytes calldata data
+    )
+        external virtual
+    {
+        _retire(owner, beneficiary, amount, data);
+    }
+
+    /**
+     * @dev Internal function to execute retirements
+     * 
+     * @param owner Address from which to burn JLT
+     * @param beneficiary Address to receive retirement accredidation
+     * @param amount Number of JLT to return
+     * @param data Additional data to encode in retirement
+     */
+    function _retire(
+        address owner, 
+        address beneficiary,
+        uint256 amount, 
+        bytes calldata data
+    )
+        internal virtual
+        withdrawal nonReentrant
+    {
+        // 1. Burn JLTs from owner
+        uint256 cost = JasmineBasePool.retirementCost(amount);
+        _spendJLT(owner, cost);
+
+        // 2. Select quantity of EATs to retire
+        uint256 eatQuantity = _totalDeposits - Math.ceilDiv(totalSupply(), 10 ** decimals());
+
+        // 3. Encode transfer data
+        bool hasFractional = eatQuantity > (amount / (10 ** decimals()));
+        bytes memory retirementData;
+
+        if (eatQuantity == 0) {
+            emit Retirement(owner, beneficiary, amount);
+            return;
+        } else if (hasFractional && eatQuantity == 1) {
+            retirementData = Calldata.encodeFractionalRetirementData();
+        } else {
+            retirementData = Calldata.encodeRetirementData(beneficiary, hasFractional);
+        }
+
+        if (data.length != 0) {
+            retirementData = abi.encodePacked(retirementData, data);
+        }
+
+        // 4. Send to retirement service and emit retirement event
+        _transferQueuedDeposits(retirementService, eatQuantity, retirementData);
+
+        emit Retirement(owner, beneficiary, amount);
+    }
+
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Jasmine Qualified Pool Implementations
@@ -562,7 +582,9 @@ abstract contract JasmineBasePool is
         for (uint i = 0; i < tokenIds.length;) {
             if (!meetsPolicy(tokenIds[i])) revert Unqualified(tokenIds[i]);
 
-            unchecked { i++; }
+            unchecked {
+                i++;
+            }
         }
     }
 }

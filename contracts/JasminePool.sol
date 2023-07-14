@@ -162,22 +162,18 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         uint256 amount,
         bytes calldata data
     )
-        external 
-        override(JasmineFeePool, JasmineBasePool)
+        external override(JasmineFeePool, JasmineBasePool)
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
+        return _withdraw(
             _msgSender(),
             recipient,
-            tokenIds,
-            amounts,
+            amount,
             data
         );
-        return (tokenIds, amounts);
     }
 
     /// @inheritdoc JasmineBasePool
@@ -193,15 +189,12 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
             uint256[] memory amounts
         )
     {
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
+        return _withdraw(
             from,
             recipient,
-            tokenIds,
-            amounts,
+            amount,
             data
         );
-        return (tokenIds, amounts);
     }
 
     /// @inheritdoc JasmineBasePool
@@ -214,7 +207,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     ) 
         external override(JasmineFeePool, JasmineBasePool)
     {
-        super._withdraw(
+        _withdraw(
             from,
             recipient,
             tokenIds,
@@ -241,8 +234,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     function retirementCost(
         uint256 amount
     )
-        public view
-        override(JasmineBasePool, JasmineFeePool)
+        public view override(JasmineBasePool, JasmineFeePool)
         returns (uint256 cost)
     {
         return super.retirementCost(amount);

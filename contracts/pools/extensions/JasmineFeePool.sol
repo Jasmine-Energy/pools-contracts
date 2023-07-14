@@ -154,15 +154,12 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         }
 
         // 2. Execute withdrawal
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
+        return _withdraw(
             _msgSender(),
             recipient,
-            tokenIds,
-            amounts,
+            amount,
             data
         );
-        return (tokenIds, amounts);
     }
 
     /// @inheritdoc JasmineBasePool
@@ -194,15 +191,12 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         }
 
         // 2. Execute withdrawal
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
+        return _withdraw(
             from,
             recipient,
-            tokenIds,
-            amounts,
+            amount,
             data
         );
-        return (tokenIds, amounts);
     }
 
     /// @inheritdoc IEATBackedPool

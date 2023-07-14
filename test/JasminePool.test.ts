@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers, getNamedAccounts } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contracts, colouredLog } from "@/utils";
+import { Contracts } from "@/utils";
 import { DEFAULT_DECIMAL } from "@/utils/constants";
 import {
   JasminePool,
@@ -387,7 +387,7 @@ describe(Contracts.pool, function () {
         .withArgs(owner.address, allowed.address, tokenAmount - 1n);
     });
 
-    it("Should correctly withdaw tokens by vintage", async function () {
+    it("Should correctly withdraw tokens by vintage", async function () {
       const vintage = new Date().valueOf();
 
       // @ts-ignore
@@ -424,6 +424,21 @@ describe(Contracts.pool, function () {
       )).to.be.ok;
 
       expect(await anyTechAnnualPool.withdraw(owner.address, 10, [])).to.be.ok;
+    });
+
+    it("Should not have zero tokens sent in last token ID", async function () {
+      const token1 = await mintEat(owner.address, 5, FuelType.SOLAR);
+      await eat.safeTransferFrom(owner.address,anyTechAnnualPool.address,token1.id,token1.amount,[]);
+      const token2 = await mintEat(owner.address, 5, FuelType.WIND);
+      await eat.safeTransferFrom(owner.address,anyTechAnnualPool.address,token2.id,token2.amount,[]);
+
+      expect(await anyTechAnnualPool.withdraw(owner.address, 1, [])).to.be.ok
+        .and.to.emit(anyTechAnnualPool, "Withdraw");
+      
+      expect(await anyTechAnnualPool.withdrawSpecific(owner.address, owner.address, [token2.id], [token2.amount], [])).to.be.ok
+
+      expect(await anyTechAnnualPool.withdraw(owner.address, 9, [])).to.be.ok
+        .and.to.emit(anyTechAnnualPool, "Withdraw");
     });
   });
 
@@ -463,14 +478,38 @@ describe(Contracts.pool, function () {
         [])).to.be.ok.and
         .to.emit(anyTechAnnualPool, "Retirement")
         .withArgs(owner.address, owner.address, retirementAmount);
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        retirementAmount,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement")
+        .withArgs(owner.address, owner.address, retirementAmount);
+    });
 
-        expect(await anyTechAnnualPool.retireExact(
-          owner.address, 
-          owner.address, 
-          retirementAmount,
-          [])).to.be.ok.and
-          .to.emit(anyTechAnnualPool, "Retirement")
-          .withArgs(owner.address, owner.address, retirementAmount);
+    it("Should retire accrued fractions across multiple token IDs", async function () {
+      const { id, amount } = await mintEat(owner.address, 5, FuelType.SOLAR);
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        id,
+        amount,
+        []
+      );
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        2_500_000_000_000_000_000n,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement")
+        .withArgs(owner.address, owner.address, 2_500_000_000_000_000_000n);
+      expect(await anyTechAnnualPool.retireExact(
+        owner.address, 
+        owner.address, 
+        7_500_000_000_000_000_000n,
+        [])).to.be.ok.and
+        .to.emit(anyTechAnnualPool, "Retirement")
+        .withArgs(owner.address, owner.address, 7_500_000_000_000_000_000n);
     });
 
     it("Should support retiring numerous token IDs", async function () {

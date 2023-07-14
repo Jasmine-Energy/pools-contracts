@@ -11,7 +11,6 @@ import { IERC1155Receiver }     from "@openzeppelin/contracts/token/ERC1155/IERC
 import { StructuredLinkedList } from "../../../libraries/StructuredLinkedList.sol";
 import { ArrayUtils }           from "../../../libraries/ArrayUtils.sol";
 
-import "hardhat/console.sol";
 
 /**
  * @title Jasmine EAT Manager
@@ -181,8 +180,8 @@ abstract contract EATManager is IERC1155Receiver {
     }
 
     function _transferQueuedDeposits(
-        uint256 amount,
         address recipient,
+        uint256 amount,
         bytes memory data
     ) 
         internal
@@ -192,12 +191,37 @@ abstract contract EATManager is IERC1155Receiver {
             uint256[] memory amounts
         )
     {
-        (uint256 withdrawLength, uint256 finalAmount) = _queuedTokenLength(amount);
-        tokenIds = _depositsList.popFront(withdrawLength);
-        amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), withdrawLength), tokenIds);
-        amounts[withdrawLength-1] = finalAmount;
+        (uint256 withdrawLength, uint256 finalAmount, bool popLast) = _queuedTokenLength(amount);
+        if (withdrawLength == 1) {
+            if (popLast) {
+                tokenIds = _asSingletonArray(_decodeDeposit(_depositsList.popFront()));
+            } else {
+                tokenIds = _asSingletonArray(_decodeDeposit(_depositsList.front()));
+            }
+            amounts = _asSingletonArray(finalAmount);
+            
+            _removeDeposit(tokenIds[0], finalAmount);
+            IERC1155(eat).safeTransferFrom(
+                address(this),
+                recipient,
+                tokenIds[0],
+                finalAmount,
+                data
+            );
+        } else {
+            tokenIds = _decodeDeposits(_depositsList.popFront(withdrawLength, !popLast));
+            amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), withdrawLength), tokenIds);
+            amounts[withdrawLength-1] = finalAmount;
 
-        _transferDeposits(recipient, tokenIds, amounts, data);
+            _removeDeposits(tokenIds, amounts);
+            IERC1155(eat).safeBatchTransferFrom(
+                address(this),
+                recipient,
+                tokenIds,
+                amounts,
+                data
+            );
+        }
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -213,16 +237,17 @@ abstract contract EATManager is IERC1155Receiver {
         private view 
         returns (
             uint256 length,
-            uint256 finalWithdrawAmount
+            uint256 finalWithdrawAmount,
+            bool fullAmountOfLastToken
         ) 
     {
         uint256 sum = 0;
         uint256 current = LIST_HEAD;
+        bool exists = true;
 
-        while (sum != amount && length < _depositsList.sizeOf()) {
-            bool exists;
+        while (sum != amount && exists) {
             (exists, current) = _depositsList.getNextNode(current);
-
+            
             if (!exists) continue;
 
             uint256 balance = _balances[current];
@@ -241,6 +266,8 @@ abstract contract EATManager is IERC1155Receiver {
                 break;
             }
         }
+
+        fullAmountOfLastToken = finalWithdrawAmount == _balances[current];
     }
 
     /**
@@ -258,15 +285,17 @@ abstract contract EATManager is IERC1155Receiver {
             uint256[] memory amounts
         )
     {
-        (uint256 withdrawLength, uint256 finalAmount) = _queuedTokenLength(amount);
+        (uint256 withdrawLength, uint256 finalAmount,) = _queuedTokenLength(amount);
 
         uint256 current = LIST_HEAD;
         tokenIds = new uint256[](withdrawLength);
         for (uint i = 0; i < withdrawLength;) {
             (,current) = _depositsList.getNextNode(current);
             tokenIds[i] = _decodeDeposit(current);
-            console.log("Token at: ", i, tokenIds[i]);
-            i++;
+
+            unchecked {
+                i++;
+            }
         }
         amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), withdrawLength), tokenIds);
         amounts[withdrawLength-1] = finalAmount;
@@ -350,10 +379,12 @@ abstract contract EATManager is IERC1155Receiver {
     {
         uint256 balance = IERC1155(eat).balanceOf(address(this), tokenId);
         uint256 encodedDeposit = _encodeDeposit(tokenId);
-        if (balance == 0) {
+        if (balance == value) {
             _depositsList.remove(encodedDeposit);
+            _balances[encodedDeposit] = 0;
+        } else {
+            _balances[encodedDeposit] -= value;
         }
-        _balances[encodedDeposit] -= value;
         _totalDeposits -= value;
     }
 
@@ -377,10 +408,12 @@ abstract contract EATManager is IERC1155Receiver {
             total += values[i];
 
             uint256 encodedDeposit = _encodeDeposit(tokenIds[i]);
-            if (balances[i] == 0) {
+            if (balances[i] == values[i]) {
                 _depositsList.remove(encodedDeposit);
+                _balances[encodedDeposit] = 0;
+            } else {
+                _balances[encodedDeposit] -= values[i];
             }
-            _balances[encodedDeposit] = values[i];
 
             unchecked { i++; }
         }
@@ -415,6 +448,18 @@ abstract contract EATManager is IERC1155Receiver {
         formatted = (vintage << 216) |
                       (uuid << 88)     |
                       (registry << 56);
+    }
+
+    /// @dev Batch version of decodeDeposit
+    function _decodeDeposits(uint256[] memory deposits) private view returns (uint256[] memory tokenIds) {
+        tokenIds = new uint256[](deposits.length);
+        for (uint256 i = 0; i < deposits.length;) {
+            tokenIds[i] = _decodeDeposit(deposits[i]);
+
+            unchecked {
+                i++;
+            }
+        }
     }
 
     /**
