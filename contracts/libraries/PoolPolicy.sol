@@ -5,7 +5,7 @@ pragma solidity ^0.8.17;
 
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
+import { IJasmineOracle } from "../interfaces/core/IJasmineOracle.sol";
 
 
 /**
@@ -60,7 +60,7 @@ library PoolPolicy {
      */
     function meetsPolicy(
         DepositPolicy storage policy,
-        JasmineOracle oracle,
+        IJasmineOracle oracle,
         uint256 tokenId
     ) 
         internal view 

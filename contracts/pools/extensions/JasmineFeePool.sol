@@ -8,7 +8,6 @@ pragma solidity >=0.8.17;
 import { JasmineBasePool } from "../core/JasmineBasePool.sol";
 
 // Implemented Interfaces
-import { IJasminePool }                              from "../../interfaces/IJasminePool.sol";
 import { IJasmineEATBackedPool  as IEATBackedPool }  from "../../interfaces/pool/IEATBackedPool.sol";
 import { IJasmineFeePool        as IFeePool }        from "../../interfaces/pool/IFeePool.sol";
 import { IJasmineRetireablePool as IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";

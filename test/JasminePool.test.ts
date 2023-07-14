@@ -652,7 +652,8 @@ describe(Contracts.pool, function () {
 
       await expect(
         anyTechAnnualPool.withdrawSpecific(owner.address, owner.address, [frozenTokenId], [1], [])
-      ).to.be.revertedWithCustomError(anyTechAnnualPool, "Prohibited");
+      ).to.be.revertedWithCustomError(anyTechAnnualPool, "WithdrawBlocked")
+      .withArgs(frozenTokenId);
     });
 
     it("Should allow withdrawals after a deposit is unfrozen", async function () {

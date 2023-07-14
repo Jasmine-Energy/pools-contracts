@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.17;
+pragma solidity 0.8.20;
 
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-// Core Implementations
-import { IJasminePoolFactory }                       from "./interfaces/IJasminePoolFactory.sol";
-import { IJasmineFeeManager }                        from "./interfaces/IJasmineFeeManager.sol";
+// Inheritted Contracts
 import { Ownable2StepUpgradeable  as Ownable2Step }  from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import { AccessControlUpgradeable as AccessControl } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { UUPSUpgradeable }                           from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { JasmineErrors }                             from "./interfaces/errors/JasmineErrors.sol";
+
+// Implemented Interfaces
+import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
+import { IJasmineFeeManager }  from "./interfaces/IJasmineFeeManager.sol";
+import { JasmineErrors }       from "./interfaces/errors/JasmineErrors.sol";
 
 // External Contracts
 import { IJasminePool }      from "./interfaces/IJasminePool.sol";
@@ -40,6 +42,7 @@ import { Address }       from "@openzeppelin/contracts/utils/Address.sol";
 contract JasminePoolFactory is 
     IJasminePoolFactory,
     IJasmineFeeManager,
+    JasmineErrors,
     Ownable2Step,
     AccessControl,
     UUPSUpgradeable

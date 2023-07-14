@@ -190,7 +190,7 @@ function initialize(bytes policy, string name, string symbol) external nonpayabl
 function meetsPolicy(uint256 tokenId) external view returns (bool isEligible)
 ```
 
-
+Checks if a given Jasmine EAT token meets the pool&#39;s deposit policy 
 
 
 
@@ -198,13 +198,13 @@ function meetsPolicy(uint256 tokenId) external view returns (bool isEligible)
 
 | Name | Type | Description |
 |---|---|---|
-| tokenId | uint256 | undefined |
+| tokenId | uint256 | Token to check pool eligibility for  |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| isEligible | bool | undefined |
+| isEligible | bool | True if token meets policy and may be deposited. False otherwise. |
 
 ### name
 
@@ -229,7 +229,7 @@ function name() external view returns (string)
 function policyForVersion(uint8 metadataVersion) external view returns (bytes policy)
 ```
 
-
+Get a pool&#39;s deposit policy for a given metadata version 
 
 
 
@@ -237,13 +237,13 @@ function policyForVersion(uint8 metadataVersion) external view returns (bytes po
 
 | Name | Type | Description |
 |---|---|---|
-| metadataVersion | uint8 | undefined |
+| metadataVersion | uint8 | Version of metadata to return policy for  |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| policy | bytes | undefined |
+| policy | bytes | Deposit policy for given metadata version |
 
 ### retire
 
@@ -577,5 +577,24 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 | receiver `indexed` | address | Token holder depositting to contract |
 | quantity  | uint256 | Number of EATs withdrawn. |
 
+
+
+## Errors
+
+### Unqualified
+
+```solidity
+error Unqualified(uint256 tokenId)
+```
+
+
+
+*Emitted if a token does not meet pool&#39;s deposit policy*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenId | uint256 | undefined |
 
 

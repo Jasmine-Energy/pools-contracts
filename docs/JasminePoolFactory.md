@@ -776,7 +776,7 @@ event AdminChanged(address previousAdmin, address newAdmin)
 
 
 
-
+*Emitted when the admin account has changed.*
 
 #### Parameters
 
@@ -793,14 +793,14 @@ event BaseRetirementFeeUpdate(uint96 retirementRateBips, address indexed benefic
 
 
 
-
+*Emitted whenever fee manager updates retirement rate *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| retirementRateBips  | uint96 | undefined |
-| beneficiary `indexed` | address | undefined |
+| retirementRateBips  | uint96 | new retirement rate in basis points |
+| beneficiary `indexed` | address | Address to receive fees |
 
 ### BaseWithdrawalFeeUpdate
 
@@ -810,15 +810,15 @@ event BaseWithdrawalFeeUpdate(uint96 withdrawRateBips, address indexed beneficia
 
 
 
-
+*Emitted whenever fee manager updates withdrawal rate *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| withdrawRateBips  | uint96 | undefined |
-| beneficiary `indexed` | address | undefined |
-| specific `indexed` | bool | undefined |
+| withdrawRateBips  | uint96 | New withdrawal rate in basis points |
+| beneficiary `indexed` | address | Address to receive fees |
+| specific `indexed` | bool | Specifies whether new rate applies to specific or any withdrawals |
 
 ### BeaconUpgraded
 
@@ -828,7 +828,7 @@ event BeaconUpgraded(address indexed beacon)
 
 
 
-
+*Emitted when the beacon is changed.*
 
 #### Parameters
 
@@ -844,7 +844,7 @@ event Initialized(uint8 version)
 
 
 
-
+*Triggered when the contract has been initialized or reinitialized.*
 
 #### Parameters
 
@@ -900,10 +900,10 @@ Emitted when a new Jasmine pool is created
 
 | Name | Type | Description |
 |---|---|---|
-| policy  | bytes | undefined |
-| pool `indexed` | address | undefined |
-| name `indexed` | string | undefined |
-| symbol `indexed` | string | undefined |
+| policy  | bytes | Pool&#39;s deposit policy in bytes |
+| pool `indexed` | address | Address of newly created pool |
+| name `indexed` | string | Name of the pool |
+| symbol `indexed` | string | Token symbol of the pool |
 
 ### PoolImplementationAdded
 
@@ -919,9 +919,9 @@ Emitted when new pool implementations are supported by factory
 
 | Name | Type | Description |
 |---|---|---|
-| poolImplementation `indexed` | address | undefined |
-| beaconAddress `indexed` | address | undefined |
-| poolIndex `indexed` | uint256 | undefined |
+| poolImplementation `indexed` | address | Address of newly supported pool implementation |
+| beaconAddress `indexed` | address | Address of Beacon smart contract |
+| poolIndex `indexed` | uint256 | Index of new pool in set of pool implementations |
 
 ### PoolImplementationRemoved
 
@@ -937,8 +937,8 @@ Emitted when a pool implementations is removed
 
 | Name | Type | Description |
 |---|---|---|
-| beaconAddress `indexed` | address | undefined |
-| poolIndex `indexed` | uint256 | undefined |
+| beaconAddress `indexed` | address | Address of Beacon smart contract |
+| poolIndex `indexed` | uint256 | Index of deleted pool in set of pool implementations |
 
 ### PoolImplementationUpgraded
 
@@ -954,9 +954,9 @@ Emitted when a pool&#39;s beacon implementation updates
 
 | Name | Type | Description |
 |---|---|---|
-| newPoolImplementation `indexed` | address | undefined |
-| beaconAddress `indexed` | address | undefined |
-| poolIndex `indexed` | uint256 | undefined |
+| newPoolImplementation `indexed` | address | Address of new pool implementation |
+| beaconAddress `indexed` | address | Address of Beacon smart contract |
+| poolIndex `indexed` | uint256 | Index of new pool in set of pool implementations |
 
 ### PoolsBaseURIChanged
 
@@ -983,7 +983,7 @@ event RoleAdminChanged(bytes32 indexed role, bytes32 indexed previousAdminRole, 
 
 
 
-
+*Emitted when `newAdminRole` is set as ``role``&#39;s admin role, replacing `previousAdminRole` `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite {RoleAdminChanged} not being emitted signaling this. _Available since v3.1._*
 
 #### Parameters
 
@@ -1001,7 +1001,7 @@ event RoleGranted(bytes32 indexed role, address indexed account, address indexed
 
 
 
-
+*Emitted when `account` is granted `role`. `sender` is the account that originated the contract call, an admin role bearer except when using {AccessControl-_setupRole}.*
 
 #### Parameters
 
@@ -1019,7 +1019,7 @@ event RoleRevoked(bytes32 indexed role, address indexed account, address indexed
 
 
 
-
+*Emitted when `account` is revoked `role`. `sender` is the account that originated the contract call:   - if using `revokeRole`, it is the admin role bearer   - if using `renounceRole`, it is the role bearer (i.e. `account`)*
 
 #### Parameters
 
@@ -1037,7 +1037,7 @@ event Upgraded(address indexed implementation)
 
 
 
-
+*Emitted when the implementation is upgraded.*
 
 #### Parameters
 
@@ -1114,6 +1114,17 @@ error PoolExists(address pool)
 |---|---|---|
 | pool | address | undefined |
 
+### Prohibited
+
+```solidity
+error Prohibited()
+```
+
+
+
+*Emitted for unauthorized actions*
+
+
 ### RequiresRole
 
 ```solidity
@@ -1129,6 +1140,22 @@ error RequiresRole(bytes32 role)
 | Name | Type | Description |
 |---|---|---|
 | role | bytes32 | undefined |
+
+### UnsupportedMetadataVersion
+
+```solidity
+error UnsupportedMetadataVersion(uint8 metadataVersion)
+```
+
+
+
+*Emitted if contract does not support metadata version*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| metadataVersion | uint8 | undefined |
 
 ### ValidationFailed
 

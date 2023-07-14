@@ -18,7 +18,7 @@ function eat() external view returns (address)
 
 
 
-*Address of the ERC-1155 contract*
+*Address of the Jasmine EAT (ERC-1155) contract*
 
 
 #### Returns
@@ -156,6 +156,22 @@ error ValidationFailed()
 
 *Emitted if internal validation failed*
 
+
+### WithdrawBlocked
+
+```solidity
+error WithdrawBlocked(uint256 tokenId)
+```
+
+
+
+*Emitted if a token is unable to be withdrawn from pool*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenId | uint256 | undefined |
 
 ### WithdrawsLocked
 

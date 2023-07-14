@@ -4,33 +4,33 @@ pragma solidity >=0.8.17;
 
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
+// Inheritted Contracts
+import { ERC20 }           from "./implementations/ERC20.sol";
+import { ERC20Permit }     from "./implementations/ERC20Permit.sol";
+import { EATManager }      from "./implementations/EATManager.sol";
+import { Initializable }   from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 // Implemented Interfaces
 import { IJasminePool }                              from "../../interfaces/IJasminePool.sol";
 import { IJasmineEATBackedPool  as IEATBackedPool  } from "../../interfaces/pool/IEATBackedPool.sol";
 import { IJasmineQualifiedPool  as IQualifiedPool  } from "../../interfaces/pool/IQualifiedPool.sol";
 import { IJasmineRetireablePool as IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
-import { IERC1046 }                                  from "../../interfaces/ERC/IERC1046.sol";
 import { JasmineErrors }                             from "../../interfaces/errors/JasmineErrors.sol";
-
-// Inheritted Contracts
-import { EATManager }      from "./implementations/EATManager.sol";
-import { Initializable }   from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import { ERC20 }           from "./implementations/ERC20.sol";
-import { IERC20Metadata }  from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { ERC20Permit }     from "./implementations/ERC20Permit.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
+import { IERC20Metadata }                            from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { IERC1046 }                                  from "../../interfaces/ERC/IERC1046.sol";
+import { IERC165 }                                   from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 // External Contracts
-import { JasmineEAT }               from "@jasmine-energy/contracts/src/JasmineEAT.sol";
+import { IJasmineEAT }              from "../../interfaces/core/IJasmineEAT.sol";
 import { JasmineRetirementService } from "../../JasmineRetirementService.sol";
 import { JasminePoolFactory }       from "../../JasminePoolFactory.sol";
 
 // Utility Libraries
 import { PoolPolicy }    from "../../libraries/PoolPolicy.sol";
 import { Calldata }      from "../../libraries/Calldata.sol";
-import { Math }          from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils }    from "../../libraries/ArrayUtils.sol";
+import { Math }          from "@openzeppelin/contracts/utils/math/Math.sol";
 
 
 /**
@@ -43,8 +43,8 @@ abstract contract JasmineBasePool is
     IJasminePool,
     JasmineErrors,
     ERC20Permit,
-    IERC1046,
     EATManager,
+    IERC1046,
     Initializable,
     ReentrancyGuard
 {
@@ -69,13 +69,6 @@ abstract contract JasmineBasePool is
     string private _name;
     /// @notice Token Symbol - per ERC-20
     string private _symbol;
-
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Errors
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    /// @dev Emitted if a token does not meet pool's deposit policy
-    error Unqualified(uint256 tokenId);
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Setup
@@ -162,7 +155,7 @@ abstract contract JasmineBasePool is
         nonReentrant
         returns (uint256 jltQuantity)
     {
-        JasmineEAT(eat).safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
+        IJasmineEAT(eat).safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
         return _standardizeDecimal(amounts.sum());
     }
 
@@ -184,7 +177,7 @@ abstract contract JasmineBasePool is
         nonReentrant
         returns (uint256 jltQuantity)
     {
-        JasmineEAT(eat).safeTransferFrom(from, address(this), tokenId, amount, "");
+        IJasmineEAT(eat).safeTransferFrom(from, address(this), tokenId, amount, "");
         return _standardizeDecimal(amount);
     }
 
@@ -388,7 +381,7 @@ abstract contract JasmineBasePool is
         public view virtual
         returns (bool isEligible)
     {
-        return JasmineEAT(eat).exists(tokenId) && !JasmineEAT(eat).frozen(tokenId);
+        return IJasmineEAT(eat).exists(tokenId) && !IJasmineEAT(eat).frozen(tokenId);
     }
 
     /// @inheritdoc IQualifiedPool
@@ -398,8 +391,8 @@ abstract contract JasmineBasePool is
     {
         if (metadataVersion != 1) revert JasmineErrors.UnsupportedMetadataVersion(metadataVersion);
         return abi.encode(
-            JasmineEAT(eat).exists.selector,
-            JasmineEAT(eat).frozen.selector
+            IJasmineEAT(eat).exists.selector,
+            IJasmineEAT(eat).frozen.selector
         );
     }
 
@@ -438,7 +431,7 @@ abstract contract JasmineBasePool is
     //  ───────────────────────  ERC-20 Metadata Conformance  ───────────────────────  \\
 
     /**
-     * @inheritdoc ERC20
+     * @inheritdoc IERC20Metadata
      * @dev See {IERC20Metadata-name}
      */
     function name() public view override(ERC20, IERC20Metadata) returns (string memory) {
@@ -446,7 +439,7 @@ abstract contract JasmineBasePool is
     }
 
     /**
-     * @inheritdoc ERC20
+     * @inheritdoc IERC20Metadata
      * @dev See {IERC20Metadata-symbol}
      */
     function symbol() public view override(ERC20, IERC20Metadata) returns (string memory) {
@@ -468,7 +461,7 @@ abstract contract JasmineBasePool is
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
     /**
-     * @inheritdoc ERC20
+     * @inheritdoc IERC165
      * @dev See {IERC165-supportsInterface}
      */
     function supportsInterface(bytes4 interfaceId)
@@ -535,7 +528,7 @@ abstract contract JasmineBasePool is
      */
     function validateDepositValidity(uint256 tokenId) external returns (bool isValid) {
         if (!_isTokenInRecords(tokenId)) {
-            if (JasmineEAT(eat).balanceOf(address(this), tokenId) != 0) {
+            if (IJasmineEAT(eat).balanceOf(address(this), tokenId) != 0) {
                 // TODO: Add to list of withdrawable tokens
                 revert JasmineErrors.InvalidInput();
             } else {
@@ -544,7 +537,7 @@ abstract contract JasmineBasePool is
         }
 
         uint256 preTotalDeposits = _totalDeposits;
-        bool isFrozen = JasmineEAT(eat).frozen(tokenId);
+        bool isFrozen = IJasmineEAT(eat).frozen(tokenId);
         bool wasUpdated = _updateTokenStatus(tokenId, !isFrozen) || _validateInternalBalance(tokenId);
         
         if (wasUpdated) {

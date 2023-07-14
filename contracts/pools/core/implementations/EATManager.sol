@@ -32,7 +32,7 @@ abstract contract EATManager is IERC1155Receiver {
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
 
-    /// @dev Address of the ERC-1155 contract
+    /// @dev Address of the Jasmine EAT (ERC-1155) contract
     address public immutable eat;
     // address public immutable eat;
 
@@ -66,6 +66,8 @@ abstract contract EATManager is IERC1155Receiver {
     /// @dev Emitted if withdraws are locked
     error WithdrawsLocked();
 
+    /// @dev Emitted if a token is unable to be withdrawn from pool
+    error WithdrawBlocked(uint256 tokenId);
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup Functions
@@ -132,6 +134,7 @@ abstract contract EATManager is IERC1155Receiver {
     }
 
     /**
+     * @inheritdoc IERC165
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
@@ -145,7 +148,7 @@ abstract contract EATManager is IERC1155Receiver {
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @dev Internal utility for sending tokens out of the contract.
+     * @dev Internal utility for sending specific tokens out of the contract.
      * 
      * @dev Requires withdraws to be unlocked via "unlocked" modifier.
      * 
@@ -163,12 +166,6 @@ abstract contract EATManager is IERC1155Receiver {
         internal
         withdrawsUnlocked
     {
-        for (uint256 i; i < tokenIds.length;) {
-            if (_frozenDeposits.get(_encodeDeposit(tokenIds[i]))) revert JasmineErrors.Prohibited();
-            unchecked {
-                i++;
-            }
-        }
         if (tokenIds.length == 1) {
             _removeDeposit(tokenIds[0], values[0]);
             IERC1155(eat).safeTransferFrom(
@@ -190,6 +187,16 @@ abstract contract EATManager is IERC1155Receiver {
         }
     }
 
+    /**
+     * @dev Internal utility for sending tokens out of the contract where
+     *      the contract selects the tokens, ordered by vintage, to send.
+     * 
+     * @dev Requires withdraws to be unlocked via "unlocked" modifier.
+     * 
+     * @param recipient Address to receive tokens
+     * @param amount Total number of tokens to transfer
+     * @param data Additional calldata to include in transfer
+     */
     function _transferQueuedDeposits(
         address recipient,
         uint256 amount,
@@ -379,6 +386,8 @@ abstract contract EATManager is IERC1155Receiver {
      * @dev Used to record a token removal from the contract's internal records. Removes
      * token ID from tree and vintage to token ID mapping if possible.
      * 
+     * @dev If token ID is frozen, reverts with "WithdrawBlocked" error.
+     * 
      * @param tokenId Token ID to remove from internal records
      * @param value Amount of token being removed
      */
@@ -388,6 +397,8 @@ abstract contract EATManager is IERC1155Receiver {
     )
         private
     {
+        if (_frozenDeposits.get(_encodeDeposit(tokenId))) revert WithdrawBlocked(tokenId);
+
         uint256 balance = IERC1155(eat).balanceOf(address(this), tokenId);
         uint256 encodedDeposit = _encodeDeposit(tokenId);
         if (balance == value) {
@@ -416,6 +427,8 @@ abstract contract EATManager is IERC1155Receiver {
 
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length;) {
+            if (_frozenDeposits.get(_encodeDeposit(tokenIds[i]))) revert WithdrawBlocked(tokenIds[i]);
+
             total += values[i];
 
             uint256 encodedDeposit = _encodeDeposit(tokenIds[i]);

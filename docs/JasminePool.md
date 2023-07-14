@@ -53,19 +53,19 @@ function allowance(address owner, address spender) external view returns (uint25
 ### approve
 
 ```solidity
-function approve(address spender, uint256 value) external nonpayable returns (bool)
+function approve(address spender, uint256 amount) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-approve}. NOTE: If `value` is the maximum `uint256`, the allowance is not updated on `transferFrom`. This is semantically equivalent to an infinite approval. Requirements: - `spender` cannot be the zero address.*
+*See {IERC20-approve}. NOTE: If `amount` is the maximum `uint256`, the allowance is not updated on `transferFrom`. This is semantically equivalent to an infinite approval. Requirements: - `spender` cannot be the zero address.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | spender | address | undefined |
-| value | uint256 | undefined |
+| amount | uint256 | undefined |
 
 #### Returns
 
@@ -115,19 +115,19 @@ function decimals() external view returns (uint8)
 ### decreaseAllowance
 
 ```solidity
-function decreaseAllowance(address spender, uint256 requestedDecrease) external nonpayable returns (bool)
+function decreaseAllowance(address spender, uint256 subtractedValue) external nonpayable returns (bool)
 ```
 
 
 
-*Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `requestedDecrease`. NOTE: Although this function is designed to avoid double spending with {approval}, it can still be frontrunned, preventing any attempt of allowance reduction.*
+*Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `subtractedValue`.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | spender | address | undefined |
-| requestedDecrease | uint256 | undefined |
+| subtractedValue | uint256 | undefined |
 
 #### Returns
 
@@ -403,7 +403,7 @@ function onERC1155Received(address operator, address from, uint256 tokenId, uint
 ### oracle
 
 ```solidity
-function oracle() external view returns (contract JasmineOracle)
+function oracle() external view returns (contract IJasmineOracle)
 ```
 
 
@@ -415,7 +415,7 @@ function oracle() external view returns (contract JasmineOracle)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract JasmineOracle | undefined |
+| _0 | contract IJasmineOracle | undefined |
 
 ### permit
 
@@ -445,7 +445,7 @@ function permit(address owner, address spender, uint256 value, uint256 deadline,
 function policyForVersion(uint8 metadataVersion) external view returns (bytes policy)
 ```
 
-
+Get a pool&#39;s deposit policy for a given metadata version 
 
 
 
@@ -453,13 +453,13 @@ function policyForVersion(uint8 metadataVersion) external view returns (bytes po
 
 | Name | Type | Description |
 |---|---|---|
-| metadataVersion | uint8 | undefined |
+| metadataVersion | uint8 | Version of metadata to return policy for  |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| policy | bytes | undefined |
+| policy | bytes | Deposit policy for given metadata version |
 
 ### poolFactory
 
@@ -671,19 +671,19 @@ function totalSupply() external view returns (uint256)
 ### transfer
 
 ```solidity
-function transfer(address to, uint256 value) external nonpayable returns (bool)
+function transfer(address to, uint256 amount) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-transfer}. Requirements: - `to` cannot be the zero address. - the caller must have a balance of at least `value`.*
+*See {IERC20-transfer}. Requirements: - `to` cannot be the zero address. - the caller must have a balance of at least `amount`.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | to | address | undefined |
-| value | uint256 | undefined |
+| amount | uint256 | undefined |
 
 #### Returns
 
@@ -694,12 +694,12 @@ function transfer(address to, uint256 value) external nonpayable returns (bool)
 ### transferFrom
 
 ```solidity
-function transferFrom(address from, address to, uint256 value) external nonpayable returns (bool)
+function transferFrom(address from, address to, uint256 amount) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}. NOTE: Does not update the allowance if the current allowance is the maximum `uint256`. Requirements: - `from` and `to` cannot be the zero address. - `from` must have a balance of at least `value`. - the caller must have allowance for ``from``&#39;s tokens of at least `value`.*
+*See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}. NOTE: Does not update the allowance if the current allowance is the maximum `uint256`. Requirements: - `from` and `to` cannot be the zero address. - `from` must have a balance of at least `amount`. - the caller must have allowance for ``from``&#39;s tokens of at least `amount`.*
 
 #### Parameters
 
@@ -707,7 +707,7 @@ function transferFrom(address from, address to, uint256 value) external nonpayab
 |---|---|---|
 | from | address | undefined |
 | to | address | undefined |
-| value | uint256 | undefined |
+| amount | uint256 | undefined |
 
 #### Returns
 
@@ -932,7 +932,7 @@ event Approval(address indexed owner, address indexed spender, uint256 value)
 
 
 
-
+*Emitted when the allowance of a `spender` for an `owner` is set by a call to {approve}. `value` is the new allowance.*
 
 #### Parameters
 
@@ -950,15 +950,15 @@ event Deposit(address indexed operator, address indexed owner, uint256 quantity)
 
 
 
-
+*Emitted whenever EATs are deposited to the contract *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator `indexed` | address | undefined |
-| owner `indexed` | address | undefined |
-| quantity  | uint256 | undefined |
+| operator `indexed` | address | Initiator of the deposit |
+| owner `indexed` | address | Token holder depositting to contract |
+| quantity  | uint256 | Number of EATs deposited. Note: JLTs issued are 1-1 with EATs |
 
 ### EIP712DomainChanged
 
@@ -968,7 +968,7 @@ event EIP712DomainChanged()
 
 
 
-
+*MAY be emitted to signal that the domain could have changed.*
 
 
 ### Initialized
@@ -979,7 +979,7 @@ event Initialized(uint8 version)
 
 
 
-
+*Triggered when the contract has been initialized or reinitialized.*
 
 #### Parameters
 
@@ -995,15 +995,15 @@ event Retirement(address indexed operator, address indexed beneficiary, uint256 
 
 emitted when tokens from a pool are retired 
 
-
+*must be accompanied by a token burn event *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| operator `indexed` | address | undefined |
-| beneficiary `indexed` | address | undefined |
-| quantity  | uint256 | undefined |
+| operator `indexed` | address | Initiator of retirement |
+| beneficiary `indexed` | address | Designate beneficiary of retirement |
+| quantity  | uint256 | Number of JLT being retired |
 
 ### RetirementRateUpdate
 
@@ -1013,14 +1013,14 @@ event RetirementRateUpdate(uint96 retirementFeeBips, address indexed beneficiary
 
 
 
-
+*Emitted whenever fee manager updates retirement fee *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| retirementFeeBips  | uint96 | undefined |
-| beneficiary `indexed` | address | undefined |
+| retirementFeeBips  | uint96 | new retirement fee in basis points |
+| beneficiary `indexed` | address | Address to receive fees |
 
 ### Transfer
 
@@ -1030,7 +1030,7 @@ event Transfer(address indexed from, address indexed to, uint256 value)
 
 
 
-
+*Emitted when `value` tokens are moved from one account (`from`) to another (`to`). Note that `value` may be zero.*
 
 #### Parameters
 
@@ -1048,15 +1048,15 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 
 
 
-
+*Emitted whenever EATs are withdrawn from the contract *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| sender `indexed` | address | undefined |
-| receiver `indexed` | address | undefined |
-| quantity  | uint256 | undefined |
+| sender `indexed` | address | Initiator of the deposit |
+| receiver `indexed` | address | Token holder depositting to contract |
+| quantity  | uint256 | Number of EATs withdrawn. |
 
 ### WithdrawalRateUpdate
 
@@ -1066,15 +1066,15 @@ event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary, 
 
 
 
-
+*Emitted whenever fee manager updates withdrawal fee *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| withdrawFeeBips  | uint96 | undefined |
-| beneficiary `indexed` | address | undefined |
-| isSpecificRate  | bool | undefined |
+| withdrawFeeBips  | uint96 | New withdrawal fee in basis points |
+| beneficiary `indexed` | address | Address to receive fees |
+| isSpecificRate  | bool | Whether fee was update for specific withdrawals or any |
 
 
 
@@ -1242,23 +1242,6 @@ error ERC2612InvalidSigner(address signer, address owner)
 | signer | address | undefined |
 | owner | address | undefined |
 
-### InvalidAccountNonce
-
-```solidity
-error InvalidAccountNonce(address account, uint256 currentNonce)
-```
-
-
-
-*The nonce used for an `account` is not the expected current nonce.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| account | address | undefined |
-| currentNonce | uint256 | undefined |
-
 ### InvalidInput
 
 ```solidity
@@ -1383,6 +1366,22 @@ error ValidationFailed()
 
 *Emitted if internal validation failed*
 
+
+### WithdrawBlocked
+
+```solidity
+error WithdrawBlocked(uint256 tokenId)
+```
+
+
+
+*Emitted if a token is unable to be withdrawn from pool*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenId | uint256 | undefined |
 
 ### WithdrawsLocked
 
