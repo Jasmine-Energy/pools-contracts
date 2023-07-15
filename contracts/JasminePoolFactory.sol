@@ -223,7 +223,7 @@ contract JasminePoolFactory is
         _grantRole(POOL_MANAGER_ROLE, _owner);
         _grantRole(FEE_MANAGER_ROLE, _owner);
 
-        if (_poolManager != address(0x0)) _grantRole(POOL_MANAGER_ROLE, _feeManager);
+        if (_poolManager != address(0x0)) _grantRole(POOL_MANAGER_ROLE, _poolManager);
         if (_feeManager != address(0x0)) _grantRole(FEE_MANAGER_ROLE, _feeManager);
 
         // 6. Setup default pool implementation
