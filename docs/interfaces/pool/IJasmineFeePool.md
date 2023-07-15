@@ -1,12 +1,12 @@
-# IEATBackedPool
+# IJasmineFeePool
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> EAT Backed Pool Interface
+> Jasmine Fee Pool Interface
 
-Contains functionality and events for pools which issue JLTs for EATs         deposits and permit withdrawals of EATs.
+Contains functionality and events for pools which have fees for         withdrawals and retirements.
 
-*Due to linearization issues, ERC-20 and ERC-1155 Receiver are not enforced      conformances - but likely should be.*
+
 
 ## Methods
 
@@ -81,6 +81,44 @@ Used to deposit EATs from another account into the pool to receive JLTs.
 |---|---|---|
 | jltQuantity | uint256 | Number of JLTs issued for deposit  Emits a {Deposit} event. |
 
+### retire
+
+```solidity
+function retire(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
+```
+
+Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;beneficiary&#39;. 
+
+*Internally, calls are routed to Retirement Service to facilitate the retirement. Emits a {Retirement} event. Requirements:     - msg.sender must be approved for owner&#39;s JLTs     - Owner must have sufficient JLTs     - Owner cannot be zero address *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| owner | address | JLT owner from which to burn tokens |
+| beneficiary | address | Address to receive retirement acknowledgment. If none, assume msg.sender |
+| amount | uint256 | Number of JLTs to withdraw |
+| data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |
+
+### retireExact
+
+```solidity
+function retireExact(address spender, address beneficiary, uint256 amount, bytes data) external nonpayable
+```
+
+Retires an exact amount of JLTs. If fees or other conversions are set,         cost of retirement will be greater than amount. 
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| spender | address | JLT holder to retire from |
+| beneficiary | address | Address to receive retirement attestation |
+| amount | uint256 | Exact number of JLTs to retire |
+| data | bytes | Optional calldata to relay to retirement service via onERC1155Received |
+
 ### retirementCost
 
 ```solidity
@@ -102,6 +140,23 @@ Cost of retiring JLTs from pool.
 | Name | Type | Description |
 |---|---|---|
 | cost | uint256 | Price of retiring in JLTs. |
+
+### retirementRate
+
+```solidity
+function retirementRate() external view returns (uint96)
+```
+
+Retirement fee for a pool&#39;s JLT in basis points
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint96 | undefined |
 
 ### withdraw
 
@@ -131,7 +186,7 @@ Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#3
 ### withdrawFrom
 
 ```solidity
-function withdrawFrom(address owner, address recipient, uint256 quantity, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
+function withdrawFrom(address spender, address recipient, uint256 quantity, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
 Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#39;. 
@@ -142,7 +197,7 @@ Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#3
 
 | Name | Type | Description |
 |---|---|---|
-| owner | address | JLT owner from which to burn tokens |
+| spender | address | JLT owner from which to burn tokens |
 | recipient | address | Address to receive withdrawn EATs |
 | quantity | uint256 | Number of JLTs to withdraw |
 | data | bytes | Optional calldata to relay to recipient via onERC1155Received  |
@@ -157,7 +212,7 @@ Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#3
 ### withdrawSpecific
 
 ```solidity
-function withdrawSpecific(address owner, address recipient, uint256[] tokenIds, uint256[] quantities, bytes data) external nonpayable
+function withdrawSpecific(address spender, address recipient, uint256[] tokenIds, uint256[] quantities, bytes data) external nonpayable
 ```
 
 Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in JLTs from &#39;owner&#39;. 
@@ -168,7 +223,7 @@ Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in J
 
 | Name | Type | Description |
 |---|---|---|
-| owner | address | JLT owner from which to burn tokens |
+| spender | address | JLT owner from which to burn tokens |
 | recipient | address | Address to receive withdrawn EATs |
 | tokenIds | uint256[] | EAT token IDs to withdraw from pool |
 | quantities | uint256[] | Number of EATs for tokenId at same index to deposit |
@@ -219,6 +274,40 @@ Cost of withdrawing specified amounts of tokens from pool.
 |---|---|---|
 | cost | uint256 | Price of withdrawing EATs in JLTs |
 
+### withdrawalRate
+
+```solidity
+function withdrawalRate() external view returns (uint96)
+```
+
+Withdrawal fee for any EATs from a pool in basis points
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint96 | undefined |
+
+### withdrawalSpecificRate
+
+```solidity
+function withdrawalSpecificRate() external view returns (uint96)
+```
+
+Withdrawal fee for specific EATs from a pool in basis points
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint96 | undefined |
+
 
 
 ## Events
@@ -241,6 +330,41 @@ event Deposit(address indexed operator, address indexed owner, uint256 quantity)
 | owner `indexed` | address | Token holder depositting to contract |
 | quantity  | uint256 | Number of EATs deposited. Note: JLTs issued are 1-1 with EATs |
 
+### Retirement
+
+```solidity
+event Retirement(address indexed operator, address indexed beneficiary, uint256 quantity)
+```
+
+emitted when tokens from a pool are retired 
+
+*must be accompanied by a token burn event *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| operator `indexed` | address | Initiator of retirement |
+| beneficiary `indexed` | address | Designate beneficiary of retirement |
+| quantity  | uint256 | Number of JLT being retired |
+
+### RetirementRateUpdate
+
+```solidity
+event RetirementRateUpdate(uint96 retirementFeeBips, address indexed beneficiary)
+```
+
+
+
+*Emitted whenever fee manager updates retirement fee *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| retirementFeeBips  | uint96 | new retirement fee in basis points |
+| beneficiary `indexed` | address | Address to receive fees |
+
 ### Withdraw
 
 ```solidity
@@ -258,6 +382,24 @@ event Withdraw(address indexed sender, address indexed receiver, uint256 quantit
 | sender `indexed` | address | Initiator of the deposit |
 | receiver `indexed` | address | Token holder depositting to contract |
 | quantity  | uint256 | Number of EATs withdrawn. |
+
+### WithdrawalRateUpdate
+
+```solidity
+event WithdrawalRateUpdate(uint96 withdrawFeeBips, address indexed beneficiary, bool isSpecificRate)
+```
+
+
+
+*Emitted whenever fee manager updates withdrawal fee *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| withdrawFeeBips  | uint96 | New withdrawal fee in basis points |
+| beneficiary `indexed` | address | Address to receive fees |
+| isSpecificRate  | bool | Whether fee was update for specific withdrawals or any |
 
 
 

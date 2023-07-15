@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.0;
 
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
-
-import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
+import { IJasmineOracle } from "../interfaces/core/IJasmineOracle.sol";
 
 
 /**
- * @title PoolPolicy
+ * @title Jasmine Pool Policy Library
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Utility library for Pool Policy types
  * @custom:security-contact dev@jasmine.energy
@@ -32,7 +29,7 @@ library PoolPolicy {
 
     /**
      * @title Deposit Policy
-     * @notice A deposit policy is a pool's constraints on what EATs may be depositted. 
+     * @notice A deposit policy is a pool's constraints on what EATs may be deposited. 
      * @dev Only supports metadata V1
      * @dev Due to EAT metadata attribytes being zero indexed, to specify no deposit  
      *      constraints for a given attribute, use `ANY_VALUE` constant.
@@ -46,15 +43,28 @@ library PoolPolicy {
         uint32 endorsement;
     }
 
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Utility Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-
     //  ────────────────────────────  Policy Utilities  ─────────────────────────────  \\
 
-
-    function meetsPolicy(DepositPolicy storage policy, JasmineOracle oracle, uint256 tokenId) internal view returns (bool isEligible) {
+    /**
+     * @dev Checks if a given EAT meets a given policy by querying the Jasmine Oracle
+     * 
+     * @param policy An eligibility cretieria for an EAT
+     * @param oracle The Jasmine Oracle contract to query against
+     * @param tokenId The EAT for which to check eligibility
+     */
+    function meetsPolicy(
+        DepositPolicy storage policy,
+        IJasmineOracle oracle,
+        uint256 tokenId
+    ) 
+        internal view 
+        returns (bool isEligible) 
+    {
         // 1. If policy's vintage is not empty, check token has vintage
         if (policy.vintagePeriod[0] != ANY_VALUE &&
             policy.vintagePeriod[1] != ANY_VALUE &&
@@ -84,9 +94,4 @@ library PoolPolicy {
         // 6. If above checks pass, token meets policy
         return true;
     }
-
-
-    //  ───────────────────────────────  Comparision  ───────────────────────────────  \\
-
-
 }

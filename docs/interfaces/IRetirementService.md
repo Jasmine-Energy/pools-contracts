@@ -4,7 +4,7 @@
 
 > Retirement Service Interface
 
-
+The Retirement Service facilitates the formatting of ERC-1155 transfer data         parsed by the bridge to attribute retirements to the correct user. It also         permits users to register smart contracts to receive retirement hooks.
 
 
 

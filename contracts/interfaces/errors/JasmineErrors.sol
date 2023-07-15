@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.0;
 
-
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Jasmine Custom Errors
-//  ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * @title Jasmine Errors
@@ -34,31 +30,6 @@ interface JasmineErrors {
     /// @dev Emitted if access control check fails
     error RequiresRole(bytes32 role);
 
-    //  ───────────────────────────────  Pool Errors  ───────────────────────────────  \\
-
-    /// @dev Emitted if a token does not meet pool's deposit policy
-    error Unqualified(uint256 tokenId);
-
     /// @dev Emitted for unauthorized actions
     error Prohibited();
-
-    /// @dev Emitted if operation would cause inbalance in pool's EAT deposits
-    error InbalancedDeposits();
-
-    /// @dev Emitted if tokens (ERC-1155) are received from incorrect contract
-    error InvalidTokenAddress(address received, address expected);
-
-    /// @dev Emitted if withdraws are locked
-    error WithdrawsLocked();
-
-    //  ───────────────────────────  Pool Factory Errors  ───────────────────────────  \\
-
-    /// @dev Emitted if no pool(s) meet query
-    error NoPool();
-
-    /// @dev Emitted if a pool exists with given policy
-    error PoolExists(address pool);
-
-    /// @dev Emitted for failed supportsInterface check - per ERC-165
-    error InvalidConformance(bytes4 interfaceId);
 }

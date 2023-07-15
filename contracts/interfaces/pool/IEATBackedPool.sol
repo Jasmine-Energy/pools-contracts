@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
 
 /**
- * @title EAT Backed Pool Interface
+ * @title Jasmine EAT Backed Pool Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Contains functionality and events for pools which issue JLTs for EATs
  *         deposits and permit withdrawals of EATs.
@@ -12,7 +12,7 @@ pragma solidity >=0.8.0;
  *      conformances - but likely should be.
  * @custom:security-contact dev@jasmine.energy
  */
-interface IEATBackedPool {
+interface IJasmineEATBackedPool {
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Events
@@ -147,7 +147,7 @@ interface IEATBackedPool {
      *     - Owner must have sufficient JLTs
      *     - If recipient is a contract, it must implement onERC1155Received & onERC1155BatchReceived
      * 
-     * @param owner JLT owner from which to burn tokens
+     * @param spender JLT owner from which to burn tokens
      * @param recipient Address to receive withdrawn EATs
      * @param quantity Number of JLTs to withdraw
      * @param data Optional calldata to relay to recipient via onERC1155Received
@@ -158,7 +158,7 @@ interface IEATBackedPool {
      * Emits a {Withdraw} event.
      */
     function withdrawFrom(
-        address owner, 
+        address spender, 
         address recipient, 
         uint256 quantity, 
         bytes calldata data
@@ -174,7 +174,7 @@ interface IEATBackedPool {
      *     - If recipient is a contract, it must implement onERC1155Received & onERC1155BatchReceived
      *     - Owner and Recipient cannot be zero address
      * 
-     * @param owner JLT owner from which to burn tokens
+     * @param spender JLT owner from which to burn tokens
      * @param recipient Address to receive withdrawn EATs
      * @param tokenIds EAT token IDs to withdraw from pool
      * @param quantities Number of EATs for tokenId at same index to deposit
@@ -183,7 +183,7 @@ interface IEATBackedPool {
      * Emits a {Withdraw} event.
      */
     function withdrawSpecific(
-        address owner, 
+        address spender, 
         address recipient, 
         uint256[] calldata tokenIds, 
         uint256[] calldata quantities, 
@@ -216,19 +216,5 @@ interface IEATBackedPool {
      * 
      * @return cost Price of withdrawing EATs in JLTs
      */
-    function withdrawalCost(
-        uint256 amount
-    ) external view returns (uint256 cost);
-
-    /**
-     * @notice Cost of retiring JLTs from pool.
-     * 
-     * @param amount Amount of JLTs to retire.
-     * 
-     * @return cost Price of retiring in JLTs.
-     */
-    function retirementCost(
-        uint256 amount
-    ) external view returns (uint256 cost);
-    
+    function withdrawalCost(uint256 amount) external view returns (uint256 cost);
 }

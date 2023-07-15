@@ -2,7 +2,7 @@
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> PoolPolicy
+> Jasmine Pool Policy Library
 
 Utility library for Pool Policy types
 

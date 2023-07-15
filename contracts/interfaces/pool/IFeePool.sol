@@ -1,25 +1,22 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
-
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Base
-import { IEATBackedPool } from "./IEATBackedPool.sol";
-import { IRetireablePool } from "./IRetireablePool.sol";
+import { IJasmineEATBackedPool  as IEATBackedPool  } from "./IEATBackedPool.sol";
+import { IJasmineRetireablePool as IRetireablePool } from "./IRetireablePool.sol";
 
 
 /**
- * @title Fee Pool Interface
+ * @title Jasmine Fee Pool Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Contains functionality and events for pools which have fees for
  *         withdrawals and retirements.
  * @custom:security-contact dev@jasmine.energy
  */
-interface IFeePool is IEATBackedPool, IRetireablePool {
+interface IJasmineFeePool is IEATBackedPool, IRetireablePool {
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Events
@@ -30,10 +27,12 @@ interface IFeePool is IEATBackedPool, IRetireablePool {
      * 
      * @param withdrawFeeBips New withdrawal fee in basis points
      * @param beneficiary Address to receive fees
+     * @param isSpecificRate Whether fee was update for specific withdrawals or any
      */
     event WithdrawalRateUpdate(
         uint96 withdrawFeeBips,
-        address indexed beneficiary
+        address indexed beneficiary,
+        bool isSpecificRate
     );
 
     /**
@@ -70,16 +69,15 @@ interface IFeePool is IEATBackedPool, IRetireablePool {
      * @notice Retires an exact amount of JLTs. If fees or other conversions are set,
      *         cost of retirement will be greater than amount.
      * 
-     * @param owner JLT holder to retire from
+     * @param spender JLT holder to retire from
      * @param beneficiary Address to receive retirement attestation
      * @param amount Exact number of JLTs to retire
      * @param data Optional calldata to relay to retirement service via onERC1155Received
      */
     function retireExact(
-        address owner, 
+        address spender, 
         address beneficiary, 
         uint256 amount, 
         bytes calldata data
     ) external;
-
 }

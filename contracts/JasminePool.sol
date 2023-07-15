@@ -1,28 +1,21 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.17;
+pragma solidity 0.8.20;
 
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
-
-// Parent Contract
+// Inheritted Contracts
 import { JasmineBasePool } from "./pools/core/JasmineBasePool.sol";
 import { JasmineFeePool }  from "./pools/extensions/JasmineFeePool.sol";
 
 // Implemented Interfaces
-import { IJasminePool }    from "./interfaces/IJasminePool.sol";
-import { IQualifiedPool }  from "./interfaces/pool/IQualifiedPool.sol";
-import { IRetireablePool } from "./interfaces/pool/IRetireablePool.sol";
-import { IEATBackedPool }  from "./interfaces/pool/IEATBackedPool.sol";
+import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 // External Contracts
-import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
+import { IJasmineOracle } from "./interfaces/core/IJasmineOracle.sol";
 
 // Utility Libraries
 import { PoolPolicy }    from "./libraries/PoolPolicy.sol";
-import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 
 /**
@@ -48,7 +41,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     PoolPolicy.DepositPolicy internal _policy;
 
     /// @dev Jasmine Oracle contract
-    JasmineOracle public immutable oracle;
+    IJasmineOracle public immutable oracle;
 
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -59,6 +52,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
      * @param _eat Address of the Jasmine Energy Attribution Token (EAT) contract
      * @param _oracle Address of the Jasmine Oracle contract
      * @param _poolFactory Address of the Jasmine Pool Factory contract
+     * @param _minter Address of the Jasmine Minter address
      */
     constructor(
         address _eat,
@@ -66,12 +60,12 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         address _poolFactory,
         address _minter
     )
-        JasmineFeePool(_eat, _poolFactory, _minter)
+        JasmineFeePool(_eat, _poolFactory, _minter, "Jasmine Liquidity Pool (V1)")
     {
         // NOTE: EAT, Pool Factory and Minting contracts are validated in JasmineBasePool
         if ( _oracle == address(0x0)) revert JasmineErrors.InvalidInput();
 
-        oracle = JasmineOracle(_oracle);
+        oracle = IJasmineOracle(_oracle);
     }
 
     /**
@@ -115,7 +109,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         return super.meetsPolicy(tokenId) && _policy.meetsPolicy(oracle, tokenId);
     }
 
-    /// @inheritdoc IQualifiedPool
+    /// @inheritdoc JasmineBasePool
     function policyForVersion(uint8 metadataVersion)
         external view override
         returns (bytes memory policy)
@@ -143,7 +137,8 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         uint256[] memory tokenIds,
         uint256[] memory amounts
     )
-        public view override(JasmineBasePool, JasmineFeePool)
+        public view
+        override(JasmineBasePool, JasmineFeePool)
         returns (uint256 cost)
     {
         return super.withdrawalCost(tokenIds, amounts);
@@ -153,7 +148,8 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     function withdrawalCost(
         uint256 amount
     )
-        public view override(JasmineBasePool, JasmineFeePool)
+        public view
+        override(JasmineBasePool, JasmineFeePool)
         returns (uint256 cost)
     {
         return super.withdrawalCost(amount);
@@ -165,13 +161,14 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         uint256 amount,
         bytes calldata data
     )
-        public override(JasmineFeePool, JasmineBasePool)
+        external override(JasmineFeePool, JasmineBasePool)
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
-        return super.withdraw(
+        return _withdraw(
+            _msgSender(),
             recipient,
             amount,
             data
@@ -180,19 +177,19 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
 
     /// @inheritdoc JasmineBasePool
     function withdrawFrom(
-        address sender,
+        address from,
         address recipient,
         uint256 amount,
         bytes calldata data
     )
-        public override(JasmineFeePool, JasmineBasePool)
+        external override(JasmineFeePool, JasmineBasePool)
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
-        return super.withdrawFrom(
-            sender,
+        return _withdraw(
+            from,
             recipient,
             amount,
             data
@@ -201,7 +198,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
 
     /// @inheritdoc JasmineBasePool
     function withdrawSpecific(
-        address sender,
+        address from,
         address recipient,
         uint256[] calldata tokenIds,
         uint256[] calldata amounts,
@@ -209,8 +206,8 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     ) 
         external override(JasmineFeePool, JasmineBasePool)
     {
-        super._withdraw(
-            sender,
+        _withdraw(
+            from,
             recipient,
             tokenIds,
             amounts,
@@ -220,7 +217,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
 
     //  ──────────────────────────  Retirement Overrides  ───────────────────────────  \\
 
-    /// @inheritdoc IRetireablePool
+    /// @inheritdoc JasmineBasePool
     function retire(
         address owner,
         address beneficiary,
@@ -241,5 +238,4 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     {
         return super.retirementCost(amount);
     }
-
 }

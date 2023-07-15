@@ -37,9 +37,10 @@ export const namedAccounts = {
     default: 0,
   },
   bridge: {
-    default: 1,
     polygon: "0xf752f0300333d53982dd8c128ca077f17cb8c405",
     mumbai: "0x2dcad29de8a67d70b7b5bf32b19f1480f333d8dd",
+    localhost: "0x2dcAd29De8a67d70b7B5bf32B19f1480f333D8dD",
+    hardhat: "0x2dcAd29De8a67d70b7B5bf32B19f1480f333D8dD",
   },
   deployer: {
     default: 2,
@@ -49,6 +50,9 @@ export const namedAccounts = {
   },
   poolManager: {
     default: 6,
+  },
+  feeManager: {
+    default: 7,
   },
   // Core contracts
   eat: {

@@ -13,6 +13,22 @@
         "strict": true,
         "target": "es2021"
     },
-    "include": ["./scripts", "./deploy", "./test", "./tasks", "./utils", "./types", "./hardhat", "./typechain"],
+    "include": [
+        "./scripts",
+        "./deploy",
+        "./test",
+        "./tasks",
+        "./utils",
+        "./types",
+        "./hardhat",
+        "./artifacts/**/*.json",
+        "./typechain/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "deploy",
+        "scripts",
+        "test",
+    ],
     "files": ["./hardhat.config.ts"]
 }
