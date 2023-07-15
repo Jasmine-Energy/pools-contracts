@@ -490,17 +490,9 @@ abstract contract EATManager is IERC1155Receiver {
 
         wasUpdated = _balances[encodedDeposit] != balance;
         if (wasUpdated) {
-            if (balance == 0) {
-                _totalDeposits -= _balances[encodedDeposit];
-            } else if (_balances[encodedDeposit] == 0) {
-                // TODO: WTF do we do here?
-                // NOTE: WE cannot simply add to frozen, as calling validate again will cause it to be unfrozen if that is the state in the Jasmine EAT contract
-                // _frozenDeposits[encodedDeposit] = true;
-            } else if (balance < _balances[encodedDeposit]) {
-                _totalDeposits -= _balances[encodedDeposit] - balance;
-            } else {
-                _totalDeposits += balance - _balances[encodedDeposit];
-            }
+            // NOTE: Validating internal balance should only ever decrement balance in case of deposit being burned
+            if (balance > _balances[encodedDeposit]) revert JasmineErrors.ValidationFailed();
+            _totalDeposits -= _balances[encodedDeposit] - balance;
             _balances[encodedDeposit] = balance;
         }
     }

@@ -360,7 +360,7 @@ abstract contract JasmineBasePool is
         }
 
         if (data.length != 0) {
-            retirementData = abi.encodePacked(retirementData, data);
+            retirementData = abi.encode(retirementData, data);
         }
 
         // 4. Send to retirement service and emit retirement event
@@ -526,14 +526,9 @@ abstract contract JasmineBasePool is
      * 
      * @param tokenId EAT token ID to check
      */
-    function validateDepositValidity(uint256 tokenId) external returns (bool isValid) {
+    function validateDepositValidity(uint256 tokenId) external nonReentrant returns (bool isValid) {
         if (!_isTokenInRecords(tokenId)) {
-            if (IJasmineEAT(eat).balanceOf(address(this), tokenId) != 0) {
-                // TODO: Add to list of withdrawable tokens
-                revert JasmineErrors.InvalidInput();
-            } else {
-                revert JasmineErrors.InvalidInput();
-            }
+            revert JasmineErrors.InvalidInput();
         }
 
         uint256 preTotalDeposits = _totalDeposits;

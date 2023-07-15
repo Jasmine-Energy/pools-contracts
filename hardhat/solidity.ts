@@ -1,6 +1,6 @@
 import { SolidityUserConfig } from "hardhat/types";
 
-const defaultOptimizerRuns = process.env.OPTIMIZER_RUNS ? parseInt(process.env.OPTIMIZER_RUNS) : 5;
+const defaultOptimizerRuns = process.env.OPTIMIZER_RUNS ? parseInt(process.env.OPTIMIZER_RUNS) : 400;
 
 export const solidity: SolidityUserConfig = {
   compilers: [
