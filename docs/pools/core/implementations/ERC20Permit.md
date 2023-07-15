@@ -6,7 +6,7 @@
 
 
 
-*Implementation of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in https://eips.ethereum.org/EIPS/eip-2612[EIP-2612]. Adds the {permit} method, which can be used to change an account&#39;s ERC20 allowance (see {IERC20-allowance}) by presenting a message signed by the account. By not relying on `{IERC20-approve}`, the token holder account doesn&#39;t need to send a transaction, and thus is not required to hold Ether at all.*
+*Implementation of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in https://eips.ethereum.org/EIPS/eip-2612[EIP-2612]. Adds the {permit} method, which can be used to change an account&#39;s ERC20 allowance (see {IERC20-allowance}) by presenting a message signed by the account. By not relying on `{IERC20-approve}`, the token holder account doesn&#39;t need to send a transaction, and thus is not required to hold Ether at all. _Available since v3.4._*
 
 ## Methods
 
@@ -53,19 +53,19 @@ function allowance(address owner, address spender) external view returns (uint25
 ### approve
 
 ```solidity
-function approve(address spender, uint256 value) external nonpayable returns (bool)
+function approve(address spender, uint256 amount) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-approve}. NOTE: If `value` is the maximum `uint256`, the allowance is not updated on `transferFrom`. This is semantically equivalent to an infinite approval. Requirements: - `spender` cannot be the zero address.*
+*See {IERC20-approve}. NOTE: If `amount` is the maximum `uint256`, the allowance is not updated on `transferFrom`. This is semantically equivalent to an infinite approval. Requirements: - `spender` cannot be the zero address.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | spender | address | undefined |
-| value | uint256 | undefined |
+| amount | uint256 | undefined |
 
 #### Returns
 
@@ -115,19 +115,19 @@ function decimals() external view returns (uint8)
 ### decreaseAllowance
 
 ```solidity
-function decreaseAllowance(address spender, uint256 requestedDecrease) external nonpayable returns (bool)
+function decreaseAllowance(address spender, uint256 subtractedValue) external nonpayable returns (bool)
 ```
 
 
 
-*Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `requestedDecrease`. NOTE: Although this function is designed to avoid double spending with {approval}, it can still be frontrunned, preventing any attempt of allowance reduction.*
+*Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `subtractedValue`.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | spender | address | undefined |
-| requestedDecrease | uint256 | undefined |
+| subtractedValue | uint256 | undefined |
 
 #### Returns
 
@@ -301,19 +301,19 @@ function totalSupply() external view returns (uint256)
 ### transfer
 
 ```solidity
-function transfer(address to, uint256 value) external nonpayable returns (bool)
+function transfer(address to, uint256 amount) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-transfer}. Requirements: - `to` cannot be the zero address. - the caller must have a balance of at least `value`.*
+*See {IERC20-transfer}. Requirements: - `to` cannot be the zero address. - the caller must have a balance of at least `amount`.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | to | address | undefined |
-| value | uint256 | undefined |
+| amount | uint256 | undefined |
 
 #### Returns
 
@@ -324,12 +324,12 @@ function transfer(address to, uint256 value) external nonpayable returns (bool)
 ### transferFrom
 
 ```solidity
-function transferFrom(address from, address to, uint256 value) external nonpayable returns (bool)
+function transferFrom(address from, address to, uint256 amount) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}. NOTE: Does not update the allowance if the current allowance is the maximum `uint256`. Requirements: - `from` and `to` cannot be the zero address. - `from` must have a balance of at least `value`. - the caller must have allowance for ``from``&#39;s tokens of at least `value`.*
+*See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}. NOTE: Does not update the allowance if the current allowance is the maximum `uint256`. Requirements: - `from` and `to` cannot be the zero address. - `from` must have a balance of at least `amount`. - the caller must have allowance for ``from``&#39;s tokens of at least `amount`.*
 
 #### Parameters
 
@@ -337,7 +337,7 @@ function transferFrom(address from, address to, uint256 value) external nonpayab
 |---|---|---|
 | from | address | undefined |
 | to | address | undefined |
-| value | uint256 | undefined |
+| amount | uint256 | undefined |
 
 #### Returns
 
@@ -550,23 +550,6 @@ error ERC2612InvalidSigner(address signer, address owner)
 |---|---|---|
 | signer | address | undefined |
 | owner | address | undefined |
-
-### InvalidAccountNonce
-
-```solidity
-error InvalidAccountNonce(address account, uint256 currentNonce)
-```
-
-
-
-*The nonce used for an `account` is not the expected current nonce.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| account | address | undefined |
-| currentNonce | uint256 | undefined |
 
 ### InvalidShortString
 

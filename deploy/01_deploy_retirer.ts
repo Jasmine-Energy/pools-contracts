@@ -72,5 +72,5 @@ const deployRetirementService: DeployFunction = async function (
     }
 };
 deployRetirementService.tags = ['Retirer', 'all'];
-deployRetirementService.dependencies = ['Libraries', 'Core'];
+deployRetirementService.dependencies = ['Core'];
 export default deployRetirementService;

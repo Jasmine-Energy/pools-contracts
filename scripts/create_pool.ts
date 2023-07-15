@@ -2,7 +2,7 @@ import { ethers, deployments, run, getNamedAccounts, network } from "hardhat";
 import { Contracts, colouredLog } from "@/utils";
 import { tryRequire } from "@/utils/safe_import";
 import { AnyField } from "@/utils/constants";
-import { CertificateEndorsement } from "@/types/energy-certificate.types";
+import { CertificateEndorsement, CertificateEndorsementArr } from "@/types/energy-certificate.types";
 import { delay } from "@/utils/delay";
 
 async function main() {
@@ -38,8 +38,8 @@ async function main() {
       ] as [number, number],
       techType: AnyField,
       registry: AnyField,
-      certificateType: CertificateEndorsement.GREEN_E,
-      endorsement: AnyField,
+      certificateType: AnyField,
+      endorsement: BigInt(CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)) & BigInt(2 ** 32 - 1),
     },
     poolName,
     poolSymbol,

@@ -1,22 +1,23 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.17;
+pragma solidity 0.8.20;
 
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-// Core Implementations
-import { IJasminePoolFactory }                       from "./interfaces/IJasminePoolFactory.sol";
-import { IJasmineFeeManager }                        from "./interfaces/IJasmineFeeManager.sol";
+// Inheritted Contracts
 import { Ownable2StepUpgradeable  as Ownable2Step }  from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import { AccessControlUpgradeable as AccessControl } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { UUPSUpgradeable }                           from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { JasmineErrors }                             from "./interfaces/errors/JasmineErrors.sol";
+
+// Implemented Interfaces
+import { IJasminePoolFactory } from "./interfaces/IJasminePoolFactory.sol";
+import { IJasmineFeeManager }  from "./interfaces/IJasmineFeeManager.sol";
+import { JasmineErrors }       from "./interfaces/errors/JasmineErrors.sol";
 
 // External Contracts
 import { IJasminePool }      from "./interfaces/IJasminePool.sol";
 import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import { IUniswapV3Pool }    from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import { IERC165 }           from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { IERC1155Receiver }  from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 
 // Proxies Contracts
@@ -26,6 +27,7 @@ import { BeaconProxy }       from "@openzeppelin/contracts/proxy/beacon/BeaconPr
 // Utility Libraries
 import { PoolPolicy }    from "./libraries/PoolPolicy.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { ERC165Checker } from "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import { Create2 }       from "@openzeppelin/contracts/utils/Create2.sol";
 import { Address }       from "@openzeppelin/contracts/utils/Address.sol";
 
@@ -40,6 +42,7 @@ import { Address }       from "@openzeppelin/contracts/utils/Address.sol";
 contract JasminePoolFactory is 
     IJasminePoolFactory,
     IJasmineFeeManager,
+    JasmineErrors,
     Ownable2Step,
     AccessControl,
     UUPSUpgradeable
@@ -51,6 +54,7 @@ contract JasminePoolFactory is
 
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using ERC165Checker for address;
     using Address for address;
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -173,12 +177,16 @@ contract JasminePoolFactory is
      * 
      * @param _owner Address to receive initial ownership of contract
      * @param _poolImplementation Address containing Jasmine Pool implementation
+     * @param _poolManager Address of initial pool manager. May be zero address
+     * @param _feeManager Address of initial fee manager. May be zero address
      * @param _feeBeneficiary Address to receive all pool fees
      * @param _tokensBaseURI Base URI of used for ERC-1046 token URI function
      */
     function initialize(
         address _owner,
         address _poolImplementation,
+        address _poolManager,
+        address _feeManager,
         address _feeBeneficiary,
         string memory _tokensBaseURI
     )
@@ -214,6 +222,9 @@ contract JasminePoolFactory is
         // 5. Grant owner pool manager and fee manager roles
         _grantRole(POOL_MANAGER_ROLE, _owner);
         _grantRole(FEE_MANAGER_ROLE, _owner);
+
+        if (_poolManager != address(0x0)) _grantRole(POOL_MANAGER_ROLE, _poolManager);
+        if (_feeManager != address(0x0)) _grantRole(FEE_MANAGER_ROLE, _feeManager);
 
         // 6. Setup default pool implementation
         _grantRole(POOL_MANAGER_ROLE, _msgSender());
@@ -775,13 +786,13 @@ contract JasminePoolFactory is
     function _validatePoolImplementation(address poolImplementation)
         private view 
     {
-        if (!IERC165(poolImplementation).supportsInterface(type(IJasminePool).interfaceId)) {
+        if (!poolImplementation.supportsInterface(type(IJasminePool).interfaceId)) {
             revert MustSupportInterface(type(IJasminePool).interfaceId);
-        } else if (!IERC165(poolImplementation).supportsInterface(type(IERC1155Receiver).interfaceId)) {
+        } else if (!poolImplementation.supportsInterface(type(IERC1155Receiver).interfaceId)) {
             revert MustSupportInterface(type(IERC1155Receiver).interfaceId);
         }
 
-        for (uint i = 0; i < _poolBeacons.length();) {
+        for (uint256 i = 0; i < _poolBeacons.length();) {
             UpgradeableBeacon beacon = UpgradeableBeacon(_poolBeacons.at(i));
             if (beacon.implementation() == poolImplementation) {
                 revert PoolExists(poolImplementation);

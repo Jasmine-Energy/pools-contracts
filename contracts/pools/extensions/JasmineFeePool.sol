@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.0;
 
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
@@ -8,7 +8,6 @@ pragma solidity >=0.8.17;
 import { JasmineBasePool } from "../core/JasmineBasePool.sol";
 
 // Implemented Interfaces
-import { IJasminePool }                              from "../../interfaces/IJasminePool.sol";
 import { IJasmineEATBackedPool  as IEATBackedPool }  from "../../interfaces/pool/IEATBackedPool.sol";
 import { IJasmineFeePool        as IFeePool }        from "../../interfaces/pool/IFeePool.sol";
 import { IJasmineRetireablePool as IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
@@ -154,15 +153,12 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         }
 
         // 2. Execute withdrawal
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
+        return _withdraw(
             _msgSender(),
             recipient,
-            tokenIds,
-            amounts,
+            amount,
             data
         );
-        return (tokenIds, amounts);
     }
 
     /// @inheritdoc JasmineBasePool
@@ -194,15 +190,12 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         }
 
         // 2. Execute withdrawal
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
+        return _withdraw(
             from,
             recipient,
-            tokenIds,
-            amounts,
+            amount,
             data
         );
-        return (tokenIds, amounts);
     }
 
     /// @inheritdoc IEATBackedPool

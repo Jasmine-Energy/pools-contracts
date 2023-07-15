@@ -6,7 +6,7 @@
 
 
 
-*Implementation of the {IERC20} interface. This implementation is agnostic to the way tokens are created. This means that a supply mechanism has to be added in a derived contract using {_mint}. TIP: For a detailed writeup see our guide https://forum.openzeppelin.com/t/how-to-implement-erc20-supply-mechanisms/226[How to implement supply mechanisms]. The default value of {decimals} is 18. To change this, you should override this function so it returns a different value. We have followed general OpenZeppelin Contracts guidelines: functions revert instead returning `false` on failure. This behavior is nonetheless conventional and does not conflict with the expectations of ERC20 applications. Additionally, an {Approval} event is emitted on calls to {transferFrom}. This allows applications to reconstruct the allowance for all accounts just by listening to said events. Other implementations of the EIP may not emit these events, as it isn&#39;t required by the specification. Finally, the non-standard {decreaseAllowance} and {increaseAllowance} functions have been added to mitigate the well-known issues around setting allowances. See {IERC20-approve}.*
+*Implementation of the {IERC20} interface. This implementation is agnostic to the way tokens are created. This means that a supply mechanism has to be added in a derived contract using {_mint}. For a generic mechanism see {ERC20PresetMinterPauser}. TIP: For a detailed writeup see our guide https://forum.openzeppelin.com/t/how-to-implement-erc20-supply-mechanisms/226[How to implement supply mechanisms]. The default value of {decimals} is 18. To change this, you should override this function so it returns a different value. We have followed general OpenZeppelin Contracts guidelines: functions revert instead returning `false` on failure. This behavior is nonetheless conventional and does not conflict with the expectations of ERC20 applications. Additionally, an {Approval} event is emitted on calls to {transferFrom}. This allows applications to reconstruct the allowance for all accounts just by listening to said events. Other implementations of the EIP may not emit these events, as it isn&#39;t required by the specification. Finally, the non-standard {decreaseAllowance} and {increaseAllowance} functions have been added to mitigate the well-known issues around setting allowances. See {IERC20-approve}.*
 
 ## Methods
 
@@ -36,19 +36,19 @@ function allowance(address owner, address spender) external view returns (uint25
 ### approve
 
 ```solidity
-function approve(address spender, uint256 value) external nonpayable returns (bool)
+function approve(address spender, uint256 amount) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-approve}. NOTE: If `value` is the maximum `uint256`, the allowance is not updated on `transferFrom`. This is semantically equivalent to an infinite approval. Requirements: - `spender` cannot be the zero address.*
+*See {IERC20-approve}. NOTE: If `amount` is the maximum `uint256`, the allowance is not updated on `transferFrom`. This is semantically equivalent to an infinite approval. Requirements: - `spender` cannot be the zero address.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | spender | address | undefined |
-| value | uint256 | undefined |
+| amount | uint256 | undefined |
 
 #### Returns
 
@@ -98,19 +98,19 @@ function decimals() external view returns (uint8)
 ### decreaseAllowance
 
 ```solidity
-function decreaseAllowance(address spender, uint256 requestedDecrease) external nonpayable returns (bool)
+function decreaseAllowance(address spender, uint256 subtractedValue) external nonpayable returns (bool)
 ```
 
 
 
-*Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `requestedDecrease`. NOTE: Although this function is designed to avoid double spending with {approval}, it can still be frontrunned, preventing any attempt of allowance reduction.*
+*Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `subtractedValue`.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | spender | address | undefined |
-| requestedDecrease | uint256 | undefined |
+| subtractedValue | uint256 | undefined |
 
 #### Returns
 
@@ -217,19 +217,19 @@ function totalSupply() external view returns (uint256)
 ### transfer
 
 ```solidity
-function transfer(address to, uint256 value) external nonpayable returns (bool)
+function transfer(address to, uint256 amount) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-transfer}. Requirements: - `to` cannot be the zero address. - the caller must have a balance of at least `value`.*
+*See {IERC20-transfer}. Requirements: - `to` cannot be the zero address. - the caller must have a balance of at least `amount`.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | to | address | undefined |
-| value | uint256 | undefined |
+| amount | uint256 | undefined |
 
 #### Returns
 
@@ -240,12 +240,12 @@ function transfer(address to, uint256 value) external nonpayable returns (bool)
 ### transferFrom
 
 ```solidity
-function transferFrom(address from, address to, uint256 value) external nonpayable returns (bool)
+function transferFrom(address from, address to, uint256 amount) external nonpayable returns (bool)
 ```
 
 
 
-*See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}. NOTE: Does not update the allowance if the current allowance is the maximum `uint256`. Requirements: - `from` and `to` cannot be the zero address. - `from` must have a balance of at least `value`. - the caller must have allowance for ``from``&#39;s tokens of at least `value`.*
+*See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}. NOTE: Does not update the allowance if the current allowance is the maximum `uint256`. Requirements: - `from` and `to` cannot be the zero address. - `from` must have a balance of at least `amount`. - the caller must have allowance for ``from``&#39;s tokens of at least `amount`.*
 
 #### Parameters
 
@@ -253,7 +253,7 @@ function transferFrom(address from, address to, uint256 value) external nonpayab
 |---|---|---|
 | from | address | undefined |
 | to | address | undefined |
-| value | uint256 | undefined |
+| amount | uint256 | undefined |
 
 #### Returns
 

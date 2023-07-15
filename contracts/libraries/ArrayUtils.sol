@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 // solhint-disable no-inline-assembly
 
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.0;
 
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 

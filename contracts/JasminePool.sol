@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.17;
-
+pragma solidity 0.8.20;
 
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-// Parent Contract
+// Inheritted Contracts
 import { JasmineBasePool } from "./pools/core/JasmineBasePool.sol";
 import { JasmineFeePool }  from "./pools/extensions/JasmineFeePool.sol";
 
@@ -13,7 +12,7 @@ import { JasmineFeePool }  from "./pools/extensions/JasmineFeePool.sol";
 import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 // External Contracts
-import { JasmineOracle } from "@jasmine-energy/contracts/src/JasmineOracle.sol";
+import { IJasmineOracle } from "./interfaces/core/IJasmineOracle.sol";
 
 // Utility Libraries
 import { PoolPolicy }    from "./libraries/PoolPolicy.sol";
@@ -42,7 +41,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     PoolPolicy.DepositPolicy internal _policy;
 
     /// @dev Jasmine Oracle contract
-    JasmineOracle public immutable oracle;
+    IJasmineOracle public immutable oracle;
 
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -66,7 +65,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         // NOTE: EAT, Pool Factory and Minting contracts are validated in JasmineBasePool
         if ( _oracle == address(0x0)) revert JasmineErrors.InvalidInput();
 
-        oracle = JasmineOracle(_oracle);
+        oracle = IJasmineOracle(_oracle);
     }
 
     /**
@@ -162,22 +161,18 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
         uint256 amount,
         bytes calldata data
     )
-        external 
-        override(JasmineFeePool, JasmineBasePool)
+        external override(JasmineFeePool, JasmineBasePool)
         returns (
             uint256[] memory tokenIds,
             uint256[] memory amounts
         )
     {
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
+        return _withdraw(
             _msgSender(),
             recipient,
-            tokenIds,
-            amounts,
+            amount,
             data
         );
-        return (tokenIds, amounts);
     }
 
     /// @inheritdoc JasmineBasePool
@@ -193,15 +188,12 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
             uint256[] memory amounts
         )
     {
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
+        return _withdraw(
             from,
             recipient,
-            tokenIds,
-            amounts,
+            amount,
             data
         );
-        return (tokenIds, amounts);
     }
 
     /// @inheritdoc JasmineBasePool
@@ -214,7 +206,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     ) 
         external override(JasmineFeePool, JasmineBasePool)
     {
-        super._withdraw(
+        _withdraw(
             from,
             recipient,
             tokenIds,
@@ -241,8 +233,7 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
     function retirementCost(
         uint256 amount
     )
-        public view
-        override(JasmineBasePool, JasmineFeePool)
+        public view override(JasmineBasePool, JasmineFeePool)
         returns (uint256 cost)
     {
         return super.retirementCost(amount);
