@@ -23,7 +23,6 @@ export const solidity: SolidityUserConfig = {
           enabled: true,
           runs: defaultOptimizerRuns,
         },
-        evmVersion,
       },
     },
   ],
