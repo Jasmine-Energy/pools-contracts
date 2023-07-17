@@ -41,7 +41,7 @@ function acceptOwnership() external nonpayable
 ### eat
 
 ```solidity
-function eat() external view returns (contract JasmineEAT)
+function eat() external view returns (contract IJasmineEAT)
 ```
 
 
@@ -53,7 +53,7 @@ function eat() external view returns (contract JasmineEAT)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract JasmineEAT | undefined |
+| _0 | contract IJasmineEAT | undefined |
 
 ### initialize
 
@@ -74,7 +74,7 @@ function initialize(address _owner) external nonpayable
 ### minter
 
 ```solidity
-function minter() external view returns (contract JasmineMinter)
+function minter() external view returns (contract IJasmineMinter)
 ```
 
 
@@ -86,7 +86,7 @@ function minter() external view returns (contract JasmineMinter)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract JasmineMinter | undefined |
+| _0 | contract IJasmineMinter | undefined |
 
 ### onERC1155BatchReceived
 
@@ -96,7 +96,7 @@ function onERC1155BatchReceived(address, address from, uint256[] tokenIds, uint2
 
 
 
-
+*inheritdoc ERC1155Receiver*
 
 #### Parameters
 
@@ -122,7 +122,7 @@ function onERC1155Received(address, address from, uint256 tokenId, uint256 amoun
 
 
 
-
+*inheritdoc ERC1155Receiver*
 
 #### Parameters
 
@@ -302,7 +302,7 @@ event AdminChanged(address previousAdmin, address newAdmin)
 
 
 
-
+*Emitted when the admin account has changed.*
 
 #### Parameters
 
@@ -319,7 +319,7 @@ event BeaconUpgraded(address indexed beacon)
 
 
 
-
+*Emitted when the beacon is changed.*
 
 #### Parameters
 
@@ -335,7 +335,7 @@ event Initialized(uint8 version)
 
 
 
-
+*Triggered when the contract has been initialized or reinitialized.*
 
 #### Parameters
 
@@ -385,7 +385,7 @@ event Upgraded(address indexed implementation)
 
 
 
-
+*Emitted when the implementation is upgraded.*
 
 #### Parameters
 
@@ -396,6 +396,17 @@ event Upgraded(address indexed implementation)
 
 
 ## Errors
+
+### Disabled
+
+```solidity
+error Disabled()
+```
+
+
+
+*Emitted if function is disabled*
+
 
 ### InvalidInput
 
@@ -417,6 +428,49 @@ error Prohibited()
 
 
 *Emitted for unauthorized actions*
+
+
+### RequiresRole
+
+```solidity
+error RequiresRole(bytes32 role)
+```
+
+
+
+*Emitted if access control check fails*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| role | bytes32 | undefined |
+
+### UnsupportedMetadataVersion
+
+```solidity
+error UnsupportedMetadataVersion(uint8 metadataVersion)
+```
+
+
+
+*Emitted if contract does not support metadata version*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| metadataVersion | uint8 | undefined |
+
+### ValidationFailed
+
+```solidity
+error ValidationFailed()
+```
+
+
+
+*Emitted if internal validation failed*
 
 
 

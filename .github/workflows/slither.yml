@@ -30,7 +30,7 @@ jobs:
           target: 'contracts'
           slither-args: '--solc-remaps "@openzeppelin/contracts=./node_modules/@openzeppelin/contracts hardhat=./node_modules/hardhat @jasmine-energy/contracts=./node_modules/@jasmine-energy/contracts @uniswap/v3-core/contracts=./node_modules/@uniswap/v3-core/contracts" --checklist --checklist-limit 50 --exclude-dependencies --exclude-low --exclude-informational --exclude-optimization --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/'
           fail-on: 'none'
-          solc-version: '0.8.17'
+          solc-version: '0.8.20'
       - name: Create/update checklist as PR comment
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'

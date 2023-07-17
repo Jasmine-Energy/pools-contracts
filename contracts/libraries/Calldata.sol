@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.0;
 
-
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 import { JasmineErrors } from "../interfaces/errors/JasmineErrors.sol";
+
 
 /**
  * @title Calldata
@@ -37,10 +35,14 @@ library Calldata {
     //  Utility Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-
     //  ────────────────────────────────  Encoding  ────────────────────────────────  \\
 
-    // QUESTION: Do we want to optionally include memo hash?
+    /**
+     * @dev Encodes ERC-1155 transfer data representing a retirement operation to the bridge
+     * 
+     * @param beneficiary Address to receive the off-chain retirement attribution
+     * @param hasFractional Whether the retirement is operation includes a fractional component
+     */
     function encodeRetirementData(address beneficiary, bool hasFractional)
         internal pure
         returns (bytes memory retirementData)
@@ -48,6 +50,9 @@ library Calldata {
         return abi.encode(hasFractional ? RETIREMENT_FRACTIONAL_OP : RETIREMENT_OP, beneficiary);
     }
 
+    /**
+     * @dev Encodes ERC-1155 transfer data representing a single fractional retirement operation
+     */
     function encodeFractionalRetirementData()
         internal pure
         returns (bytes memory retirementData)
@@ -55,6 +60,11 @@ library Calldata {
         return abi.encode(RETIREMENT_FRACTIONAL_OP);
     }
 
+    /**
+     * @dev Encodes ERC-1155 transfer data representing a bridge-off operation to the bridge
+     * 
+     * @param recipient Address associated with a bridge account to receive outbound certificate
+     */
     function encodeBridgeOffData(address recipient)
         internal pure
         returns (bytes memory bridgeOffData)
@@ -65,6 +75,11 @@ library Calldata {
 
     //  ────────────────────────────────  Decoding  ────────────────────────────────  \\
 
+    /**
+     * @dev Parses ERC-1155 transfer data to determine if it is a retirement operation
+     * 
+     * @param data Calldata to decode 
+     */
     function isRetirementOperation(bytes memory data)
         internal pure
         returns (bool isRetirement, bool hasFractional)
@@ -77,6 +92,11 @@ library Calldata {
         );
     }
 
+    /**
+     * @dev Parses ERC-1155 transfer data to determine if it is a bridge-off operation
+     * 
+     * @param data Calldata to decode 
+     */
     function isBridgeOffOperation(bytes memory data)
         internal pure
         returns (bool isBridgeOff)

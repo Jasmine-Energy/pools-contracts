@@ -10,10 +10,27 @@ Standard interface for fee manager contract in          Jasmine reference pools
 
 ## Methods
 
+### FEE_MANAGER_ROLE
+
+```solidity
+function FEE_MANAGER_ROLE() external view returns (bytes32)
+```
+
+
+
+*Access control role for fee manager*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined |
+
 ### baseRetirementRate
 
 ```solidity
-function baseRetirementRate() external nonpayable returns (uint96)
+function baseRetirementRate() external view returns (uint96)
 ```
 
 
@@ -30,7 +47,7 @@ function baseRetirementRate() external nonpayable returns (uint96)
 ### baseWithdrawalRate
 
 ```solidity
-function baseWithdrawalRate() external nonpayable returns (uint96)
+function baseWithdrawalRate() external view returns (uint96)
 ```
 
 
@@ -47,7 +64,7 @@ function baseWithdrawalRate() external nonpayable returns (uint96)
 ### baseWithdrawalSpecificRate
 
 ```solidity
-function baseWithdrawalSpecificRate() external nonpayable returns (uint96)
+function baseWithdrawalSpecificRate() external view returns (uint96)
 ```
 
 
@@ -64,7 +81,7 @@ function baseWithdrawalSpecificRate() external nonpayable returns (uint96)
 ### feeBeneficiary
 
 ```solidity
-function feeBeneficiary() external nonpayable returns (address)
+function feeBeneficiary() external view returns (address)
 ```
 
 
@@ -77,6 +94,28 @@ function feeBeneficiary() external nonpayable returns (address)
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined |
+
+### hasFeeManagerRole
+
+```solidity
+function hasFeeManagerRole(address account) external view returns (bool isFeeManager)
+```
+
+
+
+*Checks if account has pool fee manager roll *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| account | address | Account to check fee manager roll against |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| isFeeManager | bool | undefined |
 
 
 

@@ -10,6 +10,7 @@ import "@openzeppelin/hardhat-upgrades";
 import "@primitivefi/hardhat-dodoc";
 import "hardhat-abi-exporter";
 import "hardhat-contract-sizer";
+import "hardhat-dependency-compiler";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-storage-layout";

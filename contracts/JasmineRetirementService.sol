@@ -1,29 +1,26 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.17;
+pragma solidity 0.8.20;
 
-
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Core Implementations
 import { IRetirementService } from "./interfaces/IRetirementService.sol";
+import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 import { ERC1155ReceiverUpgradeable as ERC1155Receiver } from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 import { IERC1155ReceiverUpgradeable as IERC1155Receiver } from "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155ReceiverUpgradeable.sol";
 import { Ownable2StepUpgradeable as Ownable2Step } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // External Contracts
-import { JasmineEAT } from "@jasmine-energy/contracts/src/JasmineEAT.sol";
-import { JasmineMinter } from "@jasmine-energy/contracts/src/JasmineMinter.sol";
+import { IJasmineEAT } from "./interfaces/core/IJasmineEAT.sol";
+import { IJasmineMinter } from "./interfaces/core/IJasmineMinter.sol";
 import { IERC1820Registry } from "@openzeppelin/contracts/interfaces/IERC1820Registry.sol";
 import { IRetirementRecipient } from "./interfaces/IRetirementRecipient.sol";
 
 // Libraries
 import { Calldata } from "./libraries/Calldata.sol";
 import { ArrayUtils } from "./libraries/ArrayUtils.sol";
-import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
 
 
 /**
@@ -32,30 +29,39 @@ import { JasmineErrors } from "./interfaces/errors/JasmineErrors.sol";
  * @notice Facilitates retirements of EATs and JLTs in the Jasmine protocol
  * @custom:security-contact dev@jasmine.energy
  */
-contract JasmineRetirementService is IRetirementService, ERC1155Receiver, Ownable2Step, UUPSUpgradeable {
+contract JasmineRetirementService is 
+    IRetirementService,
+    JasmineErrors,
+    ERC1155Receiver,
+    Ownable2Step,
+    UUPSUpgradeable
+{
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Fields
     // ──────────────────────────────────────────────────────────────────────────────
 
-    JasmineMinter public immutable minter;
-    JasmineEAT public immutable eat;
+    IJasmineMinter public immutable minter;
+    IJasmineEAT public immutable eat;
 
     IERC1820Registry public constant ERC1820_REGISTRY = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
+
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Setup
     // ──────────────────────────────────────────────────────────────────────────────
 
     constructor(address _minter, address _eat) {
-        minter = JasmineMinter(_minter);
-        eat = JasmineEAT(_eat);
+        minter = IJasmineMinter(_minter);
+        eat = IJasmineEAT(_eat);
     }
 
-    function initialize(address _owner) external initializer {
-        __Ownable2Step_init();
-
+    function initialize(address _owner) external initializer onlyProxy {
         _transferOwnership(_owner);
+
+        __UUPSUpgradeable_init();
+        __Ownable2Step_init();
+        __ERC1155Receiver_init();
 
         eat.setApprovalForAll(address(minter), true);
     }
@@ -65,6 +71,7 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, Ownabl
     //  ERC-1155 Receiver Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
+    /// @dev inheritdoc ERC1155Receiver
     function onERC1155Received(
         address,
         address from,
@@ -93,6 +100,7 @@ contract JasmineRetirementService is IRetirementService, ERC1155Receiver, Ownabl
         return this.onERC1155Received.selector;
     }
 
+    /// @dev inheritdoc ERC1155Receiver
     function onERC1155BatchReceived(
         address,
         address from,
