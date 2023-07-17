@@ -1,35 +1,36 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.0;
 
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
+
+// Inheritted Contracts
+import { ERC20 }           from "./implementations/ERC20.sol";
+import { ERC20Permit }     from "./implementations/ERC20Permit.sol";
+import { EATManager }      from "./implementations/EATManager.sol";
+import { Initializable }   from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // Implemented Interfaces
 import { IJasminePool }                              from "../../interfaces/IJasminePool.sol";
 import { IJasmineEATBackedPool  as IEATBackedPool  } from "../../interfaces/pool/IEATBackedPool.sol";
 import { IJasmineQualifiedPool  as IQualifiedPool  } from "../../interfaces/pool/IQualifiedPool.sol";
 import { IJasmineRetireablePool as IRetireablePool } from "../../interfaces/pool/IRetireablePool.sol";
+import { JasmineErrors }                             from "../../interfaces/errors/JasmineErrors.sol";
+import { IERC20Metadata }                            from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { IERC1046 }                                  from "../../interfaces/ERC/IERC1046.sol";
-
-// Inheritted Contracts
-import { EATManager }      from "./implementations/EATManager.sol";
-import { Initializable }   from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import { ERC20 }           from "./implementations/ERC20.sol";
-import { ERC20Permit }     from "./implementations/ERC20Permit.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
+import { IERC165 }                                   from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 // External Contracts
-import { JasmineEAT }               from "@jasmine-energy/contracts/src/JasmineEAT.sol";
+import { IJasmineEAT }              from "../../interfaces/core/IJasmineEAT.sol";
 import { JasmineRetirementService } from "../../JasmineRetirementService.sol";
 import { JasminePoolFactory }       from "../../JasminePoolFactory.sol";
 
 // Utility Libraries
 import { PoolPolicy }    from "../../libraries/PoolPolicy.sol";
 import { Calldata }      from "../../libraries/Calldata.sol";
-import { Math }          from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ArrayUtils }    from "../../libraries/ArrayUtils.sol";
-import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
+import { Math }          from "@openzeppelin/contracts/utils/math/Math.sol";
 
 
 /**
@@ -40,9 +41,10 @@ import { JasmineErrors } from "../../interfaces/errors/JasmineErrors.sol";
  */
 abstract contract JasmineBasePool is
     IJasminePool,
+    JasmineErrors,
     ERC20Permit,
-    IERC1046,
     EATManager,
+    IERC1046,
     Initializable,
     ReentrancyGuard
 {
@@ -67,13 +69,6 @@ abstract contract JasmineBasePool is
     string private _name;
     /// @notice Token Symbol - per ERC-20
     string private _symbol;
-
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Errors
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    /// @dev Emitted if a token does not meet pool's deposit policy
-    error Unqualified(uint256 tokenId);
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Setup
@@ -124,6 +119,194 @@ abstract contract JasmineBasePool is
     // ──────────────────────────────────────────────────────────────────────────────
     // User Functionality
     // ──────────────────────────────────────────────────────────────────────────────
+
+    //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
+
+    /// @inheritdoc IEATBackedPool
+    function deposit(
+        uint256 tokenId,
+        uint256 amount
+    )
+        external virtual
+        returns (uint256 jltQuantity)
+    {
+        return _deposit(_msgSender(), tokenId, amount);
+    }
+
+    /// @inheritdoc IEATBackedPool
+    function depositFrom(
+        address from,
+        uint256 tokenId,
+        uint256 amount
+    )
+        external virtual
+        returns (uint256 jltQuantity)
+    {
+        return _deposit(from, tokenId, amount);
+    }
+
+    /// @inheritdoc IEATBackedPool
+    function depositBatch(
+        address from,
+        uint256[] calldata tokenIds,
+        uint256[] calldata amounts
+    )
+        external virtual
+        nonReentrant
+        returns (uint256 jltQuantity)
+    {
+        IJasmineEAT(eat).safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
+        return _standardizeDecimal(amounts.sum());
+    }
+
+    /**
+     * @dev Internal utility function to deposit EATs to pool
+     * 
+     * @param from Address from which EATs will be transfered
+     * @param tokenId ID of EAT to deposit into pool
+     * @param amount Number of EATs to deposit
+     * 
+     * @return jltQuantity Number of JLTs issued
+     */
+    function _deposit(
+        address from,
+        uint256 tokenId,
+        uint256 amount
+    )
+        internal virtual
+        nonReentrant
+        returns (uint256 jltQuantity)
+    {
+        IJasmineEAT(eat).safeTransferFrom(from, address(this), tokenId, amount, "");
+        return _standardizeDecimal(amount);
+    }
+
+
+    //  ──────────────────────────  Withdrawal Functions  ───────────────────────────  \\
+
+    /// @inheritdoc IEATBackedPool
+    function withdraw(
+        address recipient,
+        uint256 amount,
+        bytes calldata data
+    )
+        external virtual
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        return _withdraw(
+            _msgSender(),
+            recipient,
+            amount,
+            data
+        );
+    }
+
+    /// @inheritdoc IEATBackedPool
+    function withdrawFrom(
+        address from,
+        address recipient,
+        uint256 amount,
+        bytes calldata data
+    )
+        external virtual
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        return _withdraw(
+            from,
+            recipient,
+            amount,
+            data
+        );
+    }
+
+    /// @inheritdoc IEATBackedPool
+    function withdrawSpecific(
+        address from,
+        address recipient,
+        uint256[] calldata tokenIds,
+        uint256[] calldata amounts,
+        bytes calldata data
+    ) 
+        external virtual
+    {
+        _withdraw(
+            from,
+            recipient,
+            tokenIds,
+            amounts,
+            data
+        );
+    }
+
+    /**
+     * @dev Internal utility function for withdrawing EATs where 
+     *      the pool selects the EATs to withdraw
+     * 
+     * @param from JLT holder from which token will be burned
+     * @param recipient Address to receive EATs
+     * @param tokenIds EAT token IDs to withdraw
+     * @param amounts EAT token amounts to withdraw
+     * @param data Calldata relayed during EAT transfer
+     */
+    function _withdraw(
+        address from,
+        address recipient,
+        uint256 amount,
+        bytes memory data
+    ) 
+        internal virtual
+        withdrawal nonReentrant
+        returns (
+            uint256[] memory tokenIds,
+            uint256[] memory amounts
+        )
+    {
+        // 1. Ensure spender has sufficient JLTs and lengths match
+        uint256 cost = JasmineBasePool.withdrawalCost(amount);
+
+        // 2. Burn Tokens
+        _spendJLT(from, cost);
+
+        // 3. Transfer Select Tokens
+        return _transferQueuedDeposits(recipient, amount, data);
+    }
+
+    /**
+     * @dev Internal utility function for withdrawing EATs from pool
+     *      in exchange for JLTs
+     * 
+     * @param from JLT holder from which token will be burned
+     * @param recipient Address to receive EATs
+     * @param tokenIds EAT token IDs to withdraw
+     * @param amounts EAT token amounts to withdraw
+     * @param data Calldata relayed during EAT transfer
+     */
+    function _withdraw(
+        address from,
+        address recipient,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        bytes memory data
+    ) 
+        internal virtual
+        withdrawal nonReentrant
+    {
+        // 1. Ensure spender has sufficient JLTs and lengths match
+        uint256 cost = JasmineBasePool.withdrawalCost(tokenIds, amounts);
+
+        // 2. Burn Tokens
+        _spendJLT(from, cost);
+
+        // 3. Transfer Select Tokens
+        _transferDeposits(recipient, tokenIds, amounts, data);
+    }
+
 
     //  ──────────────────────────  Retirement Functions  ───────────────────────────  \\
 
@@ -177,177 +360,15 @@ abstract contract JasmineBasePool is
         }
 
         if (data.length != 0) {
-            retirementData = abi.encodePacked(retirementData, data);
+            retirementData = abi.encode(retirementData, data);
         }
 
-        // 4. Select tokens to withdraw
-        (uint256[] memory tokenIds, uint256[] memory amounts) = selectWithdrawTokens(eatQuantity);
+        // 4. Send to retirement service and emit retirement event
+        _transferQueuedDeposits(retirementService, eatQuantity, retirementData);
 
-        // 5. Send to retirement service and emit retirement event
-        _transferDeposits(retirementService, tokenIds, amounts, retirementData);
         emit Retirement(owner, beneficiary, amount);
     }
 
-
-    //  ───────────────────────────  Deposit Functions  ─────────────────────────────  \\
-
-    /// @inheritdoc IEATBackedPool
-    function deposit(
-        uint256 tokenId,
-        uint256 amount
-    )
-        external virtual
-        returns (uint256 jltQuantity)
-    {
-        return _deposit(_msgSender(), tokenId, amount);
-    }
-
-    /// @inheritdoc IEATBackedPool
-    function depositFrom(
-        address from,
-        uint256 tokenId,
-        uint256 amount
-    )
-        external virtual
-        returns (uint256 jltQuantity)
-    {
-        return _deposit(from, tokenId, amount);
-    }
-
-    /// @inheritdoc IEATBackedPool
-    function depositBatch(
-        address from,
-        uint256[] calldata tokenIds,
-        uint256[] calldata amounts
-    )
-        external virtual
-        nonReentrant
-        returns (uint256 jltQuantity)
-    {
-        JasmineEAT(eat).safeBatchTransferFrom(from, address(this), tokenIds, amounts, "");
-        return _standardizeDecimal(amounts.sum());
-    }
-
-    /**
-     * @dev Internal utility function to deposit EATs to pool
-     * 
-     * @param from Address from which EATs will be transfered
-     * @param tokenId ID of EAT to deposit into pool
-     * @param amount Number of EATs to deposit
-     * 
-     * @return jltQuantity Number of JLTs issued
-     */
-    function _deposit(
-        address from,
-        uint256 tokenId,
-        uint256 amount
-    )
-        internal virtual
-        nonReentrant
-        returns (uint256 jltQuantity)
-    {
-        JasmineEAT(eat).safeTransferFrom(from, address(this), tokenId, amount, "");
-        return _standardizeDecimal(amount);
-    }
-
-
-    //  ──────────────────────────  Withdrawal Functions  ───────────────────────────  \\
-
-    /// @inheritdoc IEATBackedPool
-    function withdraw(
-        address recipient,
-        uint256 amount,
-        bytes calldata data
-    )
-        external virtual
-        returns (
-            uint256[] memory tokenIds,
-            uint256[] memory amounts
-        )
-    {
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
-            _msgSender(),
-            recipient,
-            tokenIds,
-            amounts,
-            data
-        );
-        return (tokenIds, amounts);
-    }
-
-    /// @inheritdoc IEATBackedPool
-    function withdrawFrom(
-        address from,
-        address recipient,
-        uint256 amount,
-        bytes calldata data
-    )
-        external virtual
-        returns (
-            uint256[] memory tokenIds,
-            uint256[] memory amounts
-        )
-    {
-        (tokenIds, amounts) = selectWithdrawTokens(amount);
-        _withdraw(
-            from,
-            recipient,
-            tokenIds,
-            amounts,
-            data
-        );
-        return (tokenIds, amounts);
-    }
-
-    /// @inheritdoc IEATBackedPool
-    function withdrawSpecific(
-        address from,
-        address recipient,
-        uint256[] calldata tokenIds,
-        uint256[] calldata amounts,
-        bytes calldata data
-    ) 
-        external virtual
-    {
-        _withdraw(
-            from,
-            recipient,
-            tokenIds,
-            amounts,
-            data
-        );
-    }
-
-    /**
-     * @dev Internal utility function for withdrawing EATs from pool
-     *      in exchange for JLTs
-     * 
-     * @param from JLT holder from which token will be burned
-     * @param recipient Address to receive EATs
-     * @param tokenIds EAT token IDs to withdraw
-     * @param amounts EAT token amounts to withdraw
-     * @param data Calldata relayed during EAT transfer
-     */
-    function _withdraw(
-        address from,
-        address recipient,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts,
-        bytes memory data
-    ) 
-        internal virtual
-        withdrawal nonReentrant
-    {
-        // 1. Ensure spender has sufficient JLTs and lengths match
-        uint256 cost = JasmineBasePool.withdrawalCost(tokenIds, amounts);
-
-        // 2. Burn Tokens
-        _spendJLT(from, cost);
-
-        // 3. Transfer Select Tokens
-        _transferDeposits(recipient, tokenIds, amounts, data);
-    }
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Jasmine Qualified Pool Implementations
@@ -360,7 +381,7 @@ abstract contract JasmineBasePool is
         public view virtual
         returns (bool isEligible)
     {
-        isEligible = _isLegitimateToken(tokenId);
+        return IJasmineEAT(eat).exists(tokenId) && !IJasmineEAT(eat).frozen(tokenId);
     }
 
     /// @inheritdoc IQualifiedPool
@@ -370,8 +391,8 @@ abstract contract JasmineBasePool is
     {
         if (metadataVersion != 1) revert JasmineErrors.UnsupportedMetadataVersion(metadataVersion);
         return abi.encode(
-            JasmineEAT(eat).exists.selector,
-            JasmineEAT(eat).frozen.selector
+            IJasmineEAT(eat).exists.selector,
+            IJasmineEAT(eat).frozen.selector
         );
     }
 
@@ -410,18 +431,18 @@ abstract contract JasmineBasePool is
     //  ───────────────────────  ERC-20 Metadata Conformance  ───────────────────────  \\
 
     /**
-     * @inheritdoc ERC20
+     * @inheritdoc IERC20Metadata
      * @dev See {IERC20Metadata-name}
      */
-    function name() public view override returns (string memory) {
+    function name() public view override(ERC20, IERC20Metadata) returns (string memory) {
         return _name;
     }
 
     /**
-     * @inheritdoc ERC20
+     * @inheritdoc IERC20Metadata
      * @dev See {IERC20Metadata-symbol}
      */
-    function symbol() public view override returns (string memory) {
+    function symbol() public view override(ERC20, IERC20Metadata) returns (string memory) {
         return _symbol;
     }
 
@@ -440,7 +461,7 @@ abstract contract JasmineBasePool is
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
 
     /**
-     * @inheritdoc ERC20
+     * @inheritdoc IERC165
      * @dev See {IERC165-supportsInterface}
      */
     function supportsInterface(bytes4 interfaceId)
@@ -458,7 +479,7 @@ abstract contract JasmineBasePool is
     //  Token Transfer Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    //  ─────────────────────────  ERC-1155 Deposit Hooks  ──────────────────────────  \\
+    //  ───────────────────────  EAT Manager Deposit Hooks  ─────────────────────────  \\
 
     /**
      * @dev Enforce EAT eligibility before deposits
@@ -495,22 +516,41 @@ abstract contract JasmineBasePool is
         emit Deposit(operator, from, quantity);
     }
 
+    //  ──────────────────────  Deposit Flagging Functions  ─────────────────────────  \\
+
+    /**
+     * @dev Checks if an EAT depositted into the pool is frozen and validates internal
+     *      balance for token. If frozen, it is internally removed from the pool's
+     *      list of withdrawable tokens. If internal count does not match balance,
+     *      caller will have their JLT burned to rectify the inbalance.
+     * 
+     * @param tokenId EAT token ID to check
+     */
+    function validateDepositValidity(uint256 tokenId) external nonReentrant returns (bool isValid) {
+        if (!_isTokenInRecords(tokenId)) {
+            revert JasmineErrors.InvalidInput();
+        }
+
+        uint256 preTotalDeposits = _totalDeposits;
+        bool isFrozen = IJasmineEAT(eat).frozen(tokenId);
+        bool wasUpdated = _updateTokenStatus(tokenId, !isFrozen) || _validateInternalBalance(tokenId);
+        
+        if (wasUpdated) {
+            uint256 changeInDeposits = Math.max(_totalDeposits, preTotalDeposits) - Math.min(_totalDeposits, preTotalDeposits);
+            isValid = changeInDeposits == 0;
+            if (isValid) return true;
+
+            if (preTotalDeposits < _totalDeposits) {
+                _burn(_msgSender(), _standardizeDecimal(changeInDeposits));
+            } else {
+                _mint(_msgSender(), _standardizeDecimal(changeInDeposits));
+            }
+        }
+    }
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal
     //  ─────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * @dev Used to check a token exists and is not frozen
-     * 
-     * @param tokenId EAT token ID to check
-     * @return isLegit Boolean if token passed legitimacy check
-     */
-    function _isLegitimateToken(uint256 tokenId)
-        private view
-        returns (bool isLegit)
-    {
-        return JasmineEAT(eat).exists(tokenId) && !JasmineEAT(eat).frozen(tokenId);
-    }
 
     /**
      * @dev Standardizes an integers input to the pool's ERC-20 decimal storage value
@@ -552,10 +592,12 @@ abstract contract JasmineBasePool is
     function _enforceEligibility(uint256[] memory tokenIds)
         private view
     {
-        for (uint i = 0; i < tokenIds.length;) {
+        for (uint256 i = 0; i < tokenIds.length;) {
             if (!meetsPolicy(tokenIds[i])) revert Unqualified(tokenIds[i]);
 
-            unchecked { i++; }
+            unchecked {
+                i++;
+            }
         }
     }
 }

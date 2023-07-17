@@ -66,5 +66,5 @@ const deployPoolImplementation: DeployFunction = async function (
     }
 };
 deployPoolImplementation.tags = ['Pool', 'all'];
-deployPoolImplementation.dependencies = ['Libraries', 'Core'];
+deployPoolImplementation.dependencies = ['Core', 'Retirer'];
 export default deployPoolImplementation;

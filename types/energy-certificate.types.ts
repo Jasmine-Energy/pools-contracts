@@ -11,7 +11,7 @@ export const CertificateArr = enumValues(EnergyCertificateType);
 export type CertificateType = typeof CertificateArr[number];
 
 export enum CertificateEndorsement {
-  GREEN_E = 'Green-e'
+  GREEN_E = 'GREEN-E',
 }
 
 export const CertificateEndorsementArr = enumValues(CertificateEndorsement);
