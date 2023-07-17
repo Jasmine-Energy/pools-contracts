@@ -1,8 +1,11 @@
 {
     "compilerOptions": {
+        "composite": true,
+        "declaration": true,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "module": "commonjs",
+        "outDir": "./dist",
         "paths": {
             "@/*": [
                 "./*"
@@ -11,8 +14,9 @@
         "resolveJsonModule": true,
         "skipLibCheck": true,
         "strict": true,
-        "target": "es2021"
+        "target": "esnext"
     },
+    "files": ["./hardhat.config.ts"],
     "include": [
         "./scripts",
         "./deploy",
@@ -29,6 +33,5 @@
         "deploy",
         "scripts",
         "test",
-    ],
-    "files": ["./hardhat.config.ts"]
+    ]
 }
