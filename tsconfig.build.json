@@ -1,23 +1,27 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDirs": [
-      "src",
-      "typechain",
-      "abi/**/*.json",
-      "artifacts/**/*.json"
-    ],
-    "target": "ESNext",
+    "allowSyntheticDefaultImports": true,
+    "alwaysStrict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "composite": true,
+    "lib": ["dom", "esnext"],
     "module": "CommonJS",
     "moduleResolution": "node",
+    "noImplicitThis": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "target": "esnext",
     "outDir": "dist",
-    "resolveJsonModule": true,
-    "esModuleInterop": true
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
-  "include": [
-    "src",
-    "typechain",
-    "abi/**/*.json",
-    "artifacts/**/*.json"
-  ]
+  "include": ["./src", "./utils", "./types", "./typechain", "./abi/**/*.json"],
+  "exclude": ["**/dist"]
 }

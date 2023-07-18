@@ -4,6 +4,13 @@ export const extensions = {
   },
   abiExporter: {
     path: "./abi",
+    format: "json",
+    except: [
+      "@jasmine-energy",
+      "@openzeppelin",
+      "@uniswap",
+    ],
+    runOnCompile: true,
     clear: true,
   },
   typechain: {
