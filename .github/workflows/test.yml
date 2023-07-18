@@ -22,14 +22,17 @@ jobs:
       - name: Install packages
         uses: actions/setup-node@v3
         with:
-          node-version: "18.x"
-      - run: npm install
+          node-version: '18.15.0'
+          cache: 'yarn'
+      - name: Install yarn
+        run: npm install -g yarn
+      - run: yarn install
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
       - name: Compile Contracts
-        run: npm run build
+        run: yarn run build:sol
       - name: Run Hardhat Tests
-        run: npm run test:trace
+        run: yarn run test:trace
         env:
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}

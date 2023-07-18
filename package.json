@@ -7,7 +7,7 @@
   "private": true,
   "author": "Kai Aldag <kai.aldag@jasmine.energy>",
   "scripts": {
-    "prestart": "yarn build",
+    "prestart": "yarn build:sol:nodocs",
     "start": "npx hardhat node --network hardhat --nocompile --silent",
     "build": "yarn build:sol --force && yarn build:ts && yarn build:declarations",
     "build:ts": "tsc -p tsconfig.build.json",
