@@ -1,19 +1,24 @@
 {
     "compilerOptions": {
+        "target": "ESNext",
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "strict": true,
+        "resolveJsonModule": true,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
-        "module": "commonjs",
+        "skipLibCheck": true,
+        "lib": [
+            "esnext"
+        ],
         "paths": {
             "@/*": [
                 "./*"
             ]
-        },
-        "resolveJsonModule": true,
-        "skipLibCheck": true,
-        "strict": true,
-        "target": "es2021"
+        }
     },
     "include": [
+        "./src",
         "./scripts",
         "./deploy",
         "./test",
@@ -21,6 +26,7 @@
         "./utils",
         "./types",
         "./hardhat",
+        "./abi/**/*.json",
         "./artifacts/**/*.json",
         "./typechain/**/*.ts"
     ],

@@ -2,7 +2,7 @@ import { ethers, deployments, run, getNamedAccounts, network } from "hardhat";
 import { Contracts, colouredLog } from "@/utils";
 import { tryRequire } from "@/utils/safe_import";
 import { AnyField } from "@/utils/constants";
-import { CertificateEndorsement, CertificateEndorsementArr } from "@/types/energy-certificate.types";
+import { CertificateEndorsement, CertificateEndorsementArr, CertificateArr, EnergyCertificateType } from "@/types/energy-certificate.types";
 import { delay } from "@/utils/delay";
 
 async function main() {
@@ -33,12 +33,12 @@ async function main() {
   const frontHalfPoolTx = await poolFactory.deployNewBasePool(
     {
       vintagePeriod: [
-        1672531200, // Jan 1st, 2023
-        1688169599, // June 30th, 2023
+        1672531200, // Jan 1st, 2023 @ midnight UTC
+        1688083200, // June 30th, 2023 @ midnight UTC
       ] as [number, number],
       techType: AnyField,
       registry: AnyField,
-      certificateType: AnyField,
+      certificateType: BigInt(CertificateArr.indexOf(EnergyCertificateType.REC)) & BigInt(2 ** 32 - 1),
       endorsement: BigInt(CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)) & BigInt(2 ** 32 - 1),
     },
     poolName,

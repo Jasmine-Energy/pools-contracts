@@ -4,11 +4,13 @@ export const extensions = {
   },
   abiExporter: {
     path: "./abi",
-    runOnCompile: true,
-    pretty: true,
+    clear: true,
   },
   typechain: {
     outDir: "./typechain",
+  },
+  mocha: {
+    timeout: 60_000,
   },
   dodoc: {
     exclude: ["elin", "energy", "v3-core", "console"],

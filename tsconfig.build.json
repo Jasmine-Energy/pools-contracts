@@ -7,7 +7,12 @@
       "abi/**/*.json",
       "artifacts/**/*.json"
     ],
-    "outDir": "dist"
+    "target": "ESNext",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
   "include": [
     "src",
