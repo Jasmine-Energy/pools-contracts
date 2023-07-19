@@ -18,10 +18,11 @@
     "strictNullChecks": false,
     "target": "esnext",
     "outDir": "dist",
+    "rootDirs": ["./src", "./utils", "./types", "./typechain", "./abi/**/*.json"],
     "paths": {
       "@/*": ["./*"]
     }
   },
-  "include": ["./src", "./utils", "./types", "./typechain", "./abi/**/*.json"],
+  "include": ["./src", "./utils/constants.ts", "./utils/enums.ts", "./types", "./typechain", "./abi/**/*.json"],
   "exclude": ["**/dist"]
 }

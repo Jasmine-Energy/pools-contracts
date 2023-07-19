@@ -12,6 +12,7 @@ import "hardhat-contract-sizer";
 import "hardhat-dependency-compiler";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
+import "hardhat-gas-reporter";
 import "hardhat-storage-layout";
 import "hardhat-tracer";
 import "hardhat-interact";

@@ -394,7 +394,7 @@ describe(Contracts.factory, function () {
           await poolFactory.revokeRole(POOL_MANAGER_ROLE, poolManager.address);
         });
 
-        it("Should allow owner to grant new fee managers", async function () {
+        it("Should allow owner to grant new pool managers", async function () {
           expect(
             await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager.address)
           ).to.be.false;
@@ -408,7 +408,7 @@ describe(Contracts.factory, function () {
           ).to.be.true;
         });
 
-        it("Should allow owner to revoke fee managers", async function () {
+        it("Should allow owner to revoke pool managers", async function () {
           expect(
             await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager.address)
           ).to.be.true;
@@ -422,7 +422,7 @@ describe(Contracts.factory, function () {
           ).to.be.false;
         });
 
-        it("Should not allow non-owner to grant or revoke fee managers", async function () {
+        it("Should not allow non-owner to grant or revoke pool managers", async function () {
           const factoryFromUser = poolFactory.connect(accounts[3]);
           await expect(
             factoryFromUser.grantRole(POOL_MANAGER_ROLE, accounts[3].address)
@@ -432,11 +432,14 @@ describe(Contracts.factory, function () {
           ).to.be.revertedWith(`AccessControl: account ${accounts[3].address.toLocaleLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`);
         });
 
-        it("Should allow fee managers to resign roll", async function () {
+        it("Should allow pool managers to resign roll", async function () {
+          console.log(1)
           await poolFactory.grantRole(POOL_MANAGER_ROLE, poolManager.address);
+          console.log(2)
           expect(
             await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager.address)
           ).to.be.true;
+          console.log(3)
           const factoryFromManager = poolFactory.connect(poolManager);
 
           expect(
@@ -447,9 +450,11 @@ describe(Contracts.factory, function () {
           )
             .to.be.ok.and.to.emit(poolFactory, "RoleRevoked")
             .withArgs(POOL_MANAGER_ROLE, poolManager.address, poolManager.address);
+          console.log(4)
           expect(
             await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager.address)
           ).to.be.false;
+          console.log(5)
         });
       });
 

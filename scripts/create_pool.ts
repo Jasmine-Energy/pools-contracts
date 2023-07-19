@@ -27,8 +27,8 @@ async function main() {
     return;
   }
 
-  const poolName = "Any Tech Front-Half 2023";
-  const poolSymbol = "aF23JLT";
+  const poolName = "Voluntary REC Front-Half 2023";
+  const poolSymbol = "JLT-F23";
 
   const frontHalfPoolTx = await poolFactory.deployNewBasePool(
     {
@@ -43,7 +43,7 @@ async function main() {
     },
     poolName,
     poolSymbol,
-    52873047440311824542580017936318311n
+    52873047440311824542580017936318311n // NOTE: $2.24 USDC - JLT
   );
 
   const frontHalfDeployedPool = await frontHalfPoolTx.wait();
