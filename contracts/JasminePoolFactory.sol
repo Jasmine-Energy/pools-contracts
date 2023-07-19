@@ -786,9 +786,13 @@ contract JasminePoolFactory is
     function _validatePoolImplementation(address poolImplementation)
         private view 
     {
-        if (!poolImplementation.supportsInterface(type(IJasminePool).interfaceId)) {
+        bytes4[] memory interfaceIds = new bytes4[](2);
+        interfaceIds[0] = type(IJasminePool).interfaceId;
+        interfaceIds[1] = type(IERC1155Receiver).interfaceId;
+        bool[] memory interfaceChecks = ERC165Checker.getSupportedInterfaces(poolImplementation, interfaceIds);
+        if (!interfaceChecks[0]) {
             revert MustSupportInterface(type(IJasminePool).interfaceId);
-        } else if (!poolImplementation.supportsInterface(type(IERC1155Receiver).interfaceId)) {
+        } else if (!interfaceChecks[1]) {
             revert MustSupportInterface(type(IERC1155Receiver).interfaceId);
         }
 
