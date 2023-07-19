@@ -1,7 +1,7 @@
 import { ethers, deployments, run, getNamedAccounts, network } from "hardhat";
 import { Contracts, colouredLog } from "@/utils";
 import { tryRequire } from "@/utils/safe_import";
-import { AnyField } from "@/utils/constants";
+import { AnyField, POOL_MANAGER_ROLE } from "@/utils/constants";
 import { CertificateEndorsement, CertificateEndorsementArr, CertificateArr, EnergyCertificateType } from "@/types/energy-certificate.types";
 import { delay } from "@/utils/delay";
 
@@ -13,17 +13,17 @@ async function main() {
   }
   // @ts-ignore
   const { JasminePoolFactory__factory } = await import("@/typechain");
-  const { owner } = await getNamedAccounts();
-  const ownerSigner = await ethers.getSigner(owner);
+  const { poolManager } = await getNamedAccounts();
+  const managerSigner = await ethers.getSigner(poolManager);
   const deployedFactory = await deployments.get(Contracts.factory);
   const poolFactory = JasminePoolFactory__factory.connect(
     deployedFactory.address,
-    ownerSigner
+    managerSigner
   );
 
-  const factoryListedOwner = await poolFactory.owner();
-  if (factoryListedOwner !== owner) {
-    colouredLog.red(`Error: Factory owner (${factoryListedOwner}) is not ${owner}!`);
+  const isManager = await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager);
+  if (!isManager) {
+    colouredLog.red(`Error: Pool manager: ${poolManager} lacks permission for POOL_MANAGER_ROLE`);
     return;
   }
 
@@ -47,26 +47,11 @@ async function main() {
   );
 
   const frontHalfDeployedPool = await frontHalfPoolTx.wait();
+  console.log(frontHalfDeployedPool.events);
   const frontHalfPoolAddress = frontHalfDeployedPool.events
     ?.find((e) => e.event === "PoolCreated")
     ?.args?.at(1);
   colouredLog.blue(`Deployed ${poolName} pool to: ${frontHalfPoolAddress}`);
-
-  if (network.tags["public"]) {
-    colouredLog.yellow("Waiting for 30 seconds for the contract to be deployed...");
-    await delay(30 * 1_000);
-
-    colouredLog.yellow("Verifyiyng on Etherscan...");
-    try {
-      await run("verify:verify", {
-        address: frontHalfPoolAddress,
-        constructorArguments: [],
-      });
-      colouredLog.green(`Verification successful!`);
-    } catch (err) {
-      colouredLog.red(`Verification failed. Error: ${err}`);
-    }
-  }
 }
 
 main().catch((error) => {
