@@ -1,3 +1,21 @@
+node_modules
+.env
+
+# Hardhat files
+cache
+artifacts
+abi
+deployments
+coverage
+coverage.json
+typechain
+typechain-types
+gasReports
+.openzeppelin
+
+# Misc
+.DS_Store
+
 # Logs
 logs
 *.log
@@ -103,21 +121,3 @@ dist
 
 # TernJS port file
 .tern-port
-
-node_modules
-.env
-coverage
-coverage.json
-typechain
-typechain-types
-
-# Hardhat files
-cache
-artifacts
-abi
-deployments
-.openzeppelin
-
-
-# Misc
-.DS_Store

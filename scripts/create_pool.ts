@@ -1,8 +1,8 @@
 import { ethers, deployments, run, getNamedAccounts, network } from "hardhat";
 import { Contracts, colouredLog } from "@/utils";
 import { tryRequire } from "@/utils/safe_import";
-import { AnyField } from "@/utils/constants";
-import { CertificateEndorsement, CertificateEndorsementArr } from "@/types/energy-certificate.types";
+import { AnyField, POOL_MANAGER_ROLE } from "@/utils/constants";
+import { CertificateEndorsement, CertificateEndorsementArr, CertificateArr, EnergyCertificateType } from "@/types/energy-certificate.types";
 import { delay } from "@/utils/delay";
 
 async function main() {
@@ -13,60 +13,45 @@ async function main() {
   }
   // @ts-ignore
   const { JasminePoolFactory__factory } = await import("@/typechain");
-  const { owner } = await getNamedAccounts();
-  const ownerSigner = await ethers.getSigner(owner);
+  const { poolManager } = await getNamedAccounts();
+  const managerSigner = await ethers.getSigner(poolManager);
   const deployedFactory = await deployments.get(Contracts.factory);
   const poolFactory = JasminePoolFactory__factory.connect(
     deployedFactory.address,
-    ownerSigner
+    managerSigner
   );
 
-  const factoryListedOwner = await poolFactory.owner();
-  if (factoryListedOwner !== owner) {
-    colouredLog.red(`Error: Factory owner (${factoryListedOwner}) is not ${owner}!`);
+  const isManager = await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager);
+  if (!isManager) {
+    colouredLog.red(`Error: Pool manager: ${poolManager} lacks permission for POOL_MANAGER_ROLE`);
     return;
   }
 
-  const poolName = "Any Tech Front-Half 2023";
-  const poolSymbol = "aF23JLT";
+  const poolName = "Voluntary REC Front-Half 2023";
+  const poolSymbol = "JLT-F23";
 
   const frontHalfPoolTx = await poolFactory.deployNewBasePool(
     {
       vintagePeriod: [
-        1672531200, // Jan 1st, 2023
-        1688169599, // June 30th, 2023
+        1672531200, // Jan 1st, 2023 @ midnight UTC
+        1688083200, // June 30th, 2023 @ midnight UTC
       ] as [number, number],
       techType: AnyField,
       registry: AnyField,
-      certificateType: AnyField,
+      certificateType: BigInt(CertificateArr.indexOf(EnergyCertificateType.REC)) & BigInt(2 ** 32 - 1),
       endorsement: BigInt(CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)) & BigInt(2 ** 32 - 1),
     },
     poolName,
     poolSymbol,
-    52873047440311824542580017936318311n
+    52873047440311824542580017936318311n // NOTE: $2.24 USDC - JLT
   );
 
   const frontHalfDeployedPool = await frontHalfPoolTx.wait();
+  console.log(frontHalfDeployedPool.events);
   const frontHalfPoolAddress = frontHalfDeployedPool.events
     ?.find((e) => e.event === "PoolCreated")
     ?.args?.at(1);
   colouredLog.blue(`Deployed ${poolName} pool to: ${frontHalfPoolAddress}`);
-
-  if (network.tags["public"]) {
-    colouredLog.yellow("Waiting for 30 seconds for the contract to be deployed...");
-    await delay(30 * 1_000);
-
-    colouredLog.yellow("Verifyiyng on Etherscan...");
-    try {
-      await run("verify:verify", {
-        address: frontHalfPoolAddress,
-        constructorArguments: [],
-      });
-      colouredLog.green(`Verification successful!`);
-    } catch (err) {
-      colouredLog.red(`Verification failed. Error: ${err}`);
-    }
-  }
 }
 
 main().catch((error) => {

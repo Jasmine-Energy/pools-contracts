@@ -4,11 +4,29 @@ export const extensions = {
   },
   abiExporter: {
     path: "./abi",
+    format: "json",
+    except: [
+      "@jasmine-energy",
+      "@openzeppelin",
+      "@uniswap",
+    ],
     runOnCompile: true,
-    pretty: true,
+    clear: true,
   },
   typechain: {
     outDir: "./typechain",
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS !== undefined,
+    token: "MATIC",
+    gasPriceApi: "https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice",
+    currency: "USD",
+    outputFile: "./gasReport/gasReport-*.json",
+    showTimeSpent: true,
+    showMethodSig: true,
+  },
+  mocha: {
+    timeout: 60_000,
   },
   dodoc: {
     exclude: ["elin", "energy", "v3-core", "console"],

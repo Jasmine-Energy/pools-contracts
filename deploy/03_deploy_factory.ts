@@ -3,6 +3,7 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { Contracts, colouredLog } from '@/utils';
 import { JasminePoolFactory } from '@/typechain';
 import { AnyField } from '@/utils/constants';
+import { CertificateEndorsement, CertificateEndorsementArr, CertificateArr, EnergyCertificateType } from "@/types/energy-certificate.types";
 import { delay } from '@/utils/delay';
 
 const deployFactory: DeployFunction = async function (
@@ -81,15 +82,18 @@ const deployFactory: DeployFunction = async function (
         const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address) as JasminePoolFactory;
         await factoryContract.deployNewBasePool({
             vintagePeriod: [
-                Math.ceil(new Date().valueOf() / 1_000) - 10_000_000,
-                Math.ceil(new Date().valueOf() / 1_000) + 10_000_000
-            ],
-            techType: AnyField,
-            registry: AnyField,
-            certificateType: AnyField,
-            endorsement: AnyField
+                1672531200, // Jan 1st, 2023 @ midnight
+                1688083200, // June 30th, 2023 @ midnight
+              ] as [number, number],
+              techType: AnyField,
+              registry: AnyField,
+              certificateType: BigInt(CertificateArr.indexOf(EnergyCertificateType.REC)) & BigInt(2 ** 32 - 1),
+              endorsement: BigInt(CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)) & BigInt(2 ** 32 - 1),
         }, 'Any Tech \'23', 'a23JLT', 177159557114295710296101716160n);
     }
+
+    // 5. Run gas used task
+    await run('gas-used', { all: false });
 };
 deployFactory.tags = ['Factory', 'all'];
 deployFactory.dependencies = ['Libraries', 'Pool', 'Core'];
