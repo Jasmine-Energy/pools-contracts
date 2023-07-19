@@ -91,6 +91,9 @@ const deployFactory: DeployFunction = async function (
               endorsement: BigInt(CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)) & BigInt(2 ** 32 - 1),
         }, 'Any Tech \'23', 'a23JLT', 177159557114295710296101716160n);
     }
+
+    // 5. Run gas used task
+    await run('gas-used', { all: false });
 };
 deployFactory.tags = ['Factory', 'all'];
 deployFactory.dependencies = ['Libraries', 'Pool', 'Core'];
