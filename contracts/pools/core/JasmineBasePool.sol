@@ -312,26 +312,26 @@ abstract contract JasmineBasePool is
 
     /// @inheritdoc IRetireablePool
     function retire(
-        address owner, 
+        address from, 
         address beneficiary,
         uint256 amount, 
         bytes calldata data
     )
         external virtual
     {
-        _retire(owner, beneficiary, amount, data);
+        _retire(from, beneficiary, amount, data);
     }
 
     /**
      * @dev Internal function to execute retirements
      * 
-     * @param owner Address from which to burn JLT
+     * @param from Address from which to burn JLT
      * @param beneficiary Address to receive retirement accredidation
      * @param amount Number of JLT to return
      * @param data Additional data to encode in retirement
      */
     function _retire(
-        address owner, 
+        address from, 
         address beneficiary,
         uint256 amount, 
         bytes calldata data
@@ -341,7 +341,7 @@ abstract contract JasmineBasePool is
     {
         // 1. Burn JLTs from owner
         uint256 cost = JasmineBasePool.retirementCost(amount);
-        _spendJLT(owner, cost);
+        _spendJLT(from, cost);
 
         // 2. Select quantity of EATs to retire
         uint256 eatQuantity = _totalDeposits - Math.ceilDiv(totalSupply(), 10 ** decimals());
@@ -351,7 +351,7 @@ abstract contract JasmineBasePool is
         bytes memory retirementData;
 
         if (eatQuantity == 0) {
-            emit Retirement(owner, beneficiary, amount);
+            emit Retirement(from, beneficiary, amount);
             return;
         } else if (hasFractional && eatQuantity == 1) {
             retirementData = Calldata.encodeFractionalRetirementData();
@@ -366,7 +366,7 @@ abstract contract JasmineBasePool is
         // 4. Send to retirement service and emit retirement event
         _transferQueuedDeposits(retirementService, eatQuantity, retirementData);
 
-        emit Retirement(owner, beneficiary, amount);
+        emit Retirement(from, beneficiary, amount);
     }
 
 

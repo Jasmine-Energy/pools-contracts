@@ -71,7 +71,7 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
 
     /// @inheritdoc JasmineBasePool
     function retire(
-        address spender,
+        address from,
         address beneficiary,
         uint256 amount,
         bytes calldata data
@@ -82,12 +82,12 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         // 1. If fee is set, calculate fee to take from amount given
         if (retirementRate() != 0) {
             uint256 feeAmount = Math.ceilDiv(amount, retirementRate());
-            // 1.1 If spender if not caller, decrease allowance
-            if (spender != _msgSender()) {
-                _spendAllowance(spender, _msgSender(), feeAmount);
+            // 1.1 If from if not caller, decrease allowance
+            if (from != _msgSender()) {
+                _spendAllowance(from, _msgSender(), feeAmount);
             }
             _transfer(
-                spender,
+                from,
                 IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
@@ -95,12 +95,12 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         }
 
         // 2. Execute retirement
-        _retire(spender, beneficiary, amount, data);
+        _retire(from, beneficiary, amount, data);
     }
 
     /// @inheritdoc IFeePool
     function retireExact(
-        address spender, 
+        address from, 
         address beneficiary, 
         uint256 amount, 
         bytes calldata data
@@ -110,19 +110,19 @@ abstract contract JasmineFeePool is JasmineBasePool, IFeePool {
         // 1. If fee is set, calculate excess fee on top of given amount
         if (retirementRate() != 0) {
             uint256 feeAmount = retirementCost(amount) - amount;
-            // 1.1 If spender if not caller, decrease allowance
-            if (spender != _msgSender()) {
-                _spendAllowance(spender, _msgSender(), feeAmount);
+            // 1.1 If from if not caller, decrease allowance
+            if (from != _msgSender()) {
+                _spendAllowance(from, _msgSender(), feeAmount);
             }
             _transfer(
-                spender,
+                from,
                 IJasmineFeeManager(poolFactory).feeBeneficiary(),
                 feeAmount
             );
         }
         
         // 2. Execute retirement
-        _retire(spender, beneficiary, amount, data);
+        _retire(from, beneficiary, amount, data);
     }
 
 

@@ -84,7 +84,7 @@ Used to deposit EATs from another account into the pool to receive JLTs.
 ### retire
 
 ```solidity
-function retire(address owner, address beneficiary, uint256 amount, bytes data) external nonpayable
+function retire(address from, address beneficiary, uint256 amount, bytes data) external nonpayable
 ```
 
 Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;beneficiary&#39;. 
@@ -95,7 +95,7 @@ Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;bene
 
 | Name | Type | Description |
 |---|---|---|
-| owner | address | JLT owner from which to burn tokens |
+| from | address | JLT owner from which to burn tokens |
 | beneficiary | address | Address to receive retirement acknowledgment. If none, assume msg.sender |
 | amount | uint256 | Number of JLTs to withdraw |
 | data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |

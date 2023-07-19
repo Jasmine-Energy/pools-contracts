@@ -433,13 +433,10 @@ describe(Contracts.factory, function () {
         });
 
         it("Should allow pool managers to resign roll", async function () {
-          console.log(1)
           await poolFactory.grantRole(POOL_MANAGER_ROLE, poolManager.address);
-          console.log(2)
           expect(
             await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager.address)
           ).to.be.true;
-          console.log(3)
           const factoryFromManager = poolFactory.connect(poolManager);
 
           expect(
@@ -450,11 +447,9 @@ describe(Contracts.factory, function () {
           )
             .to.be.ok.and.to.emit(poolFactory, "RoleRevoked")
             .withArgs(POOL_MANAGER_ROLE, poolManager.address, poolManager.address);
-          console.log(4)
           expect(
             await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager.address)
           ).to.be.false;
-          console.log(5)
         });
       });
 
