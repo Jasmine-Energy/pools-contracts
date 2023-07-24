@@ -274,7 +274,10 @@ abstract contract JasmineBasePool is
         _spendJLT(from, cost);
 
         // 3. Transfer Select Tokens
-        return _transferQueuedDeposits(recipient, amount, data);
+        (tokenIds, amounts) = _transferQueuedDeposits(recipient, amount, data);
+
+        // 4. Emit Withdrawal event
+        emit Withdraw(from, recipient, amount);
     }
 
     /**
@@ -305,6 +308,9 @@ abstract contract JasmineBasePool is
 
         // 3. Transfer Select Tokens
         _transferDeposits(recipient, tokenIds, amounts, data);
+
+        // 4. Emit Withdrawal event
+        emit Withdraw(from, recipient, amounts.sum());
     }
 
 
