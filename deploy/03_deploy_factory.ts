@@ -12,14 +12,16 @@ const deployFactory: DeployFunction = async function (
     colouredLog.yellow(`deploying Pool Factory to: ${network.name}`);
 
     // 1. Get deployments, accounts and constructor args
-    const { deploy } = deployments;
+    const { deploy, save } = deployments;
     const { owner, deployer, poolManager, feeManager, feeBeneficiary, uniswapPoolFactory, USDC } = await getNamedAccounts();
 
     let tokenBaseURI: string;
-    if (network.live) {
+    if (network.name === "polygon") {
         tokenBaseURI = "https://api.jasmine.energy/v1/pool/";
+    } else if (network.name === "mumbai") {
+        tokenBaseURI = "https://api.jazzmine.xyz/v1/pool/";
     } else {
-        tokenBaseURI = "https://localhost:8080/v1/pool/";
+        tokenBaseURI = "https://localhost:8964/v1/pool/";
     }
 
     const pool = await deployments.get(Contracts.pool);
@@ -39,24 +41,19 @@ const deployFactory: DeployFunction = async function (
     ];
 
     // 2. Deploy Pool Factory Contract
-    const factory = await deploy(Contracts.factory, {
-        from: deployer,
-        args: constructorArgs,
-        proxy: {
-            proxyContract: 'UUPS',
-            execute: {
-              init: {
-                    methodName: 'initialize',
-                    args: initializerArgs,
-                },
-            },
-        },
-        log: hardhatArguments.verbose
+    const Factory = await ethers.getContractFactory(Contracts.factory);
+    const factory = await upgrades.deployProxy(Factory, initializerArgs, {
+        deployer,
+        kind: 'uups',
+        constructorArgs,
+        unsafeAllow: ['state-variable-immutable', 'constructor']
     });
+
+    await save(Contracts.factory, factory);
 
     if (network.tags['public']) {
         colouredLog.yellow(`Deploying Pool factory to: ${factory.address} and waiting for 30 seconds for the contract to be deployed...`);
-        await delay(30 * 1_000);
+        await delay(180 * 1_000);
     }
 
     const implementationAddress = await upgrades.erc1967.getImplementationAddress(factory.address);
@@ -69,6 +66,11 @@ const deployFactory: DeployFunction = async function (
         try {
             await run('verify:verify', {
                 address: factory.address,
+                constructorArguments: constructorArgs,
+            });
+
+            await run('verify:verify', {
+                address: implementationAddress,
                 constructorArguments: constructorArgs,
             });
             colouredLog.green(`Verification successful!`);

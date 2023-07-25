@@ -2,6 +2,18 @@
 
 pragma solidity 0.8.20;
 
+/*
+
+     ██╗ █████╗ ███████╗███╗   ███╗██╗███╗   ██╗███████╗        ███████╗███╗   ██╗███████╗██████╗  ██████╗██╗   ██╗
+     ██║██╔══██╗██╔════╝████╗ ████║██║████╗  ██║██╔════╝        ██╔════╝████╗  ██║██╔════╝██╔══██╗██╔════╝╚██╗ ██╔╝
+     ██║███████║███████╗██╔████╔██║██║██╔██╗ ██║█████╗          █████╗  ██╔██╗ ██║█████╗  ██████╔╝██║  ███╗╚████╔╝ 
+██   ██║██╔══██║╚════██║██║╚██╔╝██║██║██║╚██╗██║██╔══╝          ██╔══╝  ██║╚██╗██║██╔══╝  ██╔══██╗██║   ██║ ╚██╔╝  
+╚█████╔╝██║  ██║███████║██║ ╚═╝ ██║██║██║ ╚████║███████╗        ███████╗██║ ╚████║███████╗██║  ██║╚██████╔╝  ██║   
+ ╚════╝ ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚══════╝        ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝   ╚═╝ ®
+
+*/
+
+
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Inheritted Contracts
@@ -160,8 +172,10 @@ contract JasminePoolFactory is
      * 
      * @param _uniswapFactory Address of Uniswap V3 Factory
      * @param _usdc Address of USDC token
+     * 
+     * @custom:oz-upgrades-unsafe-allow constructor state-variable-immutable
      */
-    constructor(address _uniswapFactory, address _usdc) {
+    constructor(address _uniswapFactory, address _usdc) initializer {
         // 1. Validate inputs
         if (_uniswapFactory == address(0x0) || 
             _usdc == address(0x0)) revert JasmineErrors.InvalidInput();
@@ -205,7 +219,6 @@ contract JasminePoolFactory is
         // 3. Set fields
         _poolsBaseURI = _tokensBaseURI;
         feeBeneficiary = _feeBeneficiary;
-        
 
         // 3. Transfer ownership to initial owner
         _transferOwnership(_owner);
@@ -223,6 +236,8 @@ contract JasminePoolFactory is
         _grantRole(POOL_MANAGER_ROLE, _owner);
         _grantRole(FEE_MANAGER_ROLE, _owner);
 
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+
         if (_poolManager != address(0x0)) _grantRole(POOL_MANAGER_ROLE, _poolManager);
         if (_feeManager != address(0x0)) _grantRole(FEE_MANAGER_ROLE, _feeManager);
 
@@ -231,6 +246,7 @@ contract JasminePoolFactory is
         addPoolImplementation(_poolImplementation);
         _revokeRole(POOL_MANAGER_ROLE, _msgSender());
 
+        _revokeRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
 

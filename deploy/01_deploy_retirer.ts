@@ -4,11 +4,11 @@ import { Contracts, colouredLog } from '@/utils';
 import { delay } from '@/utils/delay';
 
 const deployRetirementService: DeployFunction = async function (
-    { deployments, network, run, hardhatArguments, getNamedAccounts, upgrades }: HardhatRuntimeEnvironment
+    { deployments, ethers, network, run, hardhatArguments, getNamedAccounts, upgrades }: HardhatRuntimeEnvironment
 ) {
     colouredLog.yellow(`deploying Retirement Service to: ${network.name}`);
 
-    const { deploy, get } = deployments;
+    const { deploy, save, get } = deployments;
     const namedAccounts = await getNamedAccounts();
     const { deployer, owner } = namedAccounts;
 
@@ -26,40 +26,43 @@ const deployRetirementService: DeployFunction = async function (
         oracle = namedAccounts.oracle;
     }
 
-    // 2. Deploy Retirement Service Contract
-    const retirer = await deploy(Contracts.retirementService, {
-        from: deployer,
-        args: [
-            minter,
-            eat,
-        ],
-        proxy: {
-            proxyContract: 'UUPS',
-            execute: {
-              init: {
-                    methodName: 'initialize',
-                    args: [owner],
-                },
-            },
-        },
-        log: hardhatArguments.verbose
+    // 2. Preflight check
+    if (!deployer || !owner || !eat || !minter || !oracle) throw new Error('Required addresses not found');
+
+    // 3. Deploy Retirement Service Contract
+    const Retirer = await ethers.getContractFactory(Contracts.retirementService);
+    const retirer = await upgrades.deployProxy(Retirer, [owner], {
+        deployer,
+        kind: 'uups',
+        constructorArgs: [minter, eat],
+        unsafeAllow: ['state-variable-immutable', 'constructor']
     });
+
+    await save(Contracts.retirementService, retirer);
 
     if (network.tags['public']) {
         colouredLog.yellow(`Deploying Retirement Service to: ${retirer.address} and waiting for 30 seconds for the contract to be deployed...`);
-        await delay(30 * 1_000);
+        await delay(180 * 1_000);
     }
 
     const implementationAddress = await upgrades.erc1967.getImplementationAddress(retirer.address);
 
     colouredLog.blue(`Deployed Retirement Service to: ${retirer.address} implementation: ${implementationAddress}`);
 
-    // 3. If on external network, verify contracts
+    // 4. If on external network, verify contracts
     if (network.tags['public']) {
         colouredLog.yellow('Verifyiyng on Etherscan...');
         try {
             await run('verify:verify', {
                 address: retirer.address,
+                constructorArguments: [
+                    minter,
+                    eat,
+                ],
+            });
+
+            await run('verify:verify', {
+                address: implementationAddress,
                 constructorArguments: [
                     minter,
                     eat,

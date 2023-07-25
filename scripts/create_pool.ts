@@ -52,6 +52,21 @@ async function main() {
     ?.find((e) => e.event === "PoolCreated")
     ?.args?.at(1);
   colouredLog.blue(`Deployed ${poolName} pool to: ${frontHalfPoolAddress}`);
+
+  // colouredLog.yellow('Verifyiyng on Etherscan...');
+
+  // try {
+  //   const pool = await deployments.get(Contracts.pool);
+  //   console.log(pool.address)
+
+  //   await run('verify:verify', {
+  //       address: frontHalfPoolAddress,
+  //       contract: "./node_modules/@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol:BeaconProxy",
+  //       constructorArguments: [pool.address, ""],
+  //   });
+  // } catch (err) {
+  //   colouredLog.red(`Verification failed. Error: ${err}`);
+  // }
 }
 
 main().catch((error) => {
