@@ -37,9 +37,9 @@ export const extensions = {
   },
   dependencyCompiler: {
     paths: [
-      '@jasmine-energy/contracts/src/JasmineEAT.sol',
-      '@jasmine-energy/contracts/src/JasmineMinter.sol',
-      '@jasmine-energy/contracts/src/JasmineOracle.sol',
+      '@jasmine-energy/core-contracts/src/JasmineEAT.sol',
+      '@jasmine-energy/core-contracts/src/JasmineMinter.sol',
+      '@jasmine-energy/core-contracts/src/JasmineOracle.sol',
     ],
   }
 };
