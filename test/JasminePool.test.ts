@@ -450,8 +450,6 @@ describe(Contracts.pool, function () {
       expect(await anyTechAnnualPool.withdraw(owner.address, tokenAmount + 9n, [])).to.be.ok
         .and.to.emit(anyTechAnnualPool, "Withdraw");
 
-      // expect(await anyTechAnnualPool.withdrawSpecific(owner.address, owner.address, [token2.id], [token2.amount], [])).to.be.ok
-
       expect(await anyTechAnnualPool.withdraw(owner.address, 1, [])).to.be.ok
         .and.to.emit(anyTechAnnualPool, "Withdraw");
     });
