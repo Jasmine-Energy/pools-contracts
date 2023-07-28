@@ -52,8 +52,16 @@ const deployFactory: DeployFunction = async function (
     await save(Contracts.factory, factory);
 
     if (network.tags['public']) {
-        colouredLog.yellow(`Deploying Pool factory to: ${factory.address} and waiting for 30 seconds for the contract to be deployed...`);
-        await delay(180 * 1_000);
+        if (network.name === "polygon") {
+            colouredLog.yellow(`Deploying Pool factory to: ${factory.address} and waiting for 3 minutes for the contract to be deployed...`);
+            await delay(180 * 1_000);
+        } else if (network.name === "mumbai") {
+            colouredLog.yellow(`Deploying Pool factory to: ${factory.address} and waiting for 30 seconds for the contract to be deployed...`);
+            await delay(30 * 1_000);
+        } else {
+            colouredLog.yellow(`Deploying Pool factory to: ${factory.address} and waiting for 30 seconds for the contract to be deployed...`);
+            await delay(30 * 1_000);
+        }
     }
 
     const implementationAddress = await upgrades.erc1967.getImplementationAddress(factory.address);

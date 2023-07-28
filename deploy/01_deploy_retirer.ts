@@ -41,8 +41,16 @@ const deployRetirementService: DeployFunction = async function (
     await save(Contracts.retirementService, retirer);
 
     if (network.tags['public']) {
-        colouredLog.yellow(`Deploying Retirement Service to: ${retirer.address} and waiting for 30 seconds for the contract to be deployed...`);
-        await delay(180 * 1_000);
+        if (network.name === "polygon") {
+            colouredLog.yellow(`Deploying Retirement Service to: ${retirer.address} and waiting for 3 minutes for the contract to be deployed...`);
+            await delay(180 * 1_000);
+        } else if (network.name === "mumbai") {
+            colouredLog.yellow(`Deploying Retirement Service to: ${retirer.address} and waiting for 30 seconds for the contract to be deployed...`);
+            await delay(30 * 1_000);
+        } else {
+            colouredLog.yellow(`Deploying Retirement Service to: ${retirer.address} and waiting for 30 seconds for the contract to be deployed...`);
+            await delay(30 * 1_000);
+        }
     }
 
     const implementationAddress = await upgrades.erc1967.getImplementationAddress(retirer.address);

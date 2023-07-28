@@ -46,8 +46,16 @@ const deployPoolImplementation: DeployFunction = async function (
     });
 
     if (network.tags['public']) {
-        colouredLog.yellow(`Deploying Pool impl to: ${pool.address} and waiting for 30 seconds for the contract to be deployed...`);
-        await delay(180 * 1_000);
+        if (network.name === "polygon") {
+            colouredLog.yellow(`Deploying Pool impl to: ${pool.address} and waiting for 3 minutes for the contract to be deployed...`);
+            await delay(180 * 1_000);
+        } else if (network.name === "mumbai") {
+            colouredLog.yellow(`Deploying Pool impl to: ${pool.address} and waiting for 30 seconds for the contract to be deployed...`);
+            await delay(30 * 1_000);
+        } else {
+            colouredLog.yellow(`Deploying Pool impl to: ${pool.address} and waiting for 30 seconds for the contract to be deployed...`);
+            await delay(30 * 1_000);
+        }
     }
 
     colouredLog.blue(`Deployed Pool impl to: ${pool.address}`);
