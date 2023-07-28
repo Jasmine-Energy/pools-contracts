@@ -4,7 +4,6 @@ import {
   HardhatNetworkUserConfig,
 } from "hardhat/types";
 import { accounts, accountsForNetwork } from "./accounts";
-import { disableForking } from "@/utils/environment";
 
 // Network definitions
 
@@ -55,8 +54,8 @@ const hardhat: HardhatNetworkUserConfig = {
   accounts,
   forking: {
     url: forkNetwork.url!,
-    enabled: !disableForking,
-    blockNumber: process.env.FORK_NUMBER ? parseInt(process.env.FORK_NUMBER) : (forkNetworkName === "polygon" ? 43382100 : 36285100),
+    enabled: true,
+    blockNumber: process.env.FORK_NUMBER ? parseInt(process.env.FORK_NUMBER) : (forkNetworkName === "polygon" ? 45632900 : 36285100),
   },
   saveDeployments: true,
   autoImpersonate: true,

@@ -4,11 +4,11 @@ import { Contracts, colouredLog } from '@/utils';
 import { delay } from '@/utils/delay';
 
 const deployRetirementService: DeployFunction = async function (
-    { deployments, ethers, network, run, hardhatArguments, getNamedAccounts, upgrades }: HardhatRuntimeEnvironment
+    { deployments, ethers, network, run, getNamedAccounts, upgrades }: HardhatRuntimeEnvironment
 ) {
     colouredLog.yellow(`deploying Retirement Service to: ${network.name}`);
 
-    const { deploy, save, get } = deployments;
+    const { save, get } = deployments;
     const namedAccounts = await getNamedAccounts();
     const { deployer, owner } = namedAccounts;
 

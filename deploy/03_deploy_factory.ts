@@ -7,12 +7,12 @@ import { CertificateEndorsement, CertificateEndorsementArr, CertificateArr, Ener
 import { delay } from '@/utils/delay';
 
 const deployFactory: DeployFunction = async function (
-    { ethers, deployments, network, run, hardhatArguments, getNamedAccounts, upgrades }: HardhatRuntimeEnvironment
+    { ethers, deployments, network, run, getNamedAccounts, upgrades }: HardhatRuntimeEnvironment
 ) {
     colouredLog.yellow(`deploying Pool Factory to: ${network.name}`);
 
     // 1. Get deployments, accounts and constructor args
-    const { deploy, save } = deployments;
+    const { save } = deployments;
     const { owner, deployer, poolManager, feeManager, feeBeneficiary, uniswapPoolFactory, USDC } = await getNamedAccounts();
 
     let tokenBaseURI: string;
@@ -81,7 +81,8 @@ const deployFactory: DeployFunction = async function (
 
     // 4. If not prod, create test pool
     if (network.name === 'hardhat') {
-        const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address) as JasminePoolFactory;
+        const managerSigner = await ethers.getSigner(poolManager);
+        const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address, managerSigner) as JasminePoolFactory;
         await factoryContract.deployNewBasePool({
             vintagePeriod: [
                 1672531200, // Jan 1st, 2023 @ midnight
