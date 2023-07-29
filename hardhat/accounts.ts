@@ -69,9 +69,14 @@ export const namedAccounts = {
     mumbai: "0xe3a305455c71944EC7C5b85b845c617FA6F6CCD7",
     polygon: "0xe3a305455c71944EC7C5b85b845c617FA6F6CCD7",
   },
+  fuzzingContract: {
+    // Account # 9
+    hardhat: "0x16C638286AC9777ddb57Db734C34919E80346474",
+    localhost: "0x16C638286AC9777ddb57Db734C34919E80346474",
+  },
   // Core contracts
   eat: {
-    polygon: "0xba3aa8083f8978257aaafb19ed698a623197a7c1",
+    polygon: "0xba3aa8083F8978257aAAFB19Ed698a623197A7C1",
     mumbai: "0xae205e00c7dcb5292388bd8962e79582a5ae14d0",
     get localhost() {
       return this[forkNetworkName as "polygon" | "mumbai"];
@@ -81,7 +86,7 @@ export const namedAccounts = {
     },
   },
   minter: {
-    polygon: "0x5e71fa178f3b8ca0fc4736b8a85a1b669c042dde",
+    polygon: "0x5E71fa178F3b8cA0FC4736B8A85a1B669c042DdE",
     mumbai: "0xe9c135b9fb2942982e3df5b89a03e51d8ee6cb74",
     get localhost() {
       return this[forkNetworkName as "polygon" | "mumbai"];
@@ -91,7 +96,7 @@ export const namedAccounts = {
     },
   },
   oracle: {
-    polygon: "0x954f12ab1e40fbd7c28f2ab5285d3c74ba6faf6f",
+    polygon: "0x954F12aB1e40fbD7C28f2ab5285d3C74bA6faf6f",
     mumbai: "0x3f3f61a613504166302c5ee3546b0e85c0a61934",
     get localhost() {
       return this[forkNetworkName as "polygon" | "mumbai"];

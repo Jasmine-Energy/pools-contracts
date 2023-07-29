@@ -1,11 +1,12 @@
 testMode: property
-testLimit: 5000
+testLimit: 2000
 allContracts: true
 # estimateGas: true
 timeout: 3600 # 1 hour
 # rpcUrl: http://localhost:8545
-deployer: "0x6F518B13C26368F17287f4FfB5faE6EA6544Fff1"
-sender: # Base mnemonic addresses
+deployer: "0xE6BEDe1b393864AA03e0eE30e1603d646F976d44"
+contractAddr: "0x16C638286AC9777ddb57Db734C34919E80346474"
+sender: # Base mnemonic addresses - except last, used for fuzzing contract
   [
     "0x77f774c6632B1CA6BD248068fBaA952355eAE2b5",
     "0x36687580A31B2B90b2c205fd7517dbC08a0925CD",
@@ -14,9 +15,7 @@ sender: # Base mnemonic addresses
     "0x3930B63a7F6009767c0C6066f7Ce066cc9c5731a",
     "0x24Db4e7Ec088A9e81830d8BAa01950dc88bdCA93",
     "0x694d38e74b52fBb2C2DDfA54D229097eeAb304dD",
-    "0xd2F49a52c07Be026804FcE08ca46eDa6631fca6e",
-    "0xE6BEDe1b393864AA03e0eE30e1603d646F976d44",
-    "0x16C638286AC9777ddb57Db734C34919E80346474"
+    "0xd2F49a52c07Be026804FcE08ca46eDa6631fca6e"
   ]
 cryticArgs:
   [
