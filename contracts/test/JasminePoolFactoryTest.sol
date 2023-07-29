@@ -26,6 +26,6 @@ contract ExternalJasminePoolFactoryTest is CrypticInterface {
 
     function echidna_check_owner() public view returns(bool) {
         // NOTE: Bit of a hacky way to check owner
-        return JasminePoolFactory(eat).owner() == address(this);
+        return JasminePoolFactory(eat).owner() == 0x77f774c6632B1CA6BD248068fBaA952355eAE2b5;
     }
 }
