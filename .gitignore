@@ -13,6 +13,9 @@ typechain-types
 gasReports
 .openzeppelin
 
+# Fuzzing files
+crytic-export
+
 # Misc
 .DS_Store
 

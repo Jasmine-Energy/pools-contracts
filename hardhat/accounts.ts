@@ -102,7 +102,7 @@ export const namedAccounts = {
   },
   // Tokens
   USDC: {
-    polygon: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+    polygon: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
     mumbai: "0x0FA8781a83E46826621b3BC094Ea2A0212e71B23",
     get localhost() {
       return this[forkNetworkName as "polygon" | "mumbai"];
