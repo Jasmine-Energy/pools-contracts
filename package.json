@@ -19,6 +19,7 @@
     "test:trace": "npx hardhat test --network hardhat --trace-error --gascost",
     "test:coverage": "npx hardhat coverage --network hardhat",
     "fuzz:factory": "ECHIDNA_RPC_URL=$ECHIDNA_RPC_URL echidna contracts/test/JasminePoolFactoryTest.sol --contract ExternalJasminePoolFactoryTest --config echidna.config.yaml",
+    "fuzz:pool": "ECHIDNA_RPC_URL=$ECHIDNA_RPC_URL echidna contracts/test/JasminePoolTest.sol --contract ExternalJasminePoolTest --config echidna.config.yaml",
     "clean": "npx hardhat clean",
     "lint": "solhint 'contracts/**/*.sol'",
     "lint:fix": "solhint 'contracts/**/*.sol' --fix",
@@ -42,6 +43,7 @@
     "url": "https://github.com/Jasmine-Energy/v1-pools-contracts/issues"
   },
   "dependencies": {
+    "@crytic/properties": "https://github.com/crytic/properties.git",
     "@jasmine-energy/core-contracts": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",

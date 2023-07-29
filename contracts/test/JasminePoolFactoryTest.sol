@@ -18,14 +18,18 @@ contract ExternalJasminePoolFactoryTest is CrypticInterface {
 
     event AssertionFailed(string reason);
 
-    function echidna_check_core_setup() public view returns(bool) {
+    function echidna_check_setup() public view returns(bool) {
         return address(eat) != address(0x0) &&
             address(oracle) != address(0x0) &&
-            address(minter) != address(0x0);
+            address(minter) != address(0x0) &&
+            address(retirementService) != address(0x0) &&
+            address(poolFactory) != address(0x0) &&
+            address(poolImplementation) != address(0x0) &&
+            address(frontHalfPool) != address(0x0);
     }
 
     function echidna_check_owner() public view returns(bool) {
         // NOTE: Bit of a hacky way to check owner
-        return JasminePoolFactory(eat).owner() == 0x77f774c6632B1CA6BD248068fBaA952355eAE2b5;
+        return JasminePoolFactory(eat).owner() == owner;
     }
 }

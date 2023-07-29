@@ -21,5 +21,6 @@ sender: # Base mnemonic addresses
 cryticArgs:
   [
     "--solc-remaps",
-    "@openzeppelin/contracts=./node_modules/@openzeppelin/contracts @openzeppelin/contracts-upgradeable=./node_modules/@openzeppelin/contracts-upgradeable hardhat=./node_modules/hardhat @jasmine-energy/core-contracts=./node_modules/@jasmine-energy/core-contracts @uniswap/v3-core/contracts=./node_modules/@uniswap/v3-core/contracts",
+    "@openzeppelin/contracts=./node_modules/@openzeppelin/contracts @openzeppelin/contracts-upgradeable=./node_modules/@openzeppelin/contracts-upgradeable hardhat=./node_modules/hardhat @jasmine-energy/core-contracts=./node_modules/@jasmine-energy/core-contracts @uniswap/v3-core/contracts=./node_modules/@uniswap/v3-core/contracts @crytic=./node_modules/@crytic",
   ]
+codeSize: 0xfffffffffff
