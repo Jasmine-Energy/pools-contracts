@@ -44,45 +44,6 @@ function eat() external view returns (address)
 |---|---|---|
 | _0 | address | undefined |
 
-### echidna_check_owner
-
-```solidity
-function echidna_check_owner() external view
-```
-
-
-
-
-
-
-### echidna_check_setup
-
-```solidity
-function echidna_check_setup() external view
-```
-
-
-
-
-
-
-### factory
-
-```solidity
-function factory() external view returns (contract JasminePoolFactory)
-```
-
-
-
-*NOTE: Address is assumed to be used the default mnemonic*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract JasminePoolFactory | undefined |
-
 ### feeBeneficiary
 
 ```solidity
@@ -277,6 +238,28 @@ function retirementService() external view returns (contract JasmineRetirementSe
 | Name | Type | Description |
 |---|---|---|
 | _0 | contract JasmineRetirementService | undefined |
+
+### test_owner
+
+```solidity
+function test_owner() external view
+```
+
+
+
+
+
+
+### test_setup
+
+```solidity
+function test_setup() external view
+```
+
+
+
+
+
 
 
 
