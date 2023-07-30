@@ -48,7 +48,7 @@ interface ERC712 {
 abstract contract CrypticInterface {
     address public constant owner = 0x77f774c6632B1CA6BD248068fBaA952355eAE2b5;
     address public constant poolManager =
-        0x36687580A31B2B90b2c205fd7517dbC08a0925CD;
+        0x694d38e74b52fBb2C2DDfA54D229097eeAb304dD;
     address public constant feeManager =
         0xd2F49a52c07Be026804FcE08ca46eDa6631fca6e;
     address public constant feeBeneficiary =
@@ -75,6 +75,9 @@ abstract contract CrypticInterface {
         address poolAddress = poolFactory.getPoolAtIndex(0);
         require(poolAddress != address(0), "No front half pool deployed");
         frontHalfPool = JasminePool(poolAddress);
+
+        require(poolFactory.owner() == owner, "Owner must be owner");
+        require(poolFactory.hasRole(poolFactory.POOL_MANAGER_ROLE(), poolManager), "Pool manager must be a manager");
     }
 
     function mintEAT(

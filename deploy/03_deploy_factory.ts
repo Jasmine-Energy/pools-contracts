@@ -88,7 +88,7 @@ const deployFactory: DeployFunction = async function (
     }
 
     // 4. If not prod, create test pool
-    if (network.name === 'hardhat') {
+    if (network.name === 'hardhat' && process.env.SKIP_DEPLOY_TEST_POOL !== 'true') {
         const managerSigner = await ethers.getSigner(poolManager);
         const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address, managerSigner) as JasminePoolFactory;
         const frontHalfPool = await factoryContract.deployNewBasePool({
@@ -106,6 +106,8 @@ const deployFactory: DeployFunction = async function (
             ?.find((e) => e.event === "PoolCreated")
             ?.args?.at(1);
         colouredLog.blue(`Deployed front half pool to: ${frontHalfPoolAddress}`);
+    } else if (network.name === 'hardhat' && process.env.SKIP_DEPLOY_TEST_POOL === 'true') {
+        colouredLog.yellow('Skipping test pool deployment');
     }
 
     // 5. Run gas used task

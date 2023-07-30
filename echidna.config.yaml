@@ -1,5 +1,6 @@
-testMode: property
+testMode: assertion
 testLimit: 2000
+corpusDir: ./echidna-corpus
 allContracts: true
 # estimateGas: true
 timeout: 3600 # 1 hour

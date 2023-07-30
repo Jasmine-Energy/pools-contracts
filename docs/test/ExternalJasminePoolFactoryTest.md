@@ -47,36 +47,24 @@ function eat() external view returns (address)
 ### echidna_check_owner
 
 ```solidity
-function echidna_check_owner() external view returns (bool)
+function echidna_check_owner() external view
 ```
 
 
 
 
 
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
 
 ### echidna_check_setup
 
 ```solidity
-function echidna_check_setup() external view returns (bool)
+function echidna_check_setup() external view
 ```
 
 
 
 
 
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
 
 ### factory
 

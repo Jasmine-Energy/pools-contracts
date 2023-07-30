@@ -18,18 +18,18 @@ contract ExternalJasminePoolFactoryTest is CrypticInterface {
 
     event AssertionFailed(string reason);
 
-    function echidna_check_setup() public view returns(bool) {
-        return address(eat) != address(0x0) &&
-            address(oracle) != address(0x0) &&
-            address(minter) != address(0x0) &&
-            address(retirementService) != address(0x0) &&
-            address(poolFactory) != address(0x0) &&
-            address(poolImplementation) != address(0x0) &&
-            address(frontHalfPool) != address(0x0);
+    function echidna_check_setup() public view {
+        assert(address(eat) != address(0x0));
+        assert(address(oracle) != address(0x0));
+        assert(address(minter) != address(0x0));
+        assert(address(retirementService) != address(0x0));
+        assert(address(poolFactory) != address(0x0));
+        assert(address(poolImplementation) != address(0x0));
+        assert(address(frontHalfPool) != address(0x0));
     }
 
-    function echidna_check_owner() public view returns(bool) {
+    function echidna_check_owner() public view {
         // NOTE: Bit of a hacky way to check owner
-        return JasminePoolFactory(eat).owner() == owner;
+        assert(JasminePoolFactory(poolFactory).owner() == owner);
     }
 }
