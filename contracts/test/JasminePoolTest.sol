@@ -19,6 +19,9 @@ contract CryticERC20ExternalHarness is
     CrypticInterface
 {
 
+    uint256 public constant MIN_VINTAGE = 1672531200;
+    uint256 public constant MAX_VINTAGE = 1688083200;
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -79,15 +82,13 @@ contract CryticERC20ExternalHarness is
     //  Deposit Tests
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function test_deposit(uint256 mintAmount) public {
-        uint40 randEligibleVintage = uint40(
-            block.timestamp % (1688083200 - 1672531200)
-        ) + 1672531200;
+    function test_deposit(uint256 mintAmount, uint40 vintage) public {
+        vintage = uint40(clampBetween(uint256(vintage), MIN_VINTAGE, MAX_VINTAGE));
 
         uint256 tokenId = mintEAT(
             msg.sender,
             mintAmount,
-            randEligibleVintage,
+            vintage,
             1
         );
 
@@ -110,9 +111,10 @@ contract CryticERC20ExternalHarness is
     }
 
     function test_invalid_deposit(uint256 mintAmount, uint40 vintage) public {
-        if (vintage < 1672531200 || vintage > 1688083200) {
-            return;
-        }
+        vintage = uint40(clampBetween(uint256(vintage), MIN_VINTAGE, MAX_VINTAGE));
+        vintage = mintAmount % 2 == 0 ?
+            uint40(vintage - MIN_VINTAGE) :
+            uint40(vintage + MAX_VINTAGE);
 
         uint256 tokenId = mintEAT(
             msg.sender,
@@ -138,7 +140,7 @@ contract CryticERC20ExternalHarness is
     //  Withdraw Tests
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function test_withdraw_any() public {
+    function test_withdraw_any(uint256 amount) public {
         uint256 balance = frontHalfPool.balanceOf(msg.sender);
         uint256 singleWithdrawalCost = frontHalfPool.withdrawalCost(1);
 
@@ -177,6 +179,25 @@ contract CryticERC20ExternalHarness is
 
     function test_withdraw_specific() public {
         // TODO:
+    }
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Retire Tests
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    function test_retire(uint256 retireAmount) public {
+        uint256 balance = frontHalfPool.balanceOf(msg.sender);
+        retireAmount = clampLte(retireAmount, balance);
+
+        uint256 preRetireBalance = frontHalfPool.balanceOf(msg.sender);
+        uint256 preRetireSupply = frontHalfPool.totalSupply();
+        hevm.prank(msg.sender);
+        frontHalfPool.retire(msg.sender, msg.sender, retireAmount, "");
+        uint256 postRetireBalance = frontHalfPool.balanceOf(msg.sender);
+        uint256 postRetireSupply = frontHalfPool.totalSupply();
+
+        assert(postRetireBalance == preRetireBalance - retireAmount);
+        assert(postRetireSupply == preRetireSupply - retireAmount);
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
