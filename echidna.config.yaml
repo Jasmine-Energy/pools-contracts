@@ -1,5 +1,5 @@
 testMode: assertion
-testLimit: 2000
+testLimit: 10000
 corpusDir: ./echidna-corpus
 allContracts: true
 # estimateGas: true

@@ -13,12 +13,10 @@ contract InternalJasminePoolFactoryTest is JasminePoolFactory {
 }
 
 contract ExternalJasminePoolFactoryTest is CrypticInterface {
-    /// @dev NOTE: Address is assumed to be used the default mnemonic
-    JasminePoolFactory public constant factory = JasminePoolFactory(0xAE205e00C7DCb5292388BD8962E79582a5AE14d0);
 
     event AssertionFailed(string reason);
 
-    function echidna_check_setup() public view {
+    function test_setup() public view {
         assert(address(eat) != address(0x0));
         assert(address(oracle) != address(0x0));
         assert(address(minter) != address(0x0));
@@ -28,8 +26,8 @@ contract ExternalJasminePoolFactoryTest is CrypticInterface {
         assert(address(frontHalfPool) != address(0x0));
     }
 
-    function echidna_check_owner() public view {
+    function test_owner() public view {
         // NOTE: Bit of a hacky way to check owner
-        assert(JasminePoolFactory(poolFactory).owner() == owner);
+        assert(poolFactory.owner() == owner);
     }
 }
