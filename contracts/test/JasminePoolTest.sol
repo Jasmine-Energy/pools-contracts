@@ -192,14 +192,50 @@ contract CryticERC20ExternalHarness is
 
     function test_withdraw_specific_batch(uint256 indexSeed, uint256 quantity) public {
         quantity = clampBetween(quantity, 1, 10);
-        uint256[2][] memory deposits = new uint256[2][](quantity);
+        uint256[] memory tokenIds = new uint256[](quantity);
+        uint256[] memory amounts = new uint256[](quantity);
 
-        for (uint256 i = 0; i < quantity; i++) {
-            deposits[i] = deposits[(indexSeed + i) % deposits.length];
-            // TOOD: Use logic similar to withdraw specific single to guarentee token is held by pool
+        uint256 insertIndex = 0;
+        while (insertIndex < quantity) {
+            uint256[2] memory deposit = deposits[(indexSeed % deposits.length) + insertIndex];
+            if (IERC1155(eat).balanceOf(address(frontHalfPool), deposit[0]) >= deposit[1]) {
+                tokenIds[insertIndex] = deposit[0];
+                amounts[insertIndex] = deposit[1];
+                insertIndex++;
+            } else {
+                indexSeed++;
+            }
         }
 
-        // TODO: Finish test
+        uint256 withdrawalCost = frontHalfPool.withdrawalCost(tokenIds, amounts);
+        uint256 preWithdrawalBalance = frontHalfPool.balanceOf(msg.sender);
+        uint256[] memory poolHoldings = IERC1155(eat).balanceOfBatch(
+            ArrayUtils.fill(address(frontHalfPool), quantity),
+            tokenIds
+        );
+        uint256[] memory callerHoldings = IERC1155(eat).balanceOfBatch(
+            ArrayUtils.fill(msg.sender, quantity),
+            tokenIds
+        );
+
+        hevm.prank(msg.sender);
+        frontHalfPool.withdrawSpecific(msg.sender, msg.sender, tokenIds, amounts, "");
+
+        uint256 postWithdrawalBalance = frontHalfPool.balanceOf(msg.sender);
+        uint256[] memory postWithdrawalPoolHoldings = IERC1155(eat).balanceOfBatch(
+            ArrayUtils.fill(address(frontHalfPool), quantity),
+            tokenIds
+        );
+        uint256[] memory postWithdrawalCallerHoldings = IERC1155(eat).balanceOfBatch(
+            ArrayUtils.fill(msg.sender, quantity),
+            tokenIds
+        );
+
+        assert(postWithdrawalBalance == preWithdrawalBalance - withdrawalCost);
+        for (uint256 i = 0; i < quantity; i++) {
+            assert(postWithdrawalPoolHoldings[i] == poolHoldings[i] - amounts[i]);
+            assert(postWithdrawalCallerHoldings[i] == callerHoldings[i] + amounts[i]);
+        }
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────

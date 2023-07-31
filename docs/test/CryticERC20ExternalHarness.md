@@ -13,7 +13,7 @@
 ### MAX_VINTAGE
 
 ```solidity
-function MAX_VINTAGE() external view returns (uint256)
+function MAX_VINTAGE() external view returns (uint40)
 ```
 
 
@@ -25,12 +25,12 @@ function MAX_VINTAGE() external view returns (uint256)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined |
+| _0 | uint40 | undefined |
 
 ### MIN_VINTAGE
 
 ```solidity
-function MIN_VINTAGE() external view returns (uint256)
+function MIN_VINTAGE() external view returns (uint40)
 ```
 
 
@@ -42,7 +42,7 @@ function MIN_VINTAGE() external view returns (uint256)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined |
+| _0 | uint40 | undefined |
 
 ### bridge
 
@@ -153,6 +153,24 @@ function mintEAT(address recipient, uint256 amount, uint40 vintage, uint32 techT
 | Name | Type | Description |
 |---|---|---|
 | tokenId | uint256 | undefined |
+
+### mintJLT
+
+```solidity
+function mintJLT(address recipient, uint256 amount, uint256 vintage) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| recipient | address | undefined |
+| amount | uint256 | undefined |
+| vintage | uint256 | undefined |
 
 ### minter
 
@@ -528,7 +546,7 @@ function test_ERC20external_zeroAddressBalance() external nonpayable
 ### test_deposit
 
 ```solidity
-function test_deposit(uint256 mintAmount, uint40 vintage) external nonpayable
+function test_deposit(uint256 mintAmount, uint256 vintage) external nonpayable
 ```
 
 
@@ -540,7 +558,7 @@ function test_deposit(uint256 mintAmount, uint40 vintage) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | mintAmount | uint256 | undefined |
-| vintage | uint40 | undefined |
+| vintage | uint256 | undefined |
 
 ### test_invalid_deposit
 
@@ -591,16 +609,38 @@ function test_withdraw_any(uint256 amount) external nonpayable
 |---|---|---|
 | amount | uint256 | undefined |
 
-### test_withdraw_specific
+### test_withdraw_specific_batch
 
 ```solidity
-function test_withdraw_specific() external nonpayable
+function test_withdraw_specific_batch(uint256 indexSeed, uint256 quantity) external nonpayable
 ```
 
 
 
 
 
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| indexSeed | uint256 | undefined |
+| quantity | uint256 | undefined |
+
+### test_withdraw_specific_single
+
+```solidity
+function test_withdraw_specific_single(uint256 indexSeed) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| indexSeed | uint256 | undefined |
 
 
 
