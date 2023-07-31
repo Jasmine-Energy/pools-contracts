@@ -54,7 +54,6 @@ abstract contract CrypticInterface {
     address public constant feeBeneficiary =
         0xc6e9B1a30E604cE6c2d32e33B290286b6c1cE555;
     address public constant bridge = 0x2dcAd29De8a67d70b7B5bf32B19f1480f333D8dD;
-    uint256 private constant bridege_priv_key = 0x94397d81bb5172917d4b23ffd85afd2df9b99006ce1be993f93de6643175253f;
 
     address public constant eat = 0xba3aa8083F8978257aAAFB19Ed698a623197A7C1; // 0xAE205e00C7DCb5292388BD8962E79582a5AE14d0;
     address public constant oracle = 0x954F12aB1e40fbD7C28f2ab5285d3C74bA6faf6f; // 0x3F3f61a613504166302C5Ee3546b0e85c0a61934;
