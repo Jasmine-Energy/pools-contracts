@@ -7,12 +7,17 @@ import { JasmineMinter } from "@/typechain";
 const deployCore: DeployFunction = async function ({
   ethers,
   network,
+  hardhatArguments,
   getNamedAccounts,
 }: HardhatRuntimeEnvironment) {
   colouredLog.yellow(`deploying core contracts to: ${network.name}`);
 
   // 1. Setup
   const { eat, minter, oracle, bridge } = await getNamedAccounts();
+
+  if (hardhatArguments.verbose) {
+    colouredLog.yellow(`EAT: ${eat} MINTER: ${minter} ORACLE: ${oracle}`);
+  }
 
   if (eat && minter && oracle) {
     if (network.name === "hardhat" && network.autoImpersonate) {

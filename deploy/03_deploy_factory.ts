@@ -88,10 +88,10 @@ const deployFactory: DeployFunction = async function (
     }
 
     // 4. If not prod, create test pool
-    if (network.name === 'hardhat') {
+    if (network.name === 'hardhat' && process.env.SKIP_DEPLOY_TEST_POOL !== 'true') {
         const managerSigner = await ethers.getSigner(poolManager);
         const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address, managerSigner) as JasminePoolFactory;
-        await factoryContract.deployNewBasePool({
+        const frontHalfPool = await factoryContract.deployNewBasePool({
             vintagePeriod: [
                 1672531200, // Jan 1st, 2023 @ midnight
                 1688083200, // June 30th, 2023 @ midnight
@@ -101,6 +101,13 @@ const deployFactory: DeployFunction = async function (
               certificateType: BigInt(CertificateArr.indexOf(EnergyCertificateType.REC)) & BigInt(2 ** 32 - 1),
               endorsement: BigInt(CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)) & BigInt(2 ** 32 - 1),
         }, 'Any Tech \'23', 'a23JLT', 177159557114295710296101716160n);
+        const frontHalfDeployedPool = await frontHalfPool.wait();
+        const frontHalfPoolAddress = frontHalfDeployedPool.events
+            ?.find((e) => e.event === "PoolCreated")
+            ?.args?.at(1);
+        colouredLog.blue(`Deployed front half pool to: ${frontHalfPoolAddress}`);
+    } else if (network.name === 'hardhat' && process.env.SKIP_DEPLOY_TEST_POOL === 'true') {
+        colouredLog.yellow('Skipping test pool deployment');
     }
 
     // 5. Run gas used task

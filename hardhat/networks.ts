@@ -14,7 +14,7 @@ const localhost: HttpNetworkUserConfig = {
 };
 
 const mumbai: HttpNetworkUserConfig = {
-  accounts, //: accountsForNetwork("mumbai"),
+  accounts: accountsForNetwork("mumbai"),
   url: process.env.INFURA_API_KEY
     ? `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`
     : process.env.MUMBAI_RPC_URL ?? "",
@@ -28,11 +28,11 @@ const polygon: HttpNetworkUserConfig = {
   accounts: accountsForNetwork("polygon", false),
   url: process.env.INFURA_API_KEY
     ? `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
-    : process.env.POLYGON_RPC_URL ?? "",
+    : `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` ?? process.env.POLYGON_RPC_URL ?? "",
   chainId: 137,
   saveDeployments: true,
   tags: ["production", "public"],
-  // gasPrice: 92500000000 // NOTE: 92.5 Gwei price for deployment
+  gasPrice: 95000000000 // NOTE: 95 Gwei price for deployment
 };
 
 // Define external networks & Hardhat network

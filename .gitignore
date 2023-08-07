@@ -13,6 +13,10 @@ typechain-types
 gasReports
 .openzeppelin
 
+# Fuzzing files
+crytic-export
+echidna-corpus
+
 # Misc
 .DS_Store
 
