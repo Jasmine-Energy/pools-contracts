@@ -29,7 +29,7 @@ export const extensions = {
     timeout: 60_000,
   },
   dodoc: {
-    exclude: ["elin", "energy", "v3-core", "console"],
+    exclude: ["elin", "energy", "v3-core", "console", "roperties", "test"],
     // freshOutput: false // NOTE: Found this fixes annoying iCloud overrides
   },
   etherscan: {
