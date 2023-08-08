@@ -464,7 +464,7 @@ function poolFactory() external view returns (address)
 ### retire
 
 ```solidity
-function retire(address spender, address beneficiary, uint256 amount, bytes data) external nonpayable
+function retire(address from, address beneficiary, uint256 amount, bytes data) external nonpayable
 ```
 
 Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;beneficiary&#39;. 
@@ -475,7 +475,7 @@ Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;bene
 
 | Name | Type | Description |
 |---|---|---|
-| spender | address | undefined |
+| from | address | JLT owner from which to burn tokens |
 | beneficiary | address | Address to receive retirement acknowledgment. If none, assume msg.sender |
 | amount | uint256 | Number of JLTs to withdraw |
 | data | bytes | Optional calldata to relay to retirement service via onERC1155Received  |
@@ -483,7 +483,7 @@ Burns &#39;quantity&#39; of tokens from &#39;owner&#39; in the name of &#39;bene
 ### retireExact
 
 ```solidity
-function retireExact(address spender, address beneficiary, uint256 amount, bytes data) external nonpayable
+function retireExact(address from, address beneficiary, uint256 amount, bytes data) external nonpayable
 ```
 
 Retires an exact amount of JLTs. If fees or other conversions are set,         cost of retirement will be greater than amount. 
@@ -494,7 +494,7 @@ Retires an exact amount of JLTs. If fees or other conversions are set,         c
 
 | Name | Type | Description |
 |---|---|---|
-| spender | address | JLT holder to retire from |
+| from | address | JLT holder to retire from |
 | beneficiary | address | Address to receive retirement attestation |
 | amount | uint256 | Exact number of JLTs to retire |
 | data | bytes | Optional calldata to relay to retirement service via onERC1155Received |

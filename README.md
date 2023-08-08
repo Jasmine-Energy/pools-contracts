@@ -10,9 +10,28 @@
 This repository contains the smart contracts for Jasmine's Reference Pools. Reference pools enable Energy Attribution Token (EAT) holders to deposit their ERC-1155 tokens into specific pools with deposit criteria. Depositers are issued an [ERC-20](https://eips.ethereum.org/EIPS/eip-20) compliant token that can be used across the Defi ecosystem.
 
 # Contents
+- [Meta](#meta)
 - [Contracts Overview](#contracts-overview)
 - [Local Development](#local-development)
 - [License](#license)
+
+# Meta
+
+## Polygon Deployments
+
+| Contract             | Proxy Address                              | Implementation Address                     |
+|----------------------|--------------------------------------------|--------------------------------------------|
+| Retirement Service   | [`0xEFaD364eae9db7F11F8A9205c3f7bf4D06cdF54a`](https://polygonscan.com/address/0xEFaD364eae9db7F11F8A9205c3f7bf4D06cdF54a#readProxyContract) | [`0xC2D7B3014C0eC539B0114133e96A4454E7236a03`](https://polygonscan.com/address/0xC2D7B3014C0eC539B0114133e96A4454E7236a03#readContract) |
+| Pool Factory         | [`0xD473bf49B43eA97315aAe69C28ad326B983418B7`](https://polygonscan.com/address/0xD473bf49B43eA97315aAe69C28ad326B983418B7#readProxyContract) | [`0x9c74b5ED0701953F58E2d212215540A4AA0E7050`](https://polygonscan.com/address/0x9c74b5ED0701953F58E2d212215540A4AA0E7050#readContract) |
+| Front-Half 2023 Pool | [`0x81A5Fbb9A131C104627B055d074c46d21576cF4a`](https://polygonscan.com/address/0x81A5Fbb9A131C104627B055d074c46d21576cF4a#readProxyContract) | [`0x2E747f832d6C36922176F422D78CD2C962f5aa96`](https://polygonscan.com/address/0x2E747f832d6C36922176F422D78CD2C962f5aa96#readContract) |
+
+## Mumbai Deployments
+
+| Contract             | Proxy Address                              | Implementation Address                     |
+|----------------------|--------------------------------------------|--------------------------------------------|
+| Retirement Service   | [`0x8a654E827Df68ed727F23C7a82e75eaC9e7999Bd`](https://mumbai.polygonscan.com/address/0x8a654E827Df68ed727F23C7a82e75eaC9e7999Bd#readProxyContract) | [`0x73a6a0d8fa6bcf06492d811e535b95e1de070e37`](https://mumbai.polygonscan.com/address/0x73a6a0d8fa6bcf06492d811e535b95e1de070e37#readContract) |
+| Pool Factory         | [`0x66e04bc791c2BE81639bC277A813D782a967aBE7`](https://mumbai.polygonscan.com/address/0x66e04bc791c2BE81639bC277A813D782a967aBE7#readProxyContract) | [`0x81b3d093c7ec1e678958a4fd2146e65f74de7c1f`](https://mumbai.polygonscan.com/address/0x81b3d093c7ec1e678958a4fd2146e65f74de7c1f#readContract) |
+| Front-Half 2023 Pool | [`0x1Fd4Dc2027C1Cfae1D5a09073809f3f3F97d93dd`](https://mumbai.polygonscan.com/address/0x1Fd4Dc2027C1Cfae1D5a09073809f3f3F97d93dd#readProxyContract) | [`0xfd82bb56a9c6b86709a6bcfae9f3b58253c966ef`](https://mumbai.polygonscan.com/address/0xfd82bb56a9c6b86709a6bcfae9f3b58253c966ef#readContract) |
 
 # Contracts Overview
 Jasmine Reference Pool's are supported by 3 primary contracts:

@@ -51,14 +51,14 @@ interface IJasmineRetireablePool is IEATBackedPool {
      *     - Owner must have sufficient JLTs
      *     - Owner cannot be zero address
      * 
-     * @param owner JLT owner from which to burn tokens
+     * @param from JLT owner from which to burn tokens
      * @param beneficiary Address to receive retirement acknowledgment. If none, assume msg.sender
      * @param amount Number of JLTs to withdraw
      * @param data Optional calldata to relay to retirement service via onERC1155Received
      * 
      */
     function retire(
-        address owner, 
+        address from, 
         address beneficiary, 
         uint256 amount, 
         bytes calldata data

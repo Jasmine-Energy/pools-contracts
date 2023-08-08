@@ -240,7 +240,7 @@ library StructuredLinkedList {
         }
         // _createLink(self, _HEAD, next, _NEXT);
         i = 0;
-        while (i < _count) {
+        while (i < _count - (_keepLast ? 1 : 0)) {
             // Delete from the list
             delete self.list[nodes[i]][_PREV];
             delete self.list[nodes[i]][_NEXT];
@@ -248,7 +248,7 @@ library StructuredLinkedList {
         }
 
         // Decrease the size of the list
-        self.size -= _count;
+        self.size -= _keepLast ? _count - 1 : _count;
 
         return nodes;
     }

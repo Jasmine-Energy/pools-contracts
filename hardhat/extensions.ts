@@ -29,7 +29,7 @@ export const extensions = {
     timeout: 60_000,
   },
   dodoc: {
-    exclude: ["elin", "energy", "v3-core", "console"],
+    exclude: ["elin", "energy", "v3-core", "console", "roperties", "test"],
     // freshOutput: false // NOTE: Found this fixes annoying iCloud overrides
   },
   etherscan: {
@@ -37,9 +37,9 @@ export const extensions = {
   },
   dependencyCompiler: {
     paths: [
-      '@jasmine-energy/contracts/src/JasmineEAT.sol',
-      '@jasmine-energy/contracts/src/JasmineMinter.sol',
-      '@jasmine-energy/contracts/src/JasmineOracle.sol',
+      '@jasmine-energy/core-contracts/src/JasmineEAT.sol',
+      '@jasmine-energy/core-contracts/src/JasmineMinter.sol',
+      '@jasmine-energy/core-contracts/src/JasmineOracle.sol',
     ],
   }
 };

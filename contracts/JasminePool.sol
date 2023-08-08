@@ -2,6 +2,18 @@
 
 pragma solidity 0.8.20;
 
+/*
+
+     ██╗ █████╗ ███████╗███╗   ███╗██╗███╗   ██╗███████╗        ███████╗███╗   ██╗███████╗██████╗  ██████╗██╗   ██╗
+     ██║██╔══██╗██╔════╝████╗ ████║██║████╗  ██║██╔════╝        ██╔════╝████╗  ██║██╔════╝██╔══██╗██╔════╝╚██╗ ██╔╝
+     ██║███████║███████╗██╔████╔██║██║██╔██╗ ██║█████╗          █████╗  ██╔██╗ ██║█████╗  ██████╔╝██║  ███╗╚████╔╝ 
+██   ██║██╔══██║╚════██║██║╚██╔╝██║██║██║╚██╗██║██╔══╝          ██╔══╝  ██║╚██╗██║██╔══╝  ██╔══██╗██║   ██║ ╚██╔╝  
+╚█████╔╝██║  ██║███████║██║ ╚═╝ ██║██║██║ ╚████║███████╗        ███████╗██║ ╚████║███████╗██║  ██║╚██████╔╝  ██║   
+ ╚════╝ ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚══════╝        ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝   ╚═╝ ®
+
+*/
+
+
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Inheritted Contracts
@@ -219,14 +231,14 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
 
     /// @inheritdoc JasmineBasePool
     function retire(
-        address owner,
+        address from,
         address beneficiary,
         uint256 amount,
         bytes calldata data
     )
         external override(JasmineFeePool, JasmineBasePool)
     {
-        _retire(owner, beneficiary, amount, data);
+        _retire(from, beneficiary, amount, data);
     }
 
     /// @inheritdoc JasmineFeePool

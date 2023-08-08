@@ -440,6 +440,20 @@ describe(Contracts.pool, function () {
       expect(await anyTechAnnualPool.withdraw(owner.address, 9, [])).to.be.ok
         .and.to.emit(anyTechAnnualPool, "Withdraw");
     });
+
+    it("Should successfully remove token via withdraw any when prior tx interacts with same token but expects it to be kept", async function () {
+      const token1 = await mintEat(owner.address, 5, FuelType.SOLAR);
+      await eat.safeTransferFrom(owner.address, anyTechAnnualPool.address, token1.id, token1.amount, []);
+      const token2 = await mintEat(owner.address, 5, FuelType.WIND);
+      await eat.safeTransferFrom(owner.address, anyTechAnnualPool.address, token2.id, token2.amount, []);
+
+      expect(await anyTechAnnualPool.withdraw(owner.address, tokenAmount + 9n, [])).to.be.ok
+        .and.to.emit(anyTechAnnualPool, "Withdraw");
+
+      expect(await anyTechAnnualPool.withdraw(owner.address, 1, [])).to.be.ok
+        .and.to.emit(anyTechAnnualPool, "Withdraw");
+    });
+    
   });
 
   describe("Retire", async function () {

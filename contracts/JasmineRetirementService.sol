@@ -2,6 +2,18 @@
 
 pragma solidity 0.8.20;
 
+/*
+
+     ██╗ █████╗ ███████╗███╗   ███╗██╗███╗   ██╗███████╗        ███████╗███╗   ██╗███████╗██████╗  ██████╗██╗   ██╗
+     ██║██╔══██╗██╔════╝████╗ ████║██║████╗  ██║██╔════╝        ██╔════╝████╗  ██║██╔════╝██╔══██╗██╔════╝╚██╗ ██╔╝
+     ██║███████║███████╗██╔████╔██║██║██╔██╗ ██║█████╗          █████╗  ██╔██╗ ██║█████╗  ██████╔╝██║  ███╗╚████╔╝ 
+██   ██║██╔══██║╚════██║██║╚██╔╝██║██║██║╚██╗██║██╔══╝          ██╔══╝  ██║╚██╗██║██╔══╝  ██╔══██╗██║   ██║ ╚██╔╝  
+╚█████╔╝██║  ██║███████║██║ ╚═╝ ██║██║██║ ╚████║███████╗        ███████╗██║ ╚████║███████╗██║  ██║╚██████╔╝  ██║   
+ ╚════╝ ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚══════╝        ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝   ╚═╝ ®
+
+*/
+
+
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
 // Core Implementations
@@ -51,7 +63,14 @@ contract JasmineRetirementService is
     // Setup
     // ──────────────────────────────────────────────────────────────────────────────
 
-    constructor(address _minter, address _eat) {
+    /**
+     * 
+     * @param _minter Jasmine Minter contract address
+     * @param _eat Jasmine EAT contract address
+     * 
+     * @custom:oz-upgrades-unsafe-allow constructor state-variable-immutable
+     */
+    constructor(address _minter, address _eat) initializer {
         minter = IJasmineMinter(_minter);
         eat = IJasmineEAT(_eat);
     }
@@ -59,9 +78,9 @@ contract JasmineRetirementService is
     function initialize(address _owner) external initializer onlyProxy {
         _transferOwnership(_owner);
 
-        __UUPSUpgradeable_init();
-        __Ownable2Step_init();
         __ERC1155Receiver_init();
+        __Ownable2Step_init();
+        __UUPSUpgradeable_init();
 
         eat.setApprovalForAll(address(minter), true);
     }
