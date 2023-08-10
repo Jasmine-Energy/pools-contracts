@@ -60,10 +60,10 @@ abstract contract CrypticInterface {
     address public constant minter = 0x5E71fa178F3b8cA0FC4736B8A85a1B669c042DdE; // 0xe9c135b9Fb2942982e3DF5B89a03E51D8EE6CB74;
 
     JasmineRetirementService public constant retirementService =
-        JasmineRetirementService(0xa41Ee73984a9DAD0fA22937DB3097EBFE4cee791);
+        JasmineRetirementService(0xAE205e00C7DCb5292388BD8962E79582a5AE14d0);
     // JasmineRetirementService(0x8a654E827Df68ed727F23C7a82e75eaC9e7999Bd); // Mumbai
     JasminePoolFactory public constant poolFactory =
-        JasminePoolFactory(0xAE205e00C7DCb5292388BD8962E79582a5AE14d0);
+        JasminePoolFactory(0x3F3f61a613504166302C5Ee3546b0e85c0a61934);
     // JasminePoolFactory(0x66e04bc791c2BE81639bC277A813D782a967aBE7); // Mumbai
     JasminePool public constant poolImplementation =
         JasminePool(0xd09b8538Ea6D7147C00C3283e0298836E21DE956);
