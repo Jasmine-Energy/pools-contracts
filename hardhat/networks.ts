@@ -4,7 +4,6 @@ import {
   HardhatNetworkUserConfig,
 } from "hardhat/types";
 import { accounts, accountsForNetwork } from "./accounts";
-import { disableForking } from "@/utils/environment";
 
 // Network definitions
 
@@ -15,7 +14,7 @@ const localhost: HttpNetworkUserConfig = {
 };
 
 const mumbai: HttpNetworkUserConfig = {
-  accounts, //: accountsForNetwork("mumbai"),
+  accounts: accountsForNetwork("mumbai"),
   url: process.env.INFURA_API_KEY
     ? `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`
     : process.env.MUMBAI_RPC_URL ?? "",
@@ -29,10 +28,11 @@ const polygon: HttpNetworkUserConfig = {
   accounts: accountsForNetwork("polygon", false),
   url: process.env.INFURA_API_KEY
     ? `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
-    : process.env.POLYGON_RPC_URL ?? "",
+    : `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` ?? process.env.POLYGON_RPC_URL ?? "",
   chainId: 137,
   saveDeployments: true,
   tags: ["production", "public"],
+  gasPrice: 95000000000 // NOTE: 95 Gwei price for deployment
 };
 
 // Define external networks & Hardhat network
@@ -54,8 +54,8 @@ const hardhat: HardhatNetworkUserConfig = {
   accounts,
   forking: {
     url: forkNetwork.url!,
-    enabled: !disableForking,
-    blockNumber: process.env.FORK_NUMBER ? parseInt(process.env.FORK_NUMBER) : (forkNetworkName === "polygon" ? 43382100 : 36285100),
+    enabled: true,
+    blockNumber: process.env.FORK_NUMBER ? parseInt(process.env.FORK_NUMBER) : (forkNetworkName === "polygon" ? 45632900 : 36285100),
   },
   saveDeployments: true,
   autoImpersonate: true,

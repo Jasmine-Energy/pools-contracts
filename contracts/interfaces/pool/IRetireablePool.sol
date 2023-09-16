@@ -1,23 +1,20 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-//  ─────────────────────────────────────────────────────────────────────────────
-//  Imports
-//  ─────────────────────────────────────────────────────────────────────────────
-
-// Base
-import { IEATBackedPool } from "./IEATBackedPool.sol";
+// Jasmine Type Conformances
+import { IJasmineEATBackedPool as IEATBackedPool } from "./IEATBackedPool.sol";
 
 
 /**
- * @title Retireable Pool Interface
+ * @title Jasmine Retireable Pool Interface
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Extends pools with retirement functionality and events.
  * @custom:security-contact dev@jasmine.energy
  */
-interface IRetireablePool is IEATBackedPool {
+interface IJasmineRetireablePool is IEATBackedPool {
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Events
@@ -38,7 +35,6 @@ interface IRetireablePool is IEATBackedPool {
         uint256 quantity
     );
 
-
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Retirement Functionality
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -55,17 +51,25 @@ interface IRetireablePool is IEATBackedPool {
      *     - Owner must have sufficient JLTs
      *     - Owner cannot be zero address
      * 
-     * @param owner JLT owner from which to burn tokens
+     * @param from JLT owner from which to burn tokens
      * @param beneficiary Address to receive retirement acknowledgment. If none, assume msg.sender
      * @param amount Number of JLTs to withdraw
      * @param data Optional calldata to relay to retirement service via onERC1155Received
      * 
      */
     function retire(
-        address owner, 
+        address from, 
         address beneficiary, 
         uint256 amount, 
         bytes calldata data
     ) external;
 
+    /**
+     * @notice Cost of retiring JLTs from pool.
+     * 
+     * @param amount Amount of JLTs to retire.
+     * 
+     * @return cost Price of retiring in JLTs.
+     */
+    function retirementCost(uint256 amount) external view returns (uint256 cost);
 }

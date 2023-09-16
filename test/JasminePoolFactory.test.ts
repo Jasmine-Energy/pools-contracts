@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contracts } from "@/utils";
 import { JasminePool, JasminePoolFactory, JasmineMinter } from "@/typechain";
 import { deployCoreFixture, deployPoolFactory, deployPoolImplementation } from "./shared/fixtures";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs"
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
 import { DEFAULT_ADMIN_ROLE, DepositPolicy, FEE_MANAGER_ROLE, POOL_MANAGER_ROLE } from "@/utils/constants";
@@ -71,7 +71,7 @@ describe(Contracts.factory, function () {
       await expect(
         upgrades.deployProxy(
           PoolFactory,
-          [owner.address, ethers.constants.AddressZero, feeBeneficiary.address, ""],
+          [owner.address, ethers.constants.AddressZero, ethers.constants.AddressZero, ethers.constants.AddressZero, feeBeneficiary.address, ""],
           {
             unsafeAllow: ["constructor", "state-variable-immutable"],
             constructorArgs: [uniswapPoolFactory, USDC],
@@ -87,14 +87,14 @@ describe(Contracts.factory, function () {
       await expect(
         upgrades.deployProxy(
           PoolFactory,
-          [owner.address, await poolImplementation.eat(), feeBeneficiary.address, ""],
+          [owner.address, await poolImplementation.eat(), ethers.constants.AddressZero, ethers.constants.AddressZero, feeBeneficiary.address, ""],
           {
             unsafeAllow: ["constructor", "state-variable-immutable"],
             constructorArgs: [uniswapPoolFactory, USDC],
             kind: "uups",
           }
         )
-      ).to.be.revertedWithCustomError(poolFactory, "InvalidConformance");
+      ).to.be.revertedWithCustomError(poolFactory, "MustSupportInterface");
     });
 
     it("Should revert if fee beneficiary is set to zero address", async function () {
@@ -102,7 +102,7 @@ describe(Contracts.factory, function () {
       await expect(
         upgrades.deployProxy(
           PoolFactory,
-          [owner.address, poolImplementation.address, ethers.constants.AddressZero, ""],
+          [owner.address, poolImplementation.address, ethers.constants.AddressZero, ethers.constants.AddressZero, ethers.constants.AddressZero, ""],
           {
             unsafeAllow: ["constructor", "state-variable-immutable"],
             constructorArgs: [uniswapPoolFactory, USDC],
@@ -394,7 +394,7 @@ describe(Contracts.factory, function () {
           await poolFactory.revokeRole(POOL_MANAGER_ROLE, poolManager.address);
         });
 
-        it("Should allow owner to grant new fee managers", async function () {
+        it("Should allow owner to grant new pool managers", async function () {
           expect(
             await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager.address)
           ).to.be.false;
@@ -408,7 +408,7 @@ describe(Contracts.factory, function () {
           ).to.be.true;
         });
 
-        it("Should allow owner to revoke fee managers", async function () {
+        it("Should allow owner to revoke pool managers", async function () {
           expect(
             await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager.address)
           ).to.be.true;
@@ -422,7 +422,7 @@ describe(Contracts.factory, function () {
           ).to.be.false;
         });
 
-        it("Should not allow non-owner to grant or revoke fee managers", async function () {
+        it("Should not allow non-owner to grant or revoke pool managers", async function () {
           const factoryFromUser = poolFactory.connect(accounts[3]);
           await expect(
             factoryFromUser.grantRole(POOL_MANAGER_ROLE, accounts[3].address)
@@ -432,7 +432,7 @@ describe(Contracts.factory, function () {
           ).to.be.revertedWith(`AccessControl: account ${accounts[3].address.toLocaleLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`);
         });
 
-        it("Should allow fee managers to resign roll", async function () {
+        it("Should allow pool managers to resign roll", async function () {
           await poolFactory.grantRole(POOL_MANAGER_ROLE, poolManager.address);
           expect(
             await poolFactory.hasRole(POOL_MANAGER_ROLE, poolManager.address)

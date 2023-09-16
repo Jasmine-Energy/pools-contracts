@@ -1,8 +1,8 @@
-# IEATBackedPool
+# IJasmineEATBackedPool
 
 *Kai Aldag&lt;kai.aldag@jasmine.energy&gt;*
 
-> EAT Backed Pool Interface
+> Jasmine EAT Backed Pool Interface
 
 Contains functionality and events for pools which issue JLTs for EATs         deposits and permit withdrawals of EATs.
 
@@ -81,28 +81,6 @@ Used to deposit EATs from another account into the pool to receive JLTs.
 |---|---|---|
 | jltQuantity | uint256 | Number of JLTs issued for deposit  Emits a {Deposit} event. |
 
-### retirementCost
-
-```solidity
-function retirementCost(uint256 amount) external view returns (uint256 cost)
-```
-
-Cost of retiring JLTs from pool. 
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| amount | uint256 | Amount of JLTs to retire.  |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| cost | uint256 | Price of retiring in JLTs. |
-
 ### withdraw
 
 ```solidity
@@ -131,7 +109,7 @@ Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#3
 ### withdrawFrom
 
 ```solidity
-function withdrawFrom(address owner, address recipient, uint256 quantity, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
+function withdrawFrom(address spender, address recipient, uint256 quantity, bytes data) external nonpayable returns (uint256[] tokenIds, uint256[] amounts)
 ```
 
 Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#39;. 
@@ -142,7 +120,7 @@ Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#3
 
 | Name | Type | Description |
 |---|---|---|
-| owner | address | JLT owner from which to burn tokens |
+| spender | address | JLT owner from which to burn tokens |
 | recipient | address | Address to receive withdrawn EATs |
 | quantity | uint256 | Number of JLTs to withdraw |
 | data | bytes | Optional calldata to relay to recipient via onERC1155Received  |
@@ -157,7 +135,7 @@ Withdraw EATs from pool by burning &#39;quantity&#39; of JLTs from &#39;owner&#3
 ### withdrawSpecific
 
 ```solidity
-function withdrawSpecific(address owner, address recipient, uint256[] tokenIds, uint256[] quantities, bytes data) external nonpayable
+function withdrawSpecific(address spender, address recipient, uint256[] tokenIds, uint256[] quantities, bytes data) external nonpayable
 ```
 
 Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in JLTs from &#39;owner&#39;. 
@@ -168,7 +146,7 @@ Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in J
 
 | Name | Type | Description |
 |---|---|---|
-| owner | address | JLT owner from which to burn tokens |
+| spender | address | JLT owner from which to burn tokens |
 | recipient | address | Address to receive withdrawn EATs |
 | tokenIds | uint256[] | EAT token IDs to withdraw from pool |
 | quantities | uint256[] | Number of EATs for tokenId at same index to deposit |

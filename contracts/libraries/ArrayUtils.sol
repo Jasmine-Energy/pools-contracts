@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 // solhint-disable no-inline-assembly
 
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.0;
+
+//  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
+
+import { JasmineErrors } from "../interfaces/errors/JasmineErrors.sol";
+
 
 /**
  * @title Array Utilities
@@ -17,9 +22,10 @@ library ArrayUtils {
      * @param inputs Array of numbers to sum
      * @return total The sum of all elements
      */
-    function sum(
-        uint256[] memory inputs
-    ) internal pure returns (uint256 total) {
+    function sum(uint256[] memory inputs) 
+        internal pure 
+        returns (uint256 total) 
+    {
         for (uint256 i = 0; i < inputs.length;) {
             total += inputs[i];
 
@@ -38,7 +44,10 @@ library ArrayUtils {
     function fill(
         address repeatedAddress,
         uint256 amount
-    ) internal pure returns (address[] memory filledArray) {
+    ) 
+        internal pure 
+        returns (address[] memory filledArray) 
+    {
         filledArray = new address[](amount);
         for (uint256 i = 0; i < amount;) {
             filledArray[i] = repeatedAddress;
@@ -64,8 +73,7 @@ library ArrayUtils {
         internal pure
         returns (bytes memory)
     {
-        require(_length + 31 >= _length, "slice_overflow");
-        require(_bytes.length >= _start + _length, "slice_outOfBounds");
+        if ((_length + 31 < _length) || _bytes.length < _start + _length) revert JasmineErrors.ValidationFailed();
 
         bytes memory tempBytes;
 

@@ -1,18 +1,39 @@
 {
-    "compilerOptions": {
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "module": "commonjs",
-        "paths": {
-            "@/*": [
-                "./*"
-            ]
-        },
-        "resolveJsonModule": true,
-        "skipLibCheck": true,
-        "strict": true,
-        "target": "es2021"
-    },
-    "include": ["./scripts", "./deploy", "./test", "./tasks", "./utils", "./types", "./hardhat", "./typechain"],
-    "files": ["./hardhat.config.ts"]
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "allowSyntheticDefaultImports": true,
+    "alwaysStrict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "composite": true,
+    "lib": ["dom", "esnext"],
+    "moduleResolution": "node",
+    "noImplicitThis": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "./src",
+    "./scripts",
+    "./deploy",
+    "./test",
+    "./tasks",
+    "./utils",
+    "./types",
+    "./hardhat",
+    "./abi/**/*.json",
+    "./artifacts/**/*.json",
+    "./typechain"
+  ],
+  "exclude": ["node_modules", "**/**/node_modules", "dist"],
+  "files": ["./hardhat.config.ts"]
 }

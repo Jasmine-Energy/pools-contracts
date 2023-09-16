@@ -11,5 +11,8 @@
     "solidity-va.diagnostics.cdili_json.import": true,
     "solidity-va.preview.markdown": true,
     "slither.solcPath": "",
-    "slither.hiddenDetectors": []
+    "slither.hiddenDetectors": [],
+    "mochaExplorer.env": {
+        "HARDHAT_NETWORK": "hardhat"
+    }
 }

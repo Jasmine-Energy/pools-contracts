@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
 /**
  * @title Jasmine Fee Manager Interface
@@ -48,14 +48,29 @@ interface IJasmineFeeManager {
     // ──────────────────────────────────────────────────────────────────────────────
 
     /// @dev Default fee for withdrawals across pools. May be overridden per pool
-    function baseWithdrawalRate() external returns(uint96);
+    function baseWithdrawalRate() external view returns(uint96);
 
     /// @dev Default fee for withdrawing specific EATs from pools. May be overridden per pool
-    function baseWithdrawalSpecificRate() external returns(uint96);
+    function baseWithdrawalSpecificRate() external view returns(uint96);
 
     /// @dev Default fee for retirements across pools. May be overridden per pool
-    function baseRetirementRate() external returns(uint96);
+    function baseRetirementRate() external view returns(uint96);
 
     /// @dev Address to receive fees
-    function feeBeneficiary() external returns(address);
+    function feeBeneficiary() external view returns(address);
+
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // Access Control
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    /// @dev Access control role for fee manager
+    function FEE_MANAGER_ROLE() external view returns(bytes32);
+
+    /**
+     * @dev Checks if account has pool fee manager roll
+     * 
+     * @param account Account to check fee manager roll against
+     */
+    function hasFeeManagerRole(address account) external view returns (bool isFeeManager);
 }

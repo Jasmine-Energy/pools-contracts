@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { Contracts, colouredLog } from '@/utils';
+import { delay } from '@/utils/delay';
 
 const deployPoolImplementation: DeployFunction = async function (
     { ethers, deployments, network, run, hardhatArguments, getNamedAccounts }: HardhatRuntimeEnvironment
@@ -41,23 +42,38 @@ const deployPoolImplementation: DeployFunction = async function (
         from: deployer,
         args: constructorArgs,
         log: hardhatArguments.verbose,
+        nonce: deployerNonce
     });
+
+    if (network.tags['public']) {
+        if (network.name === "polygon") {
+            colouredLog.yellow(`Deploying Pool impl to: ${pool.address} and waiting for 3 minutes for the contract to be deployed...`);
+            await delay(180 * 1_000);
+        } else if (network.name === "mumbai") {
+            colouredLog.yellow(`Deploying Pool impl to: ${pool.address} and waiting for 30 seconds for the contract to be deployed...`);
+            await delay(30 * 1_000);
+        } else {
+            colouredLog.yellow(`Deploying Pool impl to: ${pool.address} and waiting for 30 seconds for the contract to be deployed...`);
+            await delay(30 * 1_000);
+        }
+    }
 
     colouredLog.blue(`Deployed Pool impl to: ${pool.address}`);
 
     // 3. If on external network, verify contracts
     if (network.tags['public']) {
-        console.log('Verifyiyng on Etherscan...');
+        colouredLog.yellow('Verifyiyng on Etherscan...');
         try {
             await run('verify:verify', {
                 address: pool.address,
                 constructorArguments: constructorArgs,
             });
+            colouredLog.green(`Verification successful!`);
         } catch (err) {
             colouredLog.red(`Verification failed. Error: ${err}`);
         }
     }
 };
 deployPoolImplementation.tags = ['Pool', 'all'];
-deployPoolImplementation.dependencies = ['Libraries', 'Core'];
+deployPoolImplementation.dependencies = ['Core', 'Retirer'];
 export default deployPoolImplementation;

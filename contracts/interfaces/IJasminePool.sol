@@ -5,9 +5,9 @@ pragma solidity >=0.8.0;
 // Base
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 // Jasmine Types
-import { IEATBackedPool  } from "./pool/IEATBackedPool.sol";
-import { IQualifiedPool  } from "./pool/IQualifiedPool.sol";
-import { IRetireablePool } from "./pool/IRetireablePool.sol";
+import { IJasmineEATBackedPool as IEATBackedPool  } from "./pool/IEATBackedPool.sol";
+import { IJasmineQualifiedPool as IQualifiedPool  } from "./pool/IQualifiedPool.sol";
+import { IJasmineRetireablePool as IRetireablePool } from "./pool/IRetireablePool.sol";
 // Token Metadata Support
 import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import { IERC1046 }       from "../interfaces/ERC/IERC1046.sol";
