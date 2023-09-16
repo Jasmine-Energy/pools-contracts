@@ -1,0 +1,44 @@
+[
+  {
+    "inputs": [],
+    "name": "Disabled",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidInput",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "Prohibited",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      }
+    ],
+    "name": "RequiresRole",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "metadataVersion",
+        "type": "uint8"
+      }
+    ],
+    "name": "UnsupportedMetadataVersion",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ValidationFailed",
+    "type": "error"
+  }
+]

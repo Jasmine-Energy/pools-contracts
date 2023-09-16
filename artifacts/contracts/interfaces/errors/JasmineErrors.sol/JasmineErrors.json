@@ -1,0 +1,53 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "JasmineErrors",
+  "sourceName": "contracts/interfaces/errors/JasmineErrors.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "Disabled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidInput",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "Prohibited",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        }
+      ],
+      "name": "RequiresRole",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "metadataVersion",
+          "type": "uint8"
+        }
+      ],
+      "name": "UnsupportedMetadataVersion",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ValidationFailed",
+      "type": "error"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

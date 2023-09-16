@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "alwaysStrict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "composite": true,
+    "lib": ["dom", "esnext"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "noImplicitThis": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "target": "esnext",
+    "outDir": "dist",
+    "rootDirs": ["./src", "./utils", "./types", "./typechain", "./abi/**/*.json"],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["./src", "./utils/constants.ts", "./utils/enums.ts", "./types", "./typechain", "./abi/**/*.json"],
+  "exclude": ["**/dist"]
+}
