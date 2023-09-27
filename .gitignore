@@ -19,6 +19,7 @@ echidna-corpus
 
 # Misc
 .DS_Store
+**/.DS_Store
 
 # Logs
 logs
