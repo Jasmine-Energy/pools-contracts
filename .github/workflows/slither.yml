@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 jobs:
   analyze:
-    runs-on: [self-hosted, factory]
+    runs-on: [self-hosted, laboratory]
     permissions:
       actions: read
       contents: read
