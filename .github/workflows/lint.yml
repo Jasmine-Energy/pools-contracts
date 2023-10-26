@@ -11,7 +11,7 @@ permissions:
   packages: read
 jobs:
   lint:
-    runs-on: [self-hosted, factory]
+    runs-on: [self-hosted, factory, laboratory]
     env:
       ACTIONS_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
     permissions:
