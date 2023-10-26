@@ -110,7 +110,7 @@ const deployFactory: DeployFunction = async function (
         const backHalfPool = await factoryContract.deployNewBasePool({
             vintagePeriod: [
                 1688083201, // June 30th, 2023 @ 12:00:01 AM
-                1704096000, // Jan 1st, 2023 @ midnight
+                1704067199, // Dec 1st, 2023 @ 11:59:59 PM
               ] as [number, number],
               techType: AnyField,
               registry: AnyField,
