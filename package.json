@@ -20,6 +20,7 @@
     "test:coverage": "npx hardhat coverage --network hardhat",
     "fuzz:factory": "ECHIDNA_RPC_URL=$ECHIDNA_RPC_URL echidna contracts/test/JasminePoolFactoryTest.sol --contract ExternalJasminePoolFactoryTest --config echidna.config.yaml",
     "fuzz:pool": "ECHIDNA_RPC_URL=$ECHIDNA_RPC_URL echidna contracts/test/JasminePoolTest.sol --contract CryticERC20ExternalHarness --config echidna.config.yaml",
+    "env:compile": "op inject -i .env.template -o .env",
     "clean": "npx hardhat clean",
     "lint": "solhint 'contracts/**/*.sol'",
     "lint:fix": "solhint 'contracts/**/*.sol' --fix",
