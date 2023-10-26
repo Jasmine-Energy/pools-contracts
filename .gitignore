@@ -4,11 +4,17 @@ node_modules
 # Hardhat files
 cache
 artifacts
-abi
-deployments
+abi/*
+!abi/contracts
+abi/contracts/test
+deployments/*
+!deployments/mumbai
+!deployments/polygon
 coverage
 coverage.json
-typechain
+typechain/*
+!typechain/contracts
+typechain/contracts/test
 typechain-types
 gasReports
 .openzeppelin

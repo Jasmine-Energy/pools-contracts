@@ -100,12 +100,28 @@ const deployFactory: DeployFunction = async function (
               registry: AnyField,
               certificateType: BigInt(CertificateArr.indexOf(EnergyCertificateType.REC)) & BigInt(2 ** 32 - 1),
               endorsement: BigInt(CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)) & BigInt(2 ** 32 - 1),
-        }, 'Any Tech \'23', 'a23JLT', 177159557114295710296101716160n);
+        }, 'Any Tech Fronthalf \'23', 'aF23JLT', 177159557114295710296101716160n);
         const frontHalfDeployedPool = await frontHalfPool.wait();
         const frontHalfPoolAddress = frontHalfDeployedPool.events
             ?.find((e) => e.event === "PoolCreated")
             ?.args?.at(1);
         colouredLog.blue(`Deployed front half pool to: ${frontHalfPoolAddress}`);
+
+        const backHalfPool = await factoryContract.deployNewBasePool({
+            vintagePeriod: [
+                1688083201, // June 30th, 2023 @ 12:00:01 AM
+                1704096000, // Jan 1st, 2023 @ midnight
+              ] as [number, number],
+              techType: AnyField,
+              registry: AnyField,
+              certificateType: BigInt(CertificateArr.indexOf(EnergyCertificateType.REC)) & BigInt(2 ** 32 - 1),
+              endorsement: BigInt(CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)) & BigInt(2 ** 32 - 1),
+        }, 'Any Tech Backhalf \'23', 'aB23JLT', 177159557114295710296101716160n);
+        const backHalfDeployedPool = await backHalfPool.wait();
+        const backHalfPoolAddress = backHalfDeployedPool.events
+            ?.find((e) => e.event === "PoolCreated")
+            ?.args?.at(1);
+        colouredLog.blue(`Deployed back half pool to: ${backHalfPoolAddress}`);
     } else if (network.name === 'hardhat' && process.env.SKIP_DEPLOY_TEST_POOL === 'true') {
         colouredLog.yellow('Skipping test pool deployment');
     }
