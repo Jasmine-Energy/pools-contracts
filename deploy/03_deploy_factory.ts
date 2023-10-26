@@ -93,8 +93,8 @@ const deployFactory: DeployFunction = async function (
         const factoryContract = await ethers.getContractAt(Contracts.factory, factory.address, managerSigner) as JasminePoolFactory;
         const frontHalfPool = await factoryContract.deployNewBasePool({
             vintagePeriod: [
-                1672531200, // Jan 1st, 2023 @ midnight
-                1688083200, // June 30th, 2023 @ midnight
+                1672531200, // Jan 01 2023 00:00:00 GMT
+                1688083200, // Jun 30 2023 00:00:00 GMT
               ] as [number, number],
               techType: AnyField,
               registry: AnyField,
@@ -109,8 +109,8 @@ const deployFactory: DeployFunction = async function (
 
         const backHalfPool = await factoryContract.deployNewBasePool({
             vintagePeriod: [
-                1688083201, // June 30th, 2023 @ 12:00:01 AM
-                1704067199, // Dec 1st, 2023 @ 11:59:59 PM
+                1688169600, // Jul 01 2023 00:00:00 GMT
+                1703980800, // Dec 31 2023 00:00:00 GMT
               ] as [number, number],
               techType: AnyField,
               registry: AnyField,
