@@ -1,7 +1,12 @@
 import { task } from "hardhat/config";
 import type { TaskArguments, HardhatRuntimeEnvironment } from "hardhat/types";
-import { colouredLog, Contracts } from "@/utils";
-import { tryRequire } from "@/utils/safe_import";
+import {
+  colouredLog,
+  Contracts,
+  tryRequire,
+  encodeEnergyAttributeTokenId,
+  encodeOracleData,
+} from "../utils";
 import {
   FuelType,
   CertificateRegistry,
@@ -11,11 +16,7 @@ import {
   CertificateRegistryArr,
   CertificateArr,
   CertificateEndorsementArr,
-} from "@/types";
-import {
-  encodeEnergyAttributeTokenId,
-  encodeOracleData,
-} from "@/utils/token_encoding";
+} from "../types";
 
 task("mint", "Mints an EAT")
   .addOptionalPositionalParam<string>("account", "The account's address")
@@ -69,8 +70,7 @@ task("mint", "Mints an EAT")
         await run("typechain");
       }
       // @ts-ignore
-      const { JasmineMinter__factory } =
-        await import("@/typechain");
+      const { JasmineMinter__factory } = await import("@/typechain");
 
       // 1. Load required accounts, contracts and info
       const { bridge, minter } = await getNamedAccounts();
@@ -85,7 +85,10 @@ task("mint", "Mints an EAT")
         ? await ethers.getSigner(taskArgs.account)
         : (await ethers.getSigners())[0];
       const recipientAddress: string = signer.address;
-      const minterContract = JasmineMinter__factory.connect(minterAddress, signer);
+      const minterContract = JasmineMinter__factory.connect(
+        minterAddress,
+        signer
+      );
       const bridgeSigner = await ethers.getSigner(bridge);
       const chainId = await bridgeSigner.getChainId();
 
@@ -109,13 +112,15 @@ task("mint", "Mints an EAT")
       const uuidPacked = ethers.utils
         .hexZeroPad(ethers.utils.hexValue(ethers.utils.randomBytes(16)), 16)
         .slice(2);
-      const uuid = taskArgs.uuid ? taskArgs.uuid : [
-        uuidPacked.slice(0, 8),
-        uuidPacked.slice(8, 12),
-        uuidPacked.slice(12, 16),
-        uuidPacked.slice(16, 20),
-        uuidPacked.slice(20),
-      ].join("-");
+      const uuid = taskArgs.uuid
+        ? taskArgs.uuid
+        : [
+            uuidPacked.slice(0, 8),
+            uuidPacked.slice(8, 12),
+            uuidPacked.slice(12, 16),
+            uuidPacked.slice(16, 20),
+            uuidPacked.slice(20),
+          ].join("-");
 
       const id = encodeEnergyAttributeTokenId(
         uuid,

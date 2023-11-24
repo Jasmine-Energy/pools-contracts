@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { blue, green, yellow, red } from "@colors/colors";
-import { Contracts, delay } from "../../utils";
+import { blue, yellow } from "@colors/colors";
+import { Contracts } from "../../utils";
 import { JasminePool__factory } from "../../typechain";
 
 const deployPoolImplementation: DeployFunction = async function ({
@@ -12,7 +12,8 @@ const deployPoolImplementation: DeployFunction = async function ({
   hardhatArguments,
   getNamedAccounts,
 }: HardhatRuntimeEnvironment) {
-  console.log(yellow(`deploying Pool implementation to: ${network.name}`));
+  if (hardhatArguments.verbose)
+    console.log(yellow(`deploying Pool implementation to: ${network.name}`));
 
   // 1. Get deployments, accounts and constructor args
   const { save, get } = deployments;
@@ -58,8 +59,7 @@ const deployPoolImplementation: DeployFunction = async function ({
     args: constructorArgs,
   });
 
-  if (hardhatArguments.verbose)
-    console.log(blue(`Deployed Pool impl to: ${pool.address}`));
+  console.log(blue(`Deployed Pool impl to: ${pool.address}`));
 };
 deployPoolImplementation.tags = ["Pool", "JasminePools", "all"];
 deployPoolImplementation.dependencies = ["Core", "Retirer"];

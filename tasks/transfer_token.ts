@@ -1,8 +1,11 @@
 import { task } from "hardhat/config";
 import type { TaskArguments, HardhatRuntimeEnvironment } from "hardhat/types";
-import { colouredLog, Contracts } from "@/utils";
-import { tryRequire } from "@/utils/safe_import";
-import { DEFAULT_DECIMAL_MULTIPLE } from "@/utils/constants";
+import {
+  colouredLog,
+  Contracts,
+  tryRequire,
+  DEFAULT_DECIMAL_MULTIPLE,
+} from "../utils";
 
 task("transfer", "Transfers an EAT")
   .addPositionalParam<string>("recipient", "The account to receive token")
@@ -39,7 +42,8 @@ task("transfer", "Transfers an EAT")
         await run("typechain");
       }
       // @ts-ignore
-      const { IERC1155Upgradeable__factory, JasminePool__factory } = await import("@/typechain");
+      const { IERC1155Upgradeable__factory, JasminePool__factory } =
+        await import("@/typechain");
 
       // 2. Load required accounts, contracts and info
       const { eat } = await getNamedAccounts();
@@ -92,7 +96,9 @@ task("transfer", "Transfers an EAT")
         const poolName = await pool.name();
         const symbol = await pool.symbol();
         colouredLog.blue(
-            `\nBalance in "${poolName}" is now: ${balance.div(DEFAULT_DECIMAL_MULTIPLE)} ${symbol}`
+          `\nBalance in "${poolName}" is now: ${balance.div(
+            DEFAULT_DECIMAL_MULTIPLE
+          )} ${symbol}`
         );
       } catch {}
       tracer.enabled = false;

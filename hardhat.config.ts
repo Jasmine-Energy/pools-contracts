@@ -4,6 +4,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-network-helpers";
+import "@nomicfoundation/hardhat-ethers";
 import "@nomiclabs/hardhat-ethers";
 import "@openzeppelin/hardhat-upgrades";
 import "@primitivefi/hardhat-dodoc";
@@ -16,29 +17,29 @@ import "hardhat-gas-reporter";
 import "hardhat-storage-layout";
 import "hardhat-tracer";
 import "hardhat-interact";
-import "solidity-coverage"
+import "solidity-coverage";
 import "@typechain/hardhat";
 
 dotenv.config();
 
 import "tsconfig-paths/register";
 
-import { 
-  networks, defaultNetwork,
+import {
+  networks,
+  defaultNetwork,
   namedAccounts,
   solidity,
-  extensions
+  extensions,
 } from "./hardhat";
 
 import "./tasks";
-
 
 const config: HardhatUserConfig = {
   defaultNetwork,
   networks,
   namedAccounts,
   solidity,
-  ...extensions
+  ...extensions,
 };
 
 export default config;

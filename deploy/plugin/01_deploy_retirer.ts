@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { yellow } from "@colors/colors";
+import { yellow, blue } from "@colors/colors";
 import { Contracts } from "../../utils";
 import { JasmineRetirementService__factory } from "../../typechain";
 import { deployProxy, proxyBytecode } from "../utils/proxy";
@@ -63,6 +63,8 @@ const deployRetirementService: DeployFunction = async function ({
     receipt,
     deployedBytecode: tx.data,
   });
+
+  console.log(blue(`Deployed Retirement Service to: ${retirer.address}`));
 };
 deployRetirementService.tags = ["Retirer", "JasminePools", "all"];
 deployRetirementService.dependencies = ["Core"];

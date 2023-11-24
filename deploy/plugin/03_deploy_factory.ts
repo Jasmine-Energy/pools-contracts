@@ -1,15 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { blue, yellow } from "@colors/colors";
-import { Contracts, AnyField } from "../../utils";
+import { Contracts } from "../../utils";
 import { deployProxy, proxyBytecode } from "../utils/proxy";
 import { JasminePoolFactory__factory } from "../../typechain";
-import {
-  CertificateEndorsement,
-  CertificateEndorsementArr,
-  CertificateArr,
-  EnergyCertificateType,
-} from "../../types";
 
 const deployFactory: DeployFunction = async function ({
   ethers,
@@ -95,76 +89,7 @@ const deployFactory: DeployFunction = async function ({
     deployedBytecode: tx.data,
   });
 
-  // 3. If not prod, create test pool
-  if (
-    network.name === "hardhat" &&
-    process.env.SKIP_DEPLOY_TEST_POOL !== "true"
-  ) {
-    const managerSigner = await ethers.getSigner(poolManager);
-    const factoryContract = JasminePoolFactory__factory.connect(
-      factory.address,
-      managerSigner
-    );
-    const frontHalfPool = await factoryContract.deployNewBasePool(
-      {
-        vintagePeriod: [
-          1672531200, // Jan 01 2023 00:00:00 GMT
-          1688083200, // Jun 30 2023 00:00:00 GMT
-        ] as [number, number],
-        techType: AnyField,
-        registry: AnyField,
-        certificateType:
-          BigInt(CertificateArr.indexOf(EnergyCertificateType.REC)) &
-          BigInt(2 ** 32 - 1),
-        endorsement:
-          BigInt(
-            CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)
-          ) & BigInt(2 ** 32 - 1),
-      },
-      "Any Tech Fronthalf '23",
-      "aF23JLT",
-      177159557114295710296101716160n
-    );
-    const frontHalfDeployedPool = await frontHalfPool.wait();
-    const frontHalfPoolAddress = frontHalfDeployedPool.events
-      ?.find((e) => e.event === "PoolCreated")
-      ?.args?.at(1);
-    if (hardhatArguments.verbose)
-      console.log(blue(`Deployed front half pool to: ${frontHalfPoolAddress}`));
-
-    const backHalfPool = await factoryContract.deployNewBasePool(
-      {
-        vintagePeriod: [
-          1688169600, // Jul 01 2023 00:00:00 GMT
-          1703980800, // Dec 31 2023 00:00:00 GMT
-        ] as [number, number],
-        techType: AnyField,
-        registry: AnyField,
-        certificateType:
-          BigInt(CertificateArr.indexOf(EnergyCertificateType.REC)) &
-          BigInt(2 ** 32 - 1),
-        endorsement:
-          BigInt(
-            CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)
-          ) & BigInt(2 ** 32 - 1),
-      },
-      "Any Tech Backhalf '23",
-      "aB23JLT",
-      177159557114295710296101716160n
-    );
-    const backHalfDeployedPool = await backHalfPool.wait();
-    const backHalfPoolAddress = backHalfDeployedPool.events
-      ?.find((e) => e.event === "PoolCreated")
-      ?.args?.at(1);
-    if (hardhatArguments.verbose)
-      console.log(blue(`Deployed back half pool to: ${backHalfPoolAddress}`));
-  } else if (
-    network.name === "hardhat" &&
-    process.env.SKIP_DEPLOY_TEST_POOL === "true"
-  ) {
-    if (hardhatArguments.verbose)
-      console.log(yellow("Skipping test pool deployment"));
-  }
+  console.log(blue(`Deployed Pool Factory to: ${factory.address}`));
 };
 deployFactory.tags = ["Factory", "JasminePools", "all"];
 deployFactory.dependencies = ["Libraries", "Pool", "Core"];
