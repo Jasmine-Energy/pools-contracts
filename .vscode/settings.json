@@ -1,18 +1,18 @@
 {
-    "solidity.packageDefaultDependenciesDirectory": "./node_modules",
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
-    },
-    "eslint.validate": ["javascript", "typescript"],
-    "eslint.format.enable": true,
-    "solidity-va.debug.parser.showExceptions": true,
-    "solidity-va.whatsNew.disabled": true,
-    "solidity-va.uml.actors.enable": true,
-    "solidity-va.diagnostics.cdili_json.import": true,
-    "solidity-va.preview.markdown": true,
-    "slither.solcPath": "",
-    "slither.hiddenDetectors": [],
     "mochaExplorer.env": {
-        "HARDHAT_NETWORK": "hardhat"
-    }
-}
+      "HARDHAT_NETWORK": "hardhat",
+      "HARDHAT_COMPILE": "true"
+    },
+    "solidity.monoRepoSupport": true,
+    "solidity.packageDefaultDependenciesContractsDirectory": "contracts",
+    "solidity.packageDefaultDependenciesDirectory": ["node_modules", "lib"],
+    "editor.formatOnSave": true,
+    "[solidity]": {
+      "editor.defaultFormatter": "NomicFoundation.hardhat-solidity"
+    },
+    "solidity.linter": "solhint",
+    "solidity.formatter": "prettier",
+    "solidity.compilerOptimization": 200,
+    "solidity.compileUsingRemoteVersion": "v0.8.23+commit.f704f36"
+  }
+  

@@ -11,7 +11,7 @@ import {
   CertificateRegistryArr,
   CertificateArr,
   CertificateEndorsementArr,
-} from "@/types/energy-certificate.types";
+} from "@/types";
 import {
   encodeEnergyAttributeTokenId,
   encodeOracleData,

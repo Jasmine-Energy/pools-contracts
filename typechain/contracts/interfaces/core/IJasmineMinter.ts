@@ -3,82 +3,67 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../../../common";
 
-export interface IJasmineMinterInterface extends utils.Interface {
-  functions: {
-    "burn(uint256,uint256,bytes)": FunctionFragment;
-    "burnBatch(uint256[],uint256[],bytes)": FunctionFragment;
-    "mint(address,uint256,uint256,bytes,bytes,uint256,bytes32,bytes)": FunctionFragment;
-    "mintBatch(address,uint256[],uint256[],bytes,bytes[],uint256,bytes32,bytes)": FunctionFragment;
-  };
-
+export interface IJasmineMinterInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic: "burn" | "burnBatch" | "mint" | "mintBatch"
+    nameOrSignature: "burn" | "burnBatch" | "mint" | "mintBatch"
   ): FunctionFragment;
+
+  getEvent(
+    nameOrSignatureOrTopic: "BurnedBatch" | "BurnedSingle"
+  ): EventFragment;
 
   encodeFunctionData(
     functionFragment: "burn",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "burnBatch",
-    values: [
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BigNumberish[], BigNumberish[], BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "mint",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike,
+      BigNumberish,
+      BytesLike,
+      BytesLike
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "mintBatch",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>[],
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
+      AddressLike,
+      BigNumberish[],
+      BigNumberish[],
+      BytesLike,
+      BytesLike[],
+      BigNumberish,
+      BytesLike,
+      BytesLike
     ]
   ): string;
 
@@ -86,291 +71,230 @@ export interface IJasmineMinterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "burnBatch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mintBatch", data: BytesLike): Result;
-
-  events: {
-    "BurnedBatch(address,uint256[],uint256[],bytes)": EventFragment;
-    "BurnedSingle(address,uint256,uint256,bytes)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "BurnedBatch"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "BurnedSingle"): EventFragment;
 }
 
-export interface BurnedBatchEventObject {
-  owner: string;
-  ids: BigNumber[];
-  amounts: BigNumber[];
-  metadata: string;
+export namespace BurnedBatchEvent {
+  export type InputTuple = [
+    owner: AddressLike,
+    ids: BigNumberish[],
+    amounts: BigNumberish[],
+    metadata: BytesLike
+  ];
+  export type OutputTuple = [
+    owner: string,
+    ids: bigint[],
+    amounts: bigint[],
+    metadata: string
+  ];
+  export interface OutputObject {
+    owner: string;
+    ids: bigint[];
+    amounts: bigint[];
+    metadata: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type BurnedBatchEvent = TypedEvent<
-  [string, BigNumber[], BigNumber[], string],
-  BurnedBatchEventObject
->;
 
-export type BurnedBatchEventFilter = TypedEventFilter<BurnedBatchEvent>;
-
-export interface BurnedSingleEventObject {
-  owner: string;
-  id: BigNumber;
-  amount: BigNumber;
-  metadata: string;
+export namespace BurnedSingleEvent {
+  export type InputTuple = [
+    owner: AddressLike,
+    id: BigNumberish,
+    amount: BigNumberish,
+    metadata: BytesLike
+  ];
+  export type OutputTuple = [
+    owner: string,
+    id: bigint,
+    amount: bigint,
+    metadata: string
+  ];
+  export interface OutputObject {
+    owner: string;
+    id: bigint;
+    amount: bigint;
+    metadata: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type BurnedSingleEvent = TypedEvent<
-  [string, BigNumber, BigNumber, string],
-  BurnedSingleEventObject
->;
-
-export type BurnedSingleEventFilter = TypedEventFilter<BurnedSingleEvent>;
 
 export interface IJasmineMinter extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IJasmineMinter;
+  waitForDeployment(): Promise<this>;
 
   interface: IJasmineMinterInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    burn(
-      id: PromiseOrValue<BigNumberish>,
-      amount: PromiseOrValue<BigNumberish>,
-      metadata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    burnBatch(
-      ids: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      metadata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    mint(
-      receiver: PromiseOrValue<string>,
-      id: PromiseOrValue<BigNumberish>,
-      amount: PromiseOrValue<BigNumberish>,
-      transferData: PromiseOrValue<BytesLike>,
-      oracleData: PromiseOrValue<BytesLike>,
-      deadline: PromiseOrValue<BigNumberish>,
-      nonce: PromiseOrValue<BytesLike>,
-      sig: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  burn: TypedContractMethod<
+    [id: BigNumberish, amount: BigNumberish, metadata: BytesLike],
+    [void],
+    "nonpayable"
+  >;
 
-    mintBatch(
-      receiver: PromiseOrValue<string>,
-      ids: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      transferData: PromiseOrValue<BytesLike>,
-      oracleDatas: PromiseOrValue<BytesLike>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      nonce: PromiseOrValue<BytesLike>,
-      sig: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
+  burnBatch: TypedContractMethod<
+    [ids: BigNumberish[], amounts: BigNumberish[], metadata: BytesLike],
+    [void],
+    "nonpayable"
+  >;
 
-  burn(
-    id: PromiseOrValue<BigNumberish>,
-    amount: PromiseOrValue<BigNumberish>,
-    metadata: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  mint: TypedContractMethod<
+    [
+      receiver: AddressLike,
+      id: BigNumberish,
+      amount: BigNumberish,
+      transferData: BytesLike,
+      oracleData: BytesLike,
+      deadline: BigNumberish,
+      nonce: BytesLike,
+      sig: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-  burnBatch(
-    ids: PromiseOrValue<BigNumberish>[],
-    amounts: PromiseOrValue<BigNumberish>[],
-    metadata: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  mintBatch: TypedContractMethod<
+    [
+      receiver: AddressLike,
+      ids: BigNumberish[],
+      amounts: BigNumberish[],
+      transferData: BytesLike,
+      oracleDatas: BytesLike[],
+      deadline: BigNumberish,
+      nonce: BytesLike,
+      sig: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-  mint(
-    receiver: PromiseOrValue<string>,
-    id: PromiseOrValue<BigNumberish>,
-    amount: PromiseOrValue<BigNumberish>,
-    transferData: PromiseOrValue<BytesLike>,
-    oracleData: PromiseOrValue<BytesLike>,
-    deadline: PromiseOrValue<BigNumberish>,
-    nonce: PromiseOrValue<BytesLike>,
-    sig: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  mintBatch(
-    receiver: PromiseOrValue<string>,
-    ids: PromiseOrValue<BigNumberish>[],
-    amounts: PromiseOrValue<BigNumberish>[],
-    transferData: PromiseOrValue<BytesLike>,
-    oracleDatas: PromiseOrValue<BytesLike>[],
-    deadline: PromiseOrValue<BigNumberish>,
-    nonce: PromiseOrValue<BytesLike>,
-    sig: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  getFunction(
+    nameOrSignature: "burn"
+  ): TypedContractMethod<
+    [id: BigNumberish, amount: BigNumberish, metadata: BytesLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "burnBatch"
+  ): TypedContractMethod<
+    [ids: BigNumberish[], amounts: BigNumberish[], metadata: BytesLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "mint"
+  ): TypedContractMethod<
+    [
+      receiver: AddressLike,
+      id: BigNumberish,
+      amount: BigNumberish,
+      transferData: BytesLike,
+      oracleData: BytesLike,
+      deadline: BigNumberish,
+      nonce: BytesLike,
+      sig: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "mintBatch"
+  ): TypedContractMethod<
+    [
+      receiver: AddressLike,
+      ids: BigNumberish[],
+      amounts: BigNumberish[],
+      transferData: BytesLike,
+      oracleDatas: BytesLike[],
+      deadline: BigNumberish,
+      nonce: BytesLike,
+      sig: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-  callStatic: {
-    burn(
-      id: PromiseOrValue<BigNumberish>,
-      amount: PromiseOrValue<BigNumberish>,
-      metadata: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    burnBatch(
-      ids: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      metadata: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    mint(
-      receiver: PromiseOrValue<string>,
-      id: PromiseOrValue<BigNumberish>,
-      amount: PromiseOrValue<BigNumberish>,
-      transferData: PromiseOrValue<BytesLike>,
-      oracleData: PromiseOrValue<BytesLike>,
-      deadline: PromiseOrValue<BigNumberish>,
-      nonce: PromiseOrValue<BytesLike>,
-      sig: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    mintBatch(
-      receiver: PromiseOrValue<string>,
-      ids: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      transferData: PromiseOrValue<BytesLike>,
-      oracleDatas: PromiseOrValue<BytesLike>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      nonce: PromiseOrValue<BytesLike>,
-      sig: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+  getEvent(
+    key: "BurnedBatch"
+  ): TypedContractEvent<
+    BurnedBatchEvent.InputTuple,
+    BurnedBatchEvent.OutputTuple,
+    BurnedBatchEvent.OutputObject
+  >;
+  getEvent(
+    key: "BurnedSingle"
+  ): TypedContractEvent<
+    BurnedSingleEvent.InputTuple,
+    BurnedSingleEvent.OutputTuple,
+    BurnedSingleEvent.OutputObject
+  >;
 
   filters: {
-    "BurnedBatch(address,uint256[],uint256[],bytes)"(
-      owner?: PromiseOrValue<string> | null,
-      ids?: null,
-      amounts?: null,
-      metadata?: null
-    ): BurnedBatchEventFilter;
-    BurnedBatch(
-      owner?: PromiseOrValue<string> | null,
-      ids?: null,
-      amounts?: null,
-      metadata?: null
-    ): BurnedBatchEventFilter;
+    "BurnedBatch(address,uint256[],uint256[],bytes)": TypedContractEvent<
+      BurnedBatchEvent.InputTuple,
+      BurnedBatchEvent.OutputTuple,
+      BurnedBatchEvent.OutputObject
+    >;
+    BurnedBatch: TypedContractEvent<
+      BurnedBatchEvent.InputTuple,
+      BurnedBatchEvent.OutputTuple,
+      BurnedBatchEvent.OutputObject
+    >;
 
-    "BurnedSingle(address,uint256,uint256,bytes)"(
-      owner?: PromiseOrValue<string> | null,
-      id?: null,
-      amount?: null,
-      metadata?: null
-    ): BurnedSingleEventFilter;
-    BurnedSingle(
-      owner?: PromiseOrValue<string> | null,
-      id?: null,
-      amount?: null,
-      metadata?: null
-    ): BurnedSingleEventFilter;
-  };
-
-  estimateGas: {
-    burn(
-      id: PromiseOrValue<BigNumberish>,
-      amount: PromiseOrValue<BigNumberish>,
-      metadata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    burnBatch(
-      ids: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      metadata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    mint(
-      receiver: PromiseOrValue<string>,
-      id: PromiseOrValue<BigNumberish>,
-      amount: PromiseOrValue<BigNumberish>,
-      transferData: PromiseOrValue<BytesLike>,
-      oracleData: PromiseOrValue<BytesLike>,
-      deadline: PromiseOrValue<BigNumberish>,
-      nonce: PromiseOrValue<BytesLike>,
-      sig: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    mintBatch(
-      receiver: PromiseOrValue<string>,
-      ids: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      transferData: PromiseOrValue<BytesLike>,
-      oracleDatas: PromiseOrValue<BytesLike>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      nonce: PromiseOrValue<BytesLike>,
-      sig: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    burn(
-      id: PromiseOrValue<BigNumberish>,
-      amount: PromiseOrValue<BigNumberish>,
-      metadata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    burnBatch(
-      ids: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      metadata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    mint(
-      receiver: PromiseOrValue<string>,
-      id: PromiseOrValue<BigNumberish>,
-      amount: PromiseOrValue<BigNumberish>,
-      transferData: PromiseOrValue<BytesLike>,
-      oracleData: PromiseOrValue<BytesLike>,
-      deadline: PromiseOrValue<BigNumberish>,
-      nonce: PromiseOrValue<BytesLike>,
-      sig: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    mintBatch(
-      receiver: PromiseOrValue<string>,
-      ids: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      transferData: PromiseOrValue<BytesLike>,
-      oracleDatas: PromiseOrValue<BytesLike>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      nonce: PromiseOrValue<BytesLike>,
-      sig: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    "BurnedSingle(address,uint256,uint256,bytes)": TypedContractEvent<
+      BurnedSingleEvent.InputTuple,
+      BurnedSingleEvent.OutputTuple,
+      BurnedSingleEvent.OutputObject
+    >;
+    BurnedSingle: TypedContractEvent<
+      BurnedSingleEvent.InputTuple,
+      BurnedSingleEvent.OutputTuple,
+      BurnedSingleEvent.OutputObject
+    >;
   };
 }

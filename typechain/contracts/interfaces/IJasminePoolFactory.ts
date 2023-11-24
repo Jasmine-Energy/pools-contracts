@@ -3,49 +3,46 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../../common";
 
-export interface IJasminePoolFactoryInterface extends utils.Interface {
-  functions: {
-    "eligiblePoolsForToken(uint256)": FunctionFragment;
-    "getPoolAtIndex(uint256)": FunctionFragment;
-    "totalPools()": FunctionFragment;
-  };
-
+export interface IJasminePoolFactoryInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
-      | "eligiblePoolsForToken"
-      | "getPoolAtIndex"
-      | "totalPools"
+    nameOrSignature: "eligiblePoolsForToken" | "getPoolAtIndex" | "totalPools"
   ): FunctionFragment;
+
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "PoolCreated"
+      | "PoolImplementationAdded"
+      | "PoolImplementationRemoved"
+      | "PoolImplementationUpgraded"
+  ): EventFragment;
 
   encodeFunctionData(
     functionFragment: "eligiblePoolsForToken",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolAtIndex",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "totalPools",
@@ -61,208 +58,232 @@ export interface IJasminePoolFactoryInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "totalPools", data: BytesLike): Result;
-
-  events: {
-    "PoolCreated(bytes,address,string,string)": EventFragment;
-    "PoolImplementationAdded(address,address,uint256)": EventFragment;
-    "PoolImplementationRemoved(address,uint256)": EventFragment;
-    "PoolImplementationUpgraded(address,address,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "PoolCreated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "PoolImplementationAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "PoolImplementationRemoved"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "PoolImplementationUpgraded"): EventFragment;
 }
 
-export interface PoolCreatedEventObject {
-  policy: string;
-  pool: string;
-  name: string;
-  symbol: string;
+export namespace PoolCreatedEvent {
+  export type InputTuple = [
+    policy: BytesLike,
+    pool: AddressLike,
+    name: string,
+    symbol: string
+  ];
+  export type OutputTuple = [
+    policy: string,
+    pool: string,
+    name: string,
+    symbol: string
+  ];
+  export interface OutputObject {
+    policy: string;
+    pool: string;
+    name: string;
+    symbol: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type PoolCreatedEvent = TypedEvent<
-  [string, string, string, string],
-  PoolCreatedEventObject
->;
 
-export type PoolCreatedEventFilter = TypedEventFilter<PoolCreatedEvent>;
-
-export interface PoolImplementationAddedEventObject {
-  poolImplementation: string;
-  beaconAddress: string;
-  poolIndex: BigNumber;
+export namespace PoolImplementationAddedEvent {
+  export type InputTuple = [
+    poolImplementation: AddressLike,
+    beaconAddress: AddressLike,
+    poolIndex: BigNumberish
+  ];
+  export type OutputTuple = [
+    poolImplementation: string,
+    beaconAddress: string,
+    poolIndex: bigint
+  ];
+  export interface OutputObject {
+    poolImplementation: string;
+    beaconAddress: string;
+    poolIndex: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type PoolImplementationAddedEvent = TypedEvent<
-  [string, string, BigNumber],
-  PoolImplementationAddedEventObject
->;
 
-export type PoolImplementationAddedEventFilter =
-  TypedEventFilter<PoolImplementationAddedEvent>;
-
-export interface PoolImplementationRemovedEventObject {
-  beaconAddress: string;
-  poolIndex: BigNumber;
+export namespace PoolImplementationRemovedEvent {
+  export type InputTuple = [
+    beaconAddress: AddressLike,
+    poolIndex: BigNumberish
+  ];
+  export type OutputTuple = [beaconAddress: string, poolIndex: bigint];
+  export interface OutputObject {
+    beaconAddress: string;
+    poolIndex: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type PoolImplementationRemovedEvent = TypedEvent<
-  [string, BigNumber],
-  PoolImplementationRemovedEventObject
->;
 
-export type PoolImplementationRemovedEventFilter =
-  TypedEventFilter<PoolImplementationRemovedEvent>;
-
-export interface PoolImplementationUpgradedEventObject {
-  newPoolImplementation: string;
-  beaconAddress: string;
-  poolIndex: BigNumber;
+export namespace PoolImplementationUpgradedEvent {
+  export type InputTuple = [
+    newPoolImplementation: AddressLike,
+    beaconAddress: AddressLike,
+    poolIndex: BigNumberish
+  ];
+  export type OutputTuple = [
+    newPoolImplementation: string,
+    beaconAddress: string,
+    poolIndex: bigint
+  ];
+  export interface OutputObject {
+    newPoolImplementation: string;
+    beaconAddress: string;
+    poolIndex: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type PoolImplementationUpgradedEvent = TypedEvent<
-  [string, string, BigNumber],
-  PoolImplementationUpgradedEventObject
->;
-
-export type PoolImplementationUpgradedEventFilter =
-  TypedEventFilter<PoolImplementationUpgradedEvent>;
 
 export interface IJasminePoolFactory extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IJasminePoolFactory;
+  waitForDeployment(): Promise<this>;
 
   interface: IJasminePoolFactoryInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    eligiblePoolsForToken(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string[]] & { pools: string[] }>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    getPoolAtIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { pool: string }>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    totalPools(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
+  eligiblePoolsForToken: TypedContractMethod<
+    [tokenId: BigNumberish],
+    [string[]],
+    "view"
+  >;
 
-  eligiblePoolsForToken(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string[]>;
+  getPoolAtIndex: TypedContractMethod<[index: BigNumberish], [string], "view">;
 
-  getPoolAtIndex(
-    index: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  totalPools: TypedContractMethod<[], [bigint], "view">;
 
-  totalPools(overrides?: CallOverrides): Promise<BigNumber>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  callStatic: {
-    eligiblePoolsForToken(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string[]>;
+  getFunction(
+    nameOrSignature: "eligiblePoolsForToken"
+  ): TypedContractMethod<[tokenId: BigNumberish], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "getPoolAtIndex"
+  ): TypedContractMethod<[index: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "totalPools"
+  ): TypedContractMethod<[], [bigint], "view">;
 
-    getPoolAtIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    totalPools(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getEvent(
+    key: "PoolCreated"
+  ): TypedContractEvent<
+    PoolCreatedEvent.InputTuple,
+    PoolCreatedEvent.OutputTuple,
+    PoolCreatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "PoolImplementationAdded"
+  ): TypedContractEvent<
+    PoolImplementationAddedEvent.InputTuple,
+    PoolImplementationAddedEvent.OutputTuple,
+    PoolImplementationAddedEvent.OutputObject
+  >;
+  getEvent(
+    key: "PoolImplementationRemoved"
+  ): TypedContractEvent<
+    PoolImplementationRemovedEvent.InputTuple,
+    PoolImplementationRemovedEvent.OutputTuple,
+    PoolImplementationRemovedEvent.OutputObject
+  >;
+  getEvent(
+    key: "PoolImplementationUpgraded"
+  ): TypedContractEvent<
+    PoolImplementationUpgradedEvent.InputTuple,
+    PoolImplementationUpgradedEvent.OutputTuple,
+    PoolImplementationUpgradedEvent.OutputObject
+  >;
 
   filters: {
-    "PoolCreated(bytes,address,string,string)"(
-      policy?: null,
-      pool?: PromiseOrValue<string> | null,
-      name?: PromiseOrValue<string> | null,
-      symbol?: PromiseOrValue<string> | null
-    ): PoolCreatedEventFilter;
-    PoolCreated(
-      policy?: null,
-      pool?: PromiseOrValue<string> | null,
-      name?: PromiseOrValue<string> | null,
-      symbol?: PromiseOrValue<string> | null
-    ): PoolCreatedEventFilter;
+    "PoolCreated(bytes,address,string,string)": TypedContractEvent<
+      PoolCreatedEvent.InputTuple,
+      PoolCreatedEvent.OutputTuple,
+      PoolCreatedEvent.OutputObject
+    >;
+    PoolCreated: TypedContractEvent<
+      PoolCreatedEvent.InputTuple,
+      PoolCreatedEvent.OutputTuple,
+      PoolCreatedEvent.OutputObject
+    >;
 
-    "PoolImplementationAdded(address,address,uint256)"(
-      poolImplementation?: PromiseOrValue<string> | null,
-      beaconAddress?: PromiseOrValue<string> | null,
-      poolIndex?: PromiseOrValue<BigNumberish> | null
-    ): PoolImplementationAddedEventFilter;
-    PoolImplementationAdded(
-      poolImplementation?: PromiseOrValue<string> | null,
-      beaconAddress?: PromiseOrValue<string> | null,
-      poolIndex?: PromiseOrValue<BigNumberish> | null
-    ): PoolImplementationAddedEventFilter;
+    "PoolImplementationAdded(address,address,uint256)": TypedContractEvent<
+      PoolImplementationAddedEvent.InputTuple,
+      PoolImplementationAddedEvent.OutputTuple,
+      PoolImplementationAddedEvent.OutputObject
+    >;
+    PoolImplementationAdded: TypedContractEvent<
+      PoolImplementationAddedEvent.InputTuple,
+      PoolImplementationAddedEvent.OutputTuple,
+      PoolImplementationAddedEvent.OutputObject
+    >;
 
-    "PoolImplementationRemoved(address,uint256)"(
-      beaconAddress?: PromiseOrValue<string> | null,
-      poolIndex?: PromiseOrValue<BigNumberish> | null
-    ): PoolImplementationRemovedEventFilter;
-    PoolImplementationRemoved(
-      beaconAddress?: PromiseOrValue<string> | null,
-      poolIndex?: PromiseOrValue<BigNumberish> | null
-    ): PoolImplementationRemovedEventFilter;
+    "PoolImplementationRemoved(address,uint256)": TypedContractEvent<
+      PoolImplementationRemovedEvent.InputTuple,
+      PoolImplementationRemovedEvent.OutputTuple,
+      PoolImplementationRemovedEvent.OutputObject
+    >;
+    PoolImplementationRemoved: TypedContractEvent<
+      PoolImplementationRemovedEvent.InputTuple,
+      PoolImplementationRemovedEvent.OutputTuple,
+      PoolImplementationRemovedEvent.OutputObject
+    >;
 
-    "PoolImplementationUpgraded(address,address,uint256)"(
-      newPoolImplementation?: PromiseOrValue<string> | null,
-      beaconAddress?: PromiseOrValue<string> | null,
-      poolIndex?: PromiseOrValue<BigNumberish> | null
-    ): PoolImplementationUpgradedEventFilter;
-    PoolImplementationUpgraded(
-      newPoolImplementation?: PromiseOrValue<string> | null,
-      beaconAddress?: PromiseOrValue<string> | null,
-      poolIndex?: PromiseOrValue<BigNumberish> | null
-    ): PoolImplementationUpgradedEventFilter;
-  };
-
-  estimateGas: {
-    eligiblePoolsForToken(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPoolAtIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalPools(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    eligiblePoolsForToken(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPoolAtIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    totalPools(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "PoolImplementationUpgraded(address,address,uint256)": TypedContractEvent<
+      PoolImplementationUpgradedEvent.InputTuple,
+      PoolImplementationUpgradedEvent.OutputTuple,
+      PoolImplementationUpgradedEvent.OutputObject
+    >;
+    PoolImplementationUpgraded: TypedContractEvent<
+      PoolImplementationUpgradedEvent.InputTuple,
+      PoolImplementationUpgradedEvent.OutputTuple,
+      PoolImplementationUpgradedEvent.OutputObject
+    >;
   };
 }

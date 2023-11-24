@@ -3,37 +3,27 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../../../../common";
 
-export interface EATManagerInterface extends utils.Interface {
-  functions: {
-    "eat()": FunctionFragment;
-    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
-    "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
-    "selectWithdrawTokens(uint256)": FunctionFragment;
-    "supportsInterface(bytes4)": FunctionFragment;
-  };
-
+export interface EATManagerInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "eat"
       | "onERC1155BatchReceived"
       | "onERC1155Received"
@@ -45,30 +35,24 @@ export interface EATManagerInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "onERC1155BatchReceived",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BytesLike>
+      AddressLike,
+      AddressLike,
+      BigNumberish[],
+      BigNumberish[],
+      BytesLike
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "onERC1155Received",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "selectWithdrawTokens",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "eat", data: BytesLike): Result;
@@ -88,205 +72,132 @@ export interface EATManagerInterface extends utils.Interface {
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
-
-  events: {};
 }
 
 export interface EATManager extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): EATManager;
+  waitForDeployment(): Promise<this>;
 
   interface: EATManagerInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    eat(overrides?: CallOverrides): Promise<[string]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    onERC1155BatchReceived(
-      operator: PromiseOrValue<string>,
-      from: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      values: PromiseOrValue<BigNumberish>[],
-      arg4: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    onERC1155Received(
-      operator: PromiseOrValue<string>,
-      from: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      value: PromiseOrValue<BigNumberish>,
-      arg4: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  eat: TypedContractMethod<[], [string], "view">;
 
-    selectWithdrawTokens(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber[], BigNumber[]] & {
-        tokenIds: BigNumber[];
-        amounts: BigNumber[];
-      }
-    >;
-
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-  };
-
-  eat(overrides?: CallOverrides): Promise<string>;
-
-  onERC1155BatchReceived(
-    operator: PromiseOrValue<string>,
-    from: PromiseOrValue<string>,
-    tokenIds: PromiseOrValue<BigNumberish>[],
-    values: PromiseOrValue<BigNumberish>[],
-    arg4: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  onERC1155Received(
-    operator: PromiseOrValue<string>,
-    from: PromiseOrValue<string>,
-    tokenId: PromiseOrValue<BigNumberish>,
-    value: PromiseOrValue<BigNumberish>,
-    arg4: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  selectWithdrawTokens(
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber[], BigNumber[]] & { tokenIds: BigNumber[]; amounts: BigNumber[] }
+  onERC1155BatchReceived: TypedContractMethod<
+    [
+      operator: AddressLike,
+      from: AddressLike,
+      tokenIds: BigNumberish[],
+      values: BigNumberish[],
+      arg4: BytesLike
+    ],
+    [string],
+    "nonpayable"
   >;
 
-  supportsInterface(
-    interfaceId: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  onERC1155Received: TypedContractMethod<
+    [
+      operator: AddressLike,
+      from: AddressLike,
+      tokenId: BigNumberish,
+      value: BigNumberish,
+      arg4: BytesLike
+    ],
+    [string],
+    "nonpayable"
+  >;
 
-  callStatic: {
-    eat(overrides?: CallOverrides): Promise<string>;
+  selectWithdrawTokens: TypedContractMethod<
+    [amount: BigNumberish],
+    [[bigint[], bigint[]] & { tokenIds: bigint[]; amounts: bigint[] }],
+    "view"
+  >;
 
-    onERC1155BatchReceived(
-      operator: PromiseOrValue<string>,
-      from: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      values: PromiseOrValue<BigNumberish>[],
-      arg4: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+  supportsInterface: TypedContractMethod<
+    [interfaceId: BytesLike],
+    [boolean],
+    "view"
+  >;
 
-    onERC1155Received(
-      operator: PromiseOrValue<string>,
-      from: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      value: PromiseOrValue<BigNumberish>,
-      arg4: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-    selectWithdrawTokens(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber[], BigNumber[]] & {
-        tokenIds: BigNumber[];
-        amounts: BigNumber[];
-      }
-    >;
-
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-  };
+  getFunction(
+    nameOrSignature: "eat"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "onERC1155BatchReceived"
+  ): TypedContractMethod<
+    [
+      operator: AddressLike,
+      from: AddressLike,
+      tokenIds: BigNumberish[],
+      values: BigNumberish[],
+      arg4: BytesLike
+    ],
+    [string],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "onERC1155Received"
+  ): TypedContractMethod<
+    [
+      operator: AddressLike,
+      from: AddressLike,
+      tokenId: BigNumberish,
+      value: BigNumberish,
+      arg4: BytesLike
+    ],
+    [string],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "selectWithdrawTokens"
+  ): TypedContractMethod<
+    [amount: BigNumberish],
+    [[bigint[], bigint[]] & { tokenIds: bigint[]; amounts: bigint[] }],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "supportsInterface"
+  ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
 
   filters: {};
-
-  estimateGas: {
-    eat(overrides?: CallOverrides): Promise<BigNumber>;
-
-    onERC1155BatchReceived(
-      operator: PromiseOrValue<string>,
-      from: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      values: PromiseOrValue<BigNumberish>[],
-      arg4: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    onERC1155Received(
-      operator: PromiseOrValue<string>,
-      from: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      value: PromiseOrValue<BigNumberish>,
-      arg4: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    selectWithdrawTokens(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    eat(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    onERC1155BatchReceived(
-      operator: PromiseOrValue<string>,
-      from: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      values: PromiseOrValue<BigNumberish>[],
-      arg4: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    onERC1155Received(
-      operator: PromiseOrValue<string>,
-      from: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      value: PromiseOrValue<BigNumberish>,
-      arg4: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    selectWithdrawTokens(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-  };
 }

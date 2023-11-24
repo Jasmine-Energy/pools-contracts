@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "lib": ["dom", "esnext"],
+    "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "declaration": true,
@@ -9,20 +13,25 @@
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "composite": true,
-    "lib": ["dom", "esnext"],
-    "module": "CommonJS",
-    "moduleResolution": "node",
     "noImplicitThis": false,
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": false,
-    "target": "esnext",
     "outDir": "dist",
-    "rootDirs": ["./src", "./deploy", "./utils", "./types", "./typechain", "./abi/**/*.json"],
+    "rootDir": ".",
     "paths": {
       "@/*": ["./*"]
     }
   },
-  "include": ["./src", "./deploy", "./utils/constants.ts", "./utils/enums.ts", "./types", "./typechain", "./abi/**/*.json"],
-  "exclude": ["**/dist"]
+  "include": [
+    "./src",
+    "./hardhat.config.ts",
+    "./hardhat",
+    "./deploy",
+    "./tasks",
+    "./types",
+    "./utils",
+    "./typechain",
+    "./abi/**/*.json"
+  ]
 }

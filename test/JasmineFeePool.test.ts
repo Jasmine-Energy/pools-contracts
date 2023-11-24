@@ -16,7 +16,7 @@ import {
   makeMintFunction,
   mintFunctionType,
 } from "./shared/utilities";
-import { FuelType } from "@/types/energy-certificate.types";
+import { FuelType } from "@/types";
 import { DEFAULT_DECIMAL_MULTIPLE } from "@/utils/constants";
 
 

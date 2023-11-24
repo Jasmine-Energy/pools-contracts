@@ -8,7 +8,7 @@ import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
 import { DEFAULT_ADMIN_ROLE, DepositPolicy, FEE_MANAGER_ROLE, POOL_MANAGER_ROLE } from "@/utils/constants";
-import { FuelType } from "@/types/energy-certificate.types";
+import { FuelType } from "@/types";
 import {
   createAnyTechAnnualPolicy,
   createSolarPolicy,

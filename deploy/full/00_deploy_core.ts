@@ -39,10 +39,14 @@ const deployCore: DeployFunction = async function ({
 
       colouredLog.blue(`BRIDGE CHANGED TO: ${bridge}`);
     } else {
-        colouredLog.yellow("Skipping bridge setup, not on hardhat network or autoImpersonate is disabled");
+      colouredLog.yellow(
+        "Skipping bridge setup, not on hardhat network or autoImpersonate is disabled"
+      );
     }
   } else {
-    colouredLog.red("Unable to setup bridge. No core contract addresses found.");
+    colouredLog.red(
+      "Unable to setup bridge. No core contract addresses found."
+    );
   }
 };
 deployCore.tags = ["Core", "all"];

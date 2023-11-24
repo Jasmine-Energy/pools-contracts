@@ -523,5 +523,5 @@ const permit2ABI = new Interface([
 ]);
 
 export function createPermit2(signer?: Signer | Provider) {
-    return new Contract(Permit2.PERMIT2_ADDRESS, permit2ABI, signer);
+  return new Contract(Permit2.PERMIT2_ADDRESS, permit2ABI, signer);
 }

@@ -2,6 +2,8 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "CommonJS",
+    "lib": ["dom", "esnext"],
+    "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "declaration": true,
@@ -11,29 +13,27 @@
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "composite": true,
-    "lib": ["dom", "esnext"],
-    "moduleResolution": "node",
     "noImplicitThis": false,
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": false,
+    "rootDir": ".",
     "paths": {
       "@/*": ["./*"]
     }
   },
   "include": [
+    "./hardhat.config.ts",
     "./src",
     "./scripts",
     "./deploy",
     "./test",
     "./tasks",
-    "./utils",
     "./types",
+    "./utils",
     "./hardhat",
     "./abi/**/*.json",
     "./artifacts/**/*.json",
     "./typechain"
-  ],
-  "exclude": ["node_modules", "**/**/node_modules", "dist"],
-  "files": ["./hardhat.config.ts"]
+  ]
 }

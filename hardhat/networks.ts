@@ -10,6 +10,7 @@ import { accounts, accountsForNetwork } from "./accounts";
 const localhost: HttpNetworkUserConfig = {
   accounts, //: accountsForNetwork("localhost"),
   url: "http://127.0.0.1:8545",
+  deploy: ["deploy/full"],
   tags: ["local"],
 };
 
@@ -19,6 +20,7 @@ const mumbai: HttpNetworkUserConfig = {
     ? `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`
     : process.env.MUMBAI_RPC_URL ?? "",
   chainId: 80001,
+  deploy: ["deploy/full"],
   saveDeployments: true,
   tags: ["testnet", "public"],
 };
@@ -28,11 +30,14 @@ const polygon: HttpNetworkUserConfig = {
   accounts: accountsForNetwork("polygon", false),
   url: process.env.INFURA_API_KEY
     ? `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
-    : `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` ?? process.env.POLYGON_RPC_URL ?? "",
+    : `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` ??
+      process.env.POLYGON_RPC_URL ??
+      "",
   chainId: 137,
+  deploy: ["deploy/full"],
   saveDeployments: true,
   tags: ["production", "public"],
-  gasPrice: 95000000000 // NOTE: 95 Gwei price for deployment
+  gasPrice: 95000000000, // NOTE: 95 Gwei price for deployment
 };
 
 // Define external networks & Hardhat network
@@ -46,7 +51,8 @@ export const externalNetworks: {
 };
 
 export const forkNetworkName = process.env.FORK_NETWORK ?? "polygon";
-export const forkNetwork: HttpNetworkUserConfig = externalNetworks[forkNetworkName];
+export const forkNetwork: HttpNetworkUserConfig =
+  externalNetworks[forkNetworkName];
 
 const hardhat: HardhatNetworkUserConfig = {
   chainId: 31337,
@@ -55,8 +61,13 @@ const hardhat: HardhatNetworkUserConfig = {
   forking: {
     url: forkNetwork.url!,
     enabled: true,
-    blockNumber: process.env.FORK_NUMBER ? parseInt(process.env.FORK_NUMBER) : (forkNetworkName === "polygon" ? 45632900 : 36285100),
+    blockNumber: process.env.FORK_NUMBER
+      ? parseInt(process.env.FORK_NUMBER)
+      : forkNetworkName === "polygon"
+      ? 45632900
+      : 36285100,
   },
+  deploy: ["deploy/full"],
   saveDeployments: true,
   autoImpersonate: true,
   tags: ["local"],

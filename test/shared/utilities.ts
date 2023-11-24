@@ -1,19 +1,19 @@
 
 import { ethers, getNamedAccounts } from 'hardhat';
-import { Contracts } from '@/utils';
+import { 
+    Contracts,
+    AnyField,
+    encodeEnergyAttributeTokenId,
+    encodeOracleData
+} from '@/utils';
 import {
     FuelType,
     CertificateRegistry,
     EnergyCertificateType,
     CertificateEndorsement,
     FuelTypesArray,
-} from '@/types/energy-certificate.types';
-import {
-    encodeEnergyAttributeTokenId,
-    encodeOracleData,
-} from '@/utils/token_encoding';
+} from '@/types';
 import { JasmineMinter } from '@/typechain';
-import { AnyField } from '@/utils/constants';
 
 export type mintFunctionType = ((recipient: string, amount?: number, fuel?: FuelType, registry?: CertificateRegistry, vintage?: number, endorsement?: CertificateEndorsement, certificateType?: EnergyCertificateType) => Promise<{ id: bigint; amount: bigint; }>) | ((arg0: string, arg1: number, arg2: FuelType) => { id: bigint; amount: bigint; } | PromiseLike<{ id: bigint; amount: bigint; }>);
 

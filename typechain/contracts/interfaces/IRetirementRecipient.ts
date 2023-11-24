@@ -3,118 +3,106 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../../common";
 
-export interface IRetirementRecipientInterface extends utils.Interface {
-  functions: {
-    "onRetirement(address,uint256[],uint256[])": FunctionFragment;
-  };
-
-  getFunction(nameOrSignatureOrTopic: "onRetirement"): FunctionFragment;
+export interface IRetirementRecipientInterface extends Interface {
+  getFunction(nameOrSignature: "onRetirement"): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "onRetirement",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>[]
-    ]
+    values: [AddressLike, BigNumberish[], BigNumberish[]]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "onRetirement",
     data: BytesLike
   ): Result;
-
-  events: {};
 }
 
 export interface IRetirementRecipient extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IRetirementRecipient;
+  waitForDeployment(): Promise<this>;
 
   interface: IRetirementRecipientInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    onRetirement(
-      retiree: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  onRetirement(
-    retiree: PromiseOrValue<string>,
-    tokenIds: PromiseOrValue<BigNumberish>[],
-    quantities: PromiseOrValue<BigNumberish>[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-  callStatic: {
-    onRetirement(
-      retiree: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+  onRetirement: TypedContractMethod<
+    [
+      retiree: AddressLike,
+      tokenIds: BigNumberish[],
+      quantities: BigNumberish[]
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "onRetirement"
+  ): TypedContractMethod<
+    [
+      retiree: AddressLike,
+      tokenIds: BigNumberish[],
+      quantities: BigNumberish[]
+    ],
+    [void],
+    "nonpayable"
+  >;
 
   filters: {};
-
-  estimateGas: {
-    onRetirement(
-      retiree: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    onRetirement(
-      retiree: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
 }

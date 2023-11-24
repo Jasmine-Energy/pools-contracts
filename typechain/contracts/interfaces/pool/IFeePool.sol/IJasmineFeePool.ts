@@ -3,50 +3,29 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../../../../common";
 
-export interface IJasmineFeePoolInterface extends utils.Interface {
-  functions: {
-    "deposit(uint256,uint256)": FunctionFragment;
-    "depositBatch(address,uint256[],uint256[])": FunctionFragment;
-    "depositFrom(address,uint256,uint256)": FunctionFragment;
-    "retire(address,address,uint256,bytes)": FunctionFragment;
-    "retireExact(address,address,uint256,bytes)": FunctionFragment;
-    "retirementCost(uint256)": FunctionFragment;
-    "retirementRate()": FunctionFragment;
-    "withdraw(address,uint256,bytes)": FunctionFragment;
-    "withdrawFrom(address,address,uint256,bytes)": FunctionFragment;
-    "withdrawSpecific(address,address,uint256[],uint256[],bytes)": FunctionFragment;
-    "withdrawalCost(uint256)": FunctionFragment;
-    "withdrawalCost(uint256[],uint256[])": FunctionFragment;
-    "withdrawalRate()": FunctionFragment;
-    "withdrawalSpecificRate()": FunctionFragment;
-  };
-
+export interface IJasmineFeePoolInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "deposit"
       | "depositBatch"
       | "depositFrom"
@@ -63,47 +42,38 @@ export interface IJasmineFeePoolInterface extends utils.Interface {
       | "withdrawalSpecificRate"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "Deposit"
+      | "Retirement"
+      | "RetirementRateUpdate"
+      | "Withdraw"
+      | "WithdrawalRateUpdate"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "depositBatch",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>[]
-    ]
+    values: [AddressLike, BigNumberish[], BigNumberish[]]
   ): string;
   encodeFunctionData(
     functionFragment: "depositFrom",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "retire",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "retireExact",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "retirementCost",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "retirementRate",
@@ -111,38 +81,29 @@ export interface IJasmineFeePoolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [AddressLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawFrom",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawSpecific",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BytesLike>
+      AddressLike,
+      AddressLike,
+      BigNumberish[],
+      BigNumberish[],
+      BytesLike
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawalCost(uint256)",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawalCost(uint256[],uint256[])",
-    values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BigNumberish>[]]
+    values: [BigNumberish[], BigNumberish[]]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawalRate",
@@ -200,591 +161,434 @@ export interface IJasmineFeePoolInterface extends utils.Interface {
     functionFragment: "withdrawalSpecificRate",
     data: BytesLike
   ): Result;
-
-  events: {
-    "Deposit(address,address,uint256)": EventFragment;
-    "Retirement(address,address,uint256)": EventFragment;
-    "RetirementRateUpdate(uint96,address)": EventFragment;
-    "Withdraw(address,address,uint256)": EventFragment;
-    "WithdrawalRateUpdate(uint96,address,bool)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Retirement"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RetirementRateUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "WithdrawalRateUpdate"): EventFragment;
 }
 
-export interface DepositEventObject {
-  operator: string;
-  owner: string;
-  quantity: BigNumber;
+export namespace DepositEvent {
+  export type InputTuple = [
+    operator: AddressLike,
+    owner: AddressLike,
+    quantity: BigNumberish
+  ];
+  export type OutputTuple = [operator: string, owner: string, quantity: bigint];
+  export interface OutputObject {
+    operator: string;
+    owner: string;
+    quantity: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type DepositEvent = TypedEvent<
-  [string, string, BigNumber],
-  DepositEventObject
->;
 
-export type DepositEventFilter = TypedEventFilter<DepositEvent>;
-
-export interface RetirementEventObject {
-  operator: string;
-  beneficiary: string;
-  quantity: BigNumber;
+export namespace RetirementEvent {
+  export type InputTuple = [
+    operator: AddressLike,
+    beneficiary: AddressLike,
+    quantity: BigNumberish
+  ];
+  export type OutputTuple = [
+    operator: string,
+    beneficiary: string,
+    quantity: bigint
+  ];
+  export interface OutputObject {
+    operator: string;
+    beneficiary: string;
+    quantity: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type RetirementEvent = TypedEvent<
-  [string, string, BigNumber],
-  RetirementEventObject
->;
 
-export type RetirementEventFilter = TypedEventFilter<RetirementEvent>;
-
-export interface RetirementRateUpdateEventObject {
-  retirementFeeBips: BigNumber;
-  beneficiary: string;
+export namespace RetirementRateUpdateEvent {
+  export type InputTuple = [
+    retirementFeeBips: BigNumberish,
+    beneficiary: AddressLike
+  ];
+  export type OutputTuple = [retirementFeeBips: bigint, beneficiary: string];
+  export interface OutputObject {
+    retirementFeeBips: bigint;
+    beneficiary: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type RetirementRateUpdateEvent = TypedEvent<
-  [BigNumber, string],
-  RetirementRateUpdateEventObject
->;
 
-export type RetirementRateUpdateEventFilter =
-  TypedEventFilter<RetirementRateUpdateEvent>;
-
-export interface WithdrawEventObject {
-  sender: string;
-  receiver: string;
-  quantity: BigNumber;
+export namespace WithdrawEvent {
+  export type InputTuple = [
+    sender: AddressLike,
+    receiver: AddressLike,
+    quantity: BigNumberish
+  ];
+  export type OutputTuple = [
+    sender: string,
+    receiver: string,
+    quantity: bigint
+  ];
+  export interface OutputObject {
+    sender: string;
+    receiver: string;
+    quantity: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type WithdrawEvent = TypedEvent<
-  [string, string, BigNumber],
-  WithdrawEventObject
->;
 
-export type WithdrawEventFilter = TypedEventFilter<WithdrawEvent>;
-
-export interface WithdrawalRateUpdateEventObject {
-  withdrawFeeBips: BigNumber;
-  beneficiary: string;
-  isSpecificRate: boolean;
+export namespace WithdrawalRateUpdateEvent {
+  export type InputTuple = [
+    withdrawFeeBips: BigNumberish,
+    beneficiary: AddressLike,
+    isSpecificRate: boolean
+  ];
+  export type OutputTuple = [
+    withdrawFeeBips: bigint,
+    beneficiary: string,
+    isSpecificRate: boolean
+  ];
+  export interface OutputObject {
+    withdrawFeeBips: bigint;
+    beneficiary: string;
+    isSpecificRate: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type WithdrawalRateUpdateEvent = TypedEvent<
-  [BigNumber, string, boolean],
-  WithdrawalRateUpdateEventObject
->;
-
-export type WithdrawalRateUpdateEventFilter =
-  TypedEventFilter<WithdrawalRateUpdateEvent>;
 
 export interface IJasmineFeePool extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IJasmineFeePool;
+  waitForDeployment(): Promise<this>;
 
   interface: IJasmineFeePoolInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    deposit(
-      tokenId: PromiseOrValue<BigNumberish>,
-      quantity: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    depositBatch(
-      from: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    depositFrom(
-      from: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      quantity: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  deposit: TypedContractMethod<
+    [tokenId: BigNumberish, quantity: BigNumberish],
+    [bigint],
+    "nonpayable"
+  >;
 
-    retire(
-      from: PromiseOrValue<string>,
-      beneficiary: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  depositBatch: TypedContractMethod<
+    [from: AddressLike, tokenIds: BigNumberish[], quantities: BigNumberish[]],
+    [bigint],
+    "nonpayable"
+  >;
 
-    retireExact(
-      from: PromiseOrValue<string>,
-      beneficiary: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  depositFrom: TypedContractMethod<
+    [from: AddressLike, tokenId: BigNumberish, quantity: BigNumberish],
+    [bigint],
+    "nonpayable"
+  >;
 
-    retirementCost(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { cost: BigNumber }>;
+  retire: TypedContractMethod<
+    [
+      from: AddressLike,
+      beneficiary: AddressLike,
+      amount: BigNumberish,
+      data: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-    retirementRate(overrides?: CallOverrides): Promise<[BigNumber]>;
+  retireExact: TypedContractMethod<
+    [
+      from: AddressLike,
+      beneficiary: AddressLike,
+      amount: BigNumberish,
+      data: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-    withdraw(
-      recipient: PromiseOrValue<string>,
-      quantity: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  retirementCost: TypedContractMethod<[amount: BigNumberish], [bigint], "view">;
 
-    withdrawFrom(
-      spender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      quantity: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  retirementRate: TypedContractMethod<[], [bigint], "view">;
 
-    withdrawSpecific(
-      spender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  withdraw: TypedContractMethod<
+    [recipient: AddressLike, quantity: BigNumberish, data: BytesLike],
+    [[bigint[], bigint[]] & { tokenIds: bigint[]; amounts: bigint[] }],
+    "nonpayable"
+  >;
 
-    "withdrawalCost(uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { cost: BigNumber }>;
+  withdrawFrom: TypedContractMethod<
+    [
+      spender: AddressLike,
+      recipient: AddressLike,
+      quantity: BigNumberish,
+      data: BytesLike
+    ],
+    [[bigint[], bigint[]] & { tokenIds: bigint[]; amounts: bigint[] }],
+    "nonpayable"
+  >;
 
-    "withdrawalCost(uint256[],uint256[])"(
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { cost: BigNumber }>;
+  withdrawSpecific: TypedContractMethod<
+    [
+      spender: AddressLike,
+      recipient: AddressLike,
+      tokenIds: BigNumberish[],
+      quantities: BigNumberish[],
+      data: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-    withdrawalRate(overrides?: CallOverrides): Promise<[BigNumber]>;
+  "withdrawalCost(uint256)": TypedContractMethod<
+    [amount: BigNumberish],
+    [bigint],
+    "view"
+  >;
 
-    withdrawalSpecificRate(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
+  "withdrawalCost(uint256[],uint256[])": TypedContractMethod<
+    [tokenIds: BigNumberish[], amounts: BigNumberish[]],
+    [bigint],
+    "view"
+  >;
 
-  deposit(
-    tokenId: PromiseOrValue<BigNumberish>,
-    quantity: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  withdrawalRate: TypedContractMethod<[], [bigint], "view">;
 
-  depositBatch(
-    from: PromiseOrValue<string>,
-    tokenIds: PromiseOrValue<BigNumberish>[],
-    quantities: PromiseOrValue<BigNumberish>[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  withdrawalSpecificRate: TypedContractMethod<[], [bigint], "view">;
 
-  depositFrom(
-    from: PromiseOrValue<string>,
-    tokenId: PromiseOrValue<BigNumberish>,
-    quantity: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  retire(
-    from: PromiseOrValue<string>,
-    beneficiary: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  getFunction(
+    nameOrSignature: "deposit"
+  ): TypedContractMethod<
+    [tokenId: BigNumberish, quantity: BigNumberish],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "depositBatch"
+  ): TypedContractMethod<
+    [from: AddressLike, tokenIds: BigNumberish[], quantities: BigNumberish[]],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "depositFrom"
+  ): TypedContractMethod<
+    [from: AddressLike, tokenId: BigNumberish, quantity: BigNumberish],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "retire"
+  ): TypedContractMethod<
+    [
+      from: AddressLike,
+      beneficiary: AddressLike,
+      amount: BigNumberish,
+      data: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "retireExact"
+  ): TypedContractMethod<
+    [
+      from: AddressLike,
+      beneficiary: AddressLike,
+      amount: BigNumberish,
+      data: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "retirementCost"
+  ): TypedContractMethod<[amount: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "retirementRate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "withdraw"
+  ): TypedContractMethod<
+    [recipient: AddressLike, quantity: BigNumberish, data: BytesLike],
+    [[bigint[], bigint[]] & { tokenIds: bigint[]; amounts: bigint[] }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawFrom"
+  ): TypedContractMethod<
+    [
+      spender: AddressLike,
+      recipient: AddressLike,
+      quantity: BigNumberish,
+      data: BytesLike
+    ],
+    [[bigint[], bigint[]] & { tokenIds: bigint[]; amounts: bigint[] }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawSpecific"
+  ): TypedContractMethod<
+    [
+      spender: AddressLike,
+      recipient: AddressLike,
+      tokenIds: BigNumberish[],
+      quantities: BigNumberish[],
+      data: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawalCost(uint256)"
+  ): TypedContractMethod<[amount: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "withdrawalCost(uint256[],uint256[])"
+  ): TypedContractMethod<
+    [tokenIds: BigNumberish[], amounts: BigNumberish[]],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawalRate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "withdrawalSpecificRate"
+  ): TypedContractMethod<[], [bigint], "view">;
 
-  retireExact(
-    from: PromiseOrValue<string>,
-    beneficiary: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  retirementCost(
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  retirementRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-  withdraw(
-    recipient: PromiseOrValue<string>,
-    quantity: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawFrom(
-    spender: PromiseOrValue<string>,
-    recipient: PromiseOrValue<string>,
-    quantity: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawSpecific(
-    spender: PromiseOrValue<string>,
-    recipient: PromiseOrValue<string>,
-    tokenIds: PromiseOrValue<BigNumberish>[],
-    quantities: PromiseOrValue<BigNumberish>[],
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "withdrawalCost(uint256)"(
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "withdrawalCost(uint256[],uint256[])"(
-    tokenIds: PromiseOrValue<BigNumberish>[],
-    amounts: PromiseOrValue<BigNumberish>[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  withdrawalRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-  withdrawalSpecificRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    deposit(
-      tokenId: PromiseOrValue<BigNumberish>,
-      quantity: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    depositBatch(
-      from: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    depositFrom(
-      from: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      quantity: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    retire(
-      from: PromiseOrValue<string>,
-      beneficiary: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    retireExact(
-      from: PromiseOrValue<string>,
-      beneficiary: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    retirementCost(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    retirementRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdraw(
-      recipient: PromiseOrValue<string>,
-      quantity: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber[], BigNumber[]] & {
-        tokenIds: BigNumber[];
-        amounts: BigNumber[];
-      }
-    >;
-
-    withdrawFrom(
-      spender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      quantity: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber[], BigNumber[]] & {
-        tokenIds: BigNumber[];
-        amounts: BigNumber[];
-      }
-    >;
-
-    withdrawSpecific(
-      spender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "withdrawalCost(uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "withdrawalCost(uint256[],uint256[])"(
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    withdrawalRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdrawalSpecificRate(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getEvent(
+    key: "Deposit"
+  ): TypedContractEvent<
+    DepositEvent.InputTuple,
+    DepositEvent.OutputTuple,
+    DepositEvent.OutputObject
+  >;
+  getEvent(
+    key: "Retirement"
+  ): TypedContractEvent<
+    RetirementEvent.InputTuple,
+    RetirementEvent.OutputTuple,
+    RetirementEvent.OutputObject
+  >;
+  getEvent(
+    key: "RetirementRateUpdate"
+  ): TypedContractEvent<
+    RetirementRateUpdateEvent.InputTuple,
+    RetirementRateUpdateEvent.OutputTuple,
+    RetirementRateUpdateEvent.OutputObject
+  >;
+  getEvent(
+    key: "Withdraw"
+  ): TypedContractEvent<
+    WithdrawEvent.InputTuple,
+    WithdrawEvent.OutputTuple,
+    WithdrawEvent.OutputObject
+  >;
+  getEvent(
+    key: "WithdrawalRateUpdate"
+  ): TypedContractEvent<
+    WithdrawalRateUpdateEvent.InputTuple,
+    WithdrawalRateUpdateEvent.OutputTuple,
+    WithdrawalRateUpdateEvent.OutputObject
+  >;
 
   filters: {
-    "Deposit(address,address,uint256)"(
-      operator?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
-      quantity?: null
-    ): DepositEventFilter;
-    Deposit(
-      operator?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
-      quantity?: null
-    ): DepositEventFilter;
+    "Deposit(address,address,uint256)": TypedContractEvent<
+      DepositEvent.InputTuple,
+      DepositEvent.OutputTuple,
+      DepositEvent.OutputObject
+    >;
+    Deposit: TypedContractEvent<
+      DepositEvent.InputTuple,
+      DepositEvent.OutputTuple,
+      DepositEvent.OutputObject
+    >;
 
-    "Retirement(address,address,uint256)"(
-      operator?: PromiseOrValue<string> | null,
-      beneficiary?: PromiseOrValue<string> | null,
-      quantity?: null
-    ): RetirementEventFilter;
-    Retirement(
-      operator?: PromiseOrValue<string> | null,
-      beneficiary?: PromiseOrValue<string> | null,
-      quantity?: null
-    ): RetirementEventFilter;
+    "Retirement(address,address,uint256)": TypedContractEvent<
+      RetirementEvent.InputTuple,
+      RetirementEvent.OutputTuple,
+      RetirementEvent.OutputObject
+    >;
+    Retirement: TypedContractEvent<
+      RetirementEvent.InputTuple,
+      RetirementEvent.OutputTuple,
+      RetirementEvent.OutputObject
+    >;
 
-    "RetirementRateUpdate(uint96,address)"(
-      retirementFeeBips?: null,
-      beneficiary?: PromiseOrValue<string> | null
-    ): RetirementRateUpdateEventFilter;
-    RetirementRateUpdate(
-      retirementFeeBips?: null,
-      beneficiary?: PromiseOrValue<string> | null
-    ): RetirementRateUpdateEventFilter;
+    "RetirementRateUpdate(uint96,address)": TypedContractEvent<
+      RetirementRateUpdateEvent.InputTuple,
+      RetirementRateUpdateEvent.OutputTuple,
+      RetirementRateUpdateEvent.OutputObject
+    >;
+    RetirementRateUpdate: TypedContractEvent<
+      RetirementRateUpdateEvent.InputTuple,
+      RetirementRateUpdateEvent.OutputTuple,
+      RetirementRateUpdateEvent.OutputObject
+    >;
 
-    "Withdraw(address,address,uint256)"(
-      sender?: PromiseOrValue<string> | null,
-      receiver?: PromiseOrValue<string> | null,
-      quantity?: null
-    ): WithdrawEventFilter;
-    Withdraw(
-      sender?: PromiseOrValue<string> | null,
-      receiver?: PromiseOrValue<string> | null,
-      quantity?: null
-    ): WithdrawEventFilter;
+    "Withdraw(address,address,uint256)": TypedContractEvent<
+      WithdrawEvent.InputTuple,
+      WithdrawEvent.OutputTuple,
+      WithdrawEvent.OutputObject
+    >;
+    Withdraw: TypedContractEvent<
+      WithdrawEvent.InputTuple,
+      WithdrawEvent.OutputTuple,
+      WithdrawEvent.OutputObject
+    >;
 
-    "WithdrawalRateUpdate(uint96,address,bool)"(
-      withdrawFeeBips?: null,
-      beneficiary?: PromiseOrValue<string> | null,
-      isSpecificRate?: null
-    ): WithdrawalRateUpdateEventFilter;
-    WithdrawalRateUpdate(
-      withdrawFeeBips?: null,
-      beneficiary?: PromiseOrValue<string> | null,
-      isSpecificRate?: null
-    ): WithdrawalRateUpdateEventFilter;
-  };
-
-  estimateGas: {
-    deposit(
-      tokenId: PromiseOrValue<BigNumberish>,
-      quantity: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    depositBatch(
-      from: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    depositFrom(
-      from: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      quantity: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    retire(
-      from: PromiseOrValue<string>,
-      beneficiary: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    retireExact(
-      from: PromiseOrValue<string>,
-      beneficiary: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    retirementCost(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    retirementRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdraw(
-      recipient: PromiseOrValue<string>,
-      quantity: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawFrom(
-      spender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      quantity: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawSpecific(
-      spender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "withdrawalCost(uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "withdrawalCost(uint256[],uint256[])"(
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    withdrawalRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdrawalSpecificRate(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    deposit(
-      tokenId: PromiseOrValue<BigNumberish>,
-      quantity: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    depositBatch(
-      from: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    depositFrom(
-      from: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      quantity: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    retire(
-      from: PromiseOrValue<string>,
-      beneficiary: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    retireExact(
-      from: PromiseOrValue<string>,
-      beneficiary: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    retirementCost(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    retirementRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdraw(
-      recipient: PromiseOrValue<string>,
-      quantity: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawFrom(
-      spender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      quantity: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawSpecific(
-      spender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      quantities: PromiseOrValue<BigNumberish>[],
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "withdrawalCost(uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "withdrawalCost(uint256[],uint256[])"(
-      tokenIds: PromiseOrValue<BigNumberish>[],
-      amounts: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    withdrawalRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdrawalSpecificRate(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    "WithdrawalRateUpdate(uint96,address,bool)": TypedContractEvent<
+      WithdrawalRateUpdateEvent.InputTuple,
+      WithdrawalRateUpdateEvent.OutputTuple,
+      WithdrawalRateUpdateEvent.OutputObject
+    >;
+    WithdrawalRateUpdate: TypedContractEvent<
+      WithdrawalRateUpdateEvent.InputTuple,
+      WithdrawalRateUpdateEvent.OutputTuple,
+      WithdrawalRateUpdateEvent.OutputObject
+    >;
   };
 }
