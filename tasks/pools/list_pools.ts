@@ -6,13 +6,20 @@ import {
   JasminePool__factory,
 } from "../../typechain";
 import Table from "cli-table3";
+import { EthersProviderWrapper } from "@nomiclabs/hardhat-ethers/internal/ethers-provider-wrapper";
 
 task("pool:list", "Lists all Jasmine pools")
   .addOptionalParam<string>("factory", "Address of Jasmine pool factory")
   .setAction(
     async (
       taskArgs: TaskArguments,
-      { ethers, deployments, run, network }: HardhatRuntimeEnvironment
+      {
+        ethers,
+        deployments,
+        run,
+        network,
+        getChainId,
+      }: HardhatRuntimeEnvironment
     ): Promise<void> => {
       // 1. Check if typechain exists. If not, compile and explicitly generate typings
       if (!tryRequire("@/typechain")) {
@@ -20,6 +27,7 @@ task("pool:list", "Lists all Jasmine pools")
         await run("typechain");
       }
 
+      console.log(11, network.name);
       // 2. Load contract
       let factoryAddress =
         taskArgs.factory ??
@@ -32,10 +40,10 @@ task("pool:list", "Lists all Jasmine pools")
         return;
       }
 
-      const defaultSigner = (await ethers.getSigners())[0];
+      const provider = new EthersProviderWrapper(network.provider);
       const factory = JasminePoolFactory__factory.connect(
         factoryAddress,
-        defaultSigner
+        provider
       );
 
       const totalPools = await factory.totalPools();
@@ -49,7 +57,7 @@ task("pool:list", "Lists all Jasmine pools")
 
       for (var i = 0; i < totalPools.toNumber(); i++) {
         const poolAddress = await factory.getPoolAtIndex(i);
-        const pool = JasminePool__factory.connect(poolAddress, defaultSigner);
+        const pool = JasminePool__factory.connect(poolAddress, provider);
         const name = await pool.name();
         const symbol = await pool.symbol();
         table.push([

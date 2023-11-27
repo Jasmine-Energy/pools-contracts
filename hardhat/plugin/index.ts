@@ -147,11 +147,11 @@ task(TASK_DEPLOY_JASMINE_POOLS, "Deploys Jasmine Pools")
         await hre.network.provider.send("hardhat_setLoggingEnabled", [false]);
       }
 
-      if (hre.config.networks[localhostNetworkName]) {
-        const localhost = hre.config.networks[localhostNetworkName];
-        hre.network.name = localhostNetworkName;
-        hre.network.config = localhost;
-      }
+      //   if (hre.config.networks[localhostNetworkName]) {
+      //     const localhost = hre.config.networks[localhostNetworkName];
+      //     hre.network.name = localhostNetworkName;
+      //     hre.network.config = localhost;
+      //   }
     }
 
     await deployCore(hre);
@@ -159,16 +159,11 @@ task(TASK_DEPLOY_JASMINE_POOLS, "Deploys Jasmine Pools")
     await deployPool(hre);
     await deployFactory(hre);
 
-    // if (!args.noPools) {
-    //   await deployTestPools(hre);
+    // if (hre.network.name === localhostNetworkName) {
+    //   const hardhat = hre.config.networks[HARDHAT_NETWORK_NAME];
+    //   hre.network.name = HARDHAT_NETWORK_NAME;
+    //   hre.network.config = hardhat;
     // }
-    // console.log("Deployed Jasmine Pool Contracts!");
-
-    if (hre.network.name === localhostNetworkName) {
-      const hardhat = hre.config.networks[HARDHAT_NETWORK_NAME];
-      hre.network.name = HARDHAT_NETWORK_NAME;
-      hre.network.config = hardhat;
-    }
 
     if (!args.noPools) {
       await deployTestPools(hre);
@@ -176,32 +171,32 @@ task(TASK_DEPLOY_JASMINE_POOLS, "Deploys Jasmine Pools")
     console.log("Deployed Jasmine Pool Contracts!");
   });
 
-task("pool:list")
-  //   .addOptionalParam<string>("factory", "Address of Jasmine pool factory")
-  .setAction(async (args, hre, runSuper) => {
-    if (args.factory) {
-      await runSuper(args);
-      return;
-    }
-    const { address: factory } = await hre.deployments.get(
-      JasmineConstants.Contracts.factory
-    );
-    console.log(factory);
+task("pool:list").setAction(async (args, hre, runSuper) => {
+  if (args.factory) {
+    await runSuper(args);
+    return;
+  }
+  const { address: factory } = await hre.deployments.get(
+    JasmineConstants.Contracts.factory
+  );
+  console.log(factory);
 
-    if (
-      hre.network.name === HARDHAT_NETWORK_NAME &&
-      hre.config.networks[localhostNetworkName]
-    ) {
-      const localhost = hre.config.networks[localhostNetworkName];
-      hre.network.name = localhostNetworkName;
-      hre.network.config = localhost;
-    }
+  //   if (
+  //     hre.network.name === HARDHAT_NETWORK_NAME &&
+  //     hre.config.networks[localhostNetworkName]
+  //   ) {
+  const provider = hre.network.provider;
+  const localhost = hre.config.networks[localhostNetworkName];
+  hre.network.name = localhostNetworkName;
+  hre.network.config = localhost;
+  hre.network.provider = provider;
+  //   }
 
-    await runSuper(
-      {
-        ...args,
-        factory,
-      },
-      hre
-    );
-  });
+  await runSuper(
+    {
+      ...args,
+      factory,
+    },
+    hre
+  );
+});

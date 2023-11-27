@@ -51,8 +51,8 @@
   "dependencies": {
     "@crytic/properties": "https://github.com/crytic/properties.git",
     "@jasmine-energy/core-contracts": "^1.0.0",
-    "@openzeppelin/contracts": "^4.9.2",
-    "@openzeppelin/contracts-upgradeable": "^4.9.2",
+    "@openzeppelin/contracts": "^4.9.3",
+    "@openzeppelin/contracts-upgradeable": "^4.9.3",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",
     "@uniswap/v3-core": "^1.0.0",
