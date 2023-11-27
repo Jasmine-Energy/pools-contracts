@@ -79,7 +79,7 @@
     "cli-table3": "^0.6.3",
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
-    "hardhat": "^2.17.0",
+    "hardhat": "^2.18.1",
     "hardhat-abi-exporter": "^2.10.1",
     "hardhat-contract-sizer": "^2.8.0",
     "hardhat-dependency-compiler": "^1.1.3",
