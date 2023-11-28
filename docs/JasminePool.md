@@ -103,7 +103,7 @@ function decimals() external view returns (uint8)
 
 
 
-*Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5.05` (`505 / 10 ** 2`). Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the default value returned by this function, unless it&#39;s overridden. NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}.*
+
 
 
 #### Returns
@@ -277,7 +277,7 @@ function initialize(bytes policy_, string name_, string symbol_) external nonpay
 
 
 
-*Initializer function for proxy deployments to call. Requirements:     - Caller must be factory*
+*Initializer function for proxy deployments to call.Requirements:     - Caller must be factory*
 
 #### Parameters
 
@@ -295,7 +295,7 @@ function meetsPolicy(uint256 tokenId) external view returns (bool isEligible)
 
 
 
-*Checks if a token is eligible for deposit into the pool based on the      pool&#39;s Deposit Policy. *
+*Checks if a token is eligible for deposit into the pool based on the      pool&#39;s Deposit Policy.*
 
 #### Parameters
 
@@ -756,7 +756,7 @@ function validateDepositValidity(uint256 tokenId) external nonpayable returns (b
 
 
 
-*Checks if an EAT depositted into the pool is frozen and validates internal      balance for token. If frozen, it is internally removed from the pool&#39;s      list of withdrawable tokens. If internal count does not match balance,      caller will have their JLT burned to rectify the inbalance. *
+*Checks if an EAT depositted into the pool is frozen and validates internal      balance for token. If frozen, it is internally removed from the pool&#39;s      list of withdrawable tokens. If internal count does not match balance,      caller will have their JLT burned to rectify the inbalance.*
 
 #### Parameters
 

@@ -5,3 +5,5 @@ import type * as core from "./core";
 export type { core };
 import type * as extensions from "./extensions";
 export type { extensions };
+import type * as versions from "./versions";
+export type { versions };

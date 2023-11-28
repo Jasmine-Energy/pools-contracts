@@ -197,9 +197,9 @@ function proxiableUUID() external view returns (bytes32)
 function registerRetirementRecipient(address account, address implementer) external nonpayable
 ```
 
-Registers a smart contract to receive notifications on retirement events 
+Registers a smart contract to receive notifications on retirement events
 
-*Requirements:      - Retirement service must be an approved ERC-1820 manager of account      - Implementer must support IRetirementRecipient interface via ERC-165 *
+*Requirements:      - Retirement service must be an approved ERC-1820 manager of account      - Implementer must support IRetirementRecipient interface via ERC-165*
 
 #### Parameters
 

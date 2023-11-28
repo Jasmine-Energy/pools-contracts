@@ -95,9 +95,9 @@ function acceptOwnership() external nonpayable
 function addPoolImplementation(address newPoolImplementation) external nonpayable returns (uint256 indexInPools)
 ```
 
-Used to add a new pool implementation 
+Used to add a new pool implementation
 
-*emits PoolImplementationAdded *
+*emits PoolImplementationAdded*
 
 #### Parameters
 
@@ -168,9 +168,9 @@ function baseWithdrawalSpecificRate() external view returns (uint96)
 function computePoolAddress(bytes32 policyHash) external view returns (address poolAddress)
 ```
 
-Utility function to calculate deployed address of a pool from its         policy hash 
+Utility function to calculate deployed address of a pool from its         policy hash
 
-*Requirements:     - Policy hash must exist in existing pools *
+*Requirements:     - Policy hash must exist in existing pools*
 
 #### Parameters
 
@@ -215,9 +215,9 @@ function deployNewBasePool(PoolPolicy.DepositPolicy policy, string name, string 
 function deployNewPool(uint256 version, bytes4 initSelector, bytes initData, string name, string symbol, uint160 initialSqrtPriceX96) external nonpayable returns (address newPool)
 ```
 
-Deploys a new pool from list of pool implementations 
+Deploys a new pool from list of pool implementations
 
-*initData must omit method selector, name and symbol. These arguments      are encoded automatically as:    ┌──────────┬──────────┬─────────┬─────────┐   │ selector │ initData │ name    │ symbol  │   │ (bytes4) │ (bytes)  │ (bytes) │ (bytes) │   └──────────┴──────────┴─────────┴─────────┘ Requirements:     - Caller must be owner     - Policy must not exist     - Version must be valid pool implementation index Throws PoolExists(address pool) on failure *
+*initData must omit method selector, name and symbol. These arguments      are encoded automatically as:   ┌──────────┬──────────┬─────────┬─────────┐   │ selector │ initData │ name    │ symbol  │   │ (bytes4) │ (bytes)  │ (bytes) │ (bytes) │   └──────────┴──────────┴─────────┴─────────┘Requirements:     - Caller must be owner     - Policy must not exist     - Version must be valid pool implementation indexThrows PoolExists(address pool) on failure*
 
 #### Parameters
 
@@ -228,7 +228,7 @@ Deploys a new pool from list of pool implementations
 | initData | bytes | Initializer data (excluding method selector, name and symbol) |
 | name | string | New pool&#39;s token name |
 | symbol | string | New pool&#39;s token symbol |
-| initialSqrtPriceX96 | uint160 | Initial Uniswap price of pool. If 0, no Uniswap pool will be deployed  |
+| initialSqrtPriceX96 | uint160 | Initial Uniswap price of pool. If 0, no Uniswap pool will be deployed |
 
 #### Returns
 
@@ -242,15 +242,15 @@ Deploys a new pool from list of pool implementations
 function eligiblePoolsForToken(uint256 tokenId) external view returns (address[] pools)
 ```
 
-Gets a list of Jasmine pool addresses that an EAT is eligible         to be deposited into. 
+Gets a list of Jasmine pool addresses that an EAT is eligible         to be deposited into.
 
-*Runs in O(n) with respect to number of pools and does not support      a max count. This should only be used by off-chain services and      should not be called by other smart contracts due to the potentially      unlimited gas that may be spent. *
+*Runs in O(n) with respect to number of pools and does not support      a max count. This should only be used by off-chain services and      should not be called by other smart contracts due to the potentially      unlimited gas that may be spent.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| tokenId | uint256 | EAT token ID to check for eligible pools  |
+| tokenId | uint256 | EAT token ID to check for eligible pools |
 
 #### Returns
 
@@ -281,9 +281,9 @@ function feeBeneficiary() external view returns (address)
 function getPoolAtIndex(uint256 index) external view returns (address pool)
 ```
 
-Used to obtain the address of a pool in the set of pools - if it exists 
+Used to obtain the address of a pool in the set of pools - if it exists
 
-*Throw NoPool() on failure *
+*Throw NoPool() on failure*
 
 #### Parameters
 
@@ -344,7 +344,7 @@ function hasFeeManagerRole(address account) external view returns (bool isFeeMan
 
 
 
-*Checks if account has pool fee manager roll *
+*Checks if account has pool fee manager roll*
 
 #### Parameters
 
@@ -389,7 +389,7 @@ function initialize(address _owner, address _poolImplementation, address _poolMa
 
 
 
-*UUPS initializer to set feilds, setup access control roles,     transfer ownership to initial owner, and add an initial pool *
+*UUPS initializer to set feilds, setup access control roles,     transfer ownership to initial owner, and add an initial pool*
 
 #### Parameters
 
@@ -442,7 +442,7 @@ function pendingOwner() external view returns (address)
 function poolsBaseURI() external view returns (string baseURI)
 ```
 
-Base API endpoint from which a pool&#39;s information may be obtained         by appending token symbol to end 
+Base API endpoint from which a pool&#39;s information may be obtained         by appending token symbol to end
 
 *Used by pools to return their respect tokenURI functions*
 
@@ -476,9 +476,9 @@ function proxiableUUID() external view returns (bytes32)
 function readdPoolImplementation(uint256 implementationsIndex) external nonpayable
 ```
 
-Used to undo a pool implementation removal 
+Used to undo a pool implementation removal
 
-*emits PoolImplementationAdded *
+*emits PoolImplementationAdded*
 
 #### Parameters
 
@@ -492,15 +492,15 @@ Used to undo a pool implementation removal
 function removePoolImplementation(uint256 implementationsIndex) external nonpayable
 ```
 
-Used to remove a pool implementation 
+Used to remove a pool implementation
 
-*Marks a pool implementation as deprecated. This is a soft delete      preventing new pool deployments from using the implementation while      allowing upgrades to occur. emits PoolImplementationRemoved *
+*Marks a pool implementation as deprecated. This is a soft delete      preventing new pool deployments from using the implementation while      allowing upgrades to occur.emits PoolImplementationRemoved*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| implementationsIndex | uint256 | Index of pool to remove  |
+| implementationsIndex | uint256 | Index of pool to remove |
 
 ### renounceOwnership
 
@@ -553,9 +553,9 @@ function revokeRole(bytes32 role, address account) external nonpayable
 function setBaseRetirementRate(uint96 newRetirementRate) external nonpayable
 ```
 
-Allows pool fee managers to update the base retirement rate across pools 
+Allows pool fee managers to update the base retirement rate across pools
 
-*Requirements:     - Caller must have fee manager role emits BaseRetirementFeeUpdate *
+*Requirements:     - Caller must have fee manager roleemits BaseRetirementFeeUpdate*
 
 #### Parameters
 
@@ -569,9 +569,9 @@ Allows pool fee managers to update the base retirement rate across pools
 function setBaseWithdrawalRate(uint96 newWithdrawalRate) external nonpayable
 ```
 
-Allows pool fee managers to update the base withdrawal rate across pools 
+Allows pool fee managers to update the base withdrawal rate across pools
 
-*Requirements:     - Caller must have fee manager role emits BaseWithdrawalFeeUpdate *
+*Requirements:     - Caller must have fee manager roleemits BaseWithdrawalFeeUpdate*
 
 #### Parameters
 
@@ -585,9 +585,9 @@ Allows pool fee managers to update the base withdrawal rate across pools
 function setBaseWithdrawalSpecificRate(uint96 newWithdrawalRate) external nonpayable
 ```
 
-Allows pool fee managers to update the base withdrawal rate across pools 
+Allows pool fee managers to update the base withdrawal rate across pools
 
-*Requirements:     - Caller must have fee manager role     - Specific rate must be greater than base rate emits BaseWithdrawalFeeUpdate *
+*Requirements:     - Caller must have fee manager role     - Specific rate must be greater than base rateemits BaseWithdrawalFeeUpdate*
 
 #### Parameters
 
@@ -601,9 +601,9 @@ Allows pool fee managers to update the base withdrawal rate across pools
 function setFeeBeneficiary(address newFeeBeneficiary) external nonpayable
 ```
 
-Allows pool fee managers to update the beneficiary to receive pool fees         across all Jasmine pools 
+Allows pool fee managers to update the beneficiary to receive pool fees         across all Jasmine pools
 
-*Requirements:     - Caller must have fee manager role     - New beneficiary cannot be zero address emits BaseWithdrawalFeeUpdate &amp; BaseRetirementFeeUpdate *
+*Requirements:     - Caller must have fee manager role     - New beneficiary cannot be zero addressemits BaseWithdrawalFeeUpdate &amp; BaseRetirementFeeUpdate*
 
 #### Parameters
 
@@ -689,9 +689,9 @@ function uniswapFactory() external view returns (address)
 function updateImplementationAddress(address newPoolImplementation, uint256 poolIndex) external nonpayable
 ```
 
-Allows owner to update a pool implementation 
+Allows owner to update a pool implementation
 
-*emits PoolImplementationUpgraded *
+*emits PoolImplementationUpgraded*
 
 #### Parameters
 
@@ -706,9 +706,9 @@ Allows owner to update a pool implementation
 function updatePoolsBaseURI(string newPoolsURI) external nonpayable
 ```
 
-Allows pool managers to update the base URI of pools 
+Allows pool managers to update the base URI of pools
 
-*No validation is done on the new URI. Onus is on caller to ensure the new      URI is valid emits PoolsBaseURIChanged *
+*No validation is done on the new URI. Onus is on caller to ensure the new      URI is validemits PoolsBaseURIChanged*
 
 #### Parameters
 
