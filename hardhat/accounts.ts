@@ -6,7 +6,8 @@ import { forkNetworkName } from "./networks";
 import { PERMIT2_ADDRESS } from "@uniswap/permit2-sdk";
 
 const mnemonic =
-  process.env.MNEMONIC ?? "tattoo clip ankle prefer cruise car motion borrow bread future legal system";
+  process.env.MNEMONIC ??
+  "tattoo clip ankle prefer cruise car motion borrow bread future legal system";
 export const accounts = {
   mnemonic: mnemonic,
   path: "m/44'/60'/0'/0",
@@ -73,6 +74,36 @@ export const namedAccounts = {
     // Account # 9
     hardhat: "0x16C638286AC9777ddb57Db734C34919E80346474",
     localhost: "0x16C638286AC9777ddb57Db734C34919E80346474",
+  },
+  // Pool contracts
+  poolFactory: {
+    polygon: "0xD473bf49B43eA97315aAe69C28ad326B983418B7",
+    mumbai: "0x66e04bc791c2BE81639bC277A813D782a967aBE7",
+    get localhost() {
+      return this[forkNetworkName as "polygon" | "mumbai"];
+    },
+    get hardhat() {
+      return this[forkNetworkName as "polygon" | "mumbai"];
+    },
+  },
+  retirementService: {
+    polygon: "0xEFaD364eae9db7F11F8A9205c3f7bf4D06cdF54a",
+    mumbai: "0x8a654E827Df68ed727F23C7a82e75eaC9e7999Bd",
+    get localhost() {
+      return this[forkNetworkName as "polygon" | "mumbai"];
+    },
+    get hardhat() {
+      return this[forkNetworkName as "polygon" | "mumbai"];
+    },
+  },
+  poolImplV1: {
+    polygon: "0x2E747f832d6C36922176F422D78CD2C962f5aa96",
+    mumbai: "0xfd82bb56a9c6b86709a6bcfae9f3b58253c966ef",
+  },
+  // Deployed pools
+  frontHalfPool: {
+    polygon: "0x81A5Fbb9A131C104627B055d074c46d21576cF4a",
+    mumbai: "0x1Fd4Dc2027C1Cfae1D5a09073809f3f3F97d93dd",
   },
   // Core contracts
   eat: {
