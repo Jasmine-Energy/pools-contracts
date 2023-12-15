@@ -527,13 +527,13 @@ function selectWithdrawTokens(uint256 amount) external view returns (uint256[] t
 
 
 
-*Internal function to select tokens to withdraw from the contract *
+*Internal function to select tokens to withdraw from the contract*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| amount | uint256 | Number of tokens to withdraw from contract  |
+| amount | uint256 | Number of tokens to withdraw from contract |
 
 #### Returns
 

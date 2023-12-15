@@ -40,7 +40,7 @@ async function main() {
   const poolSymbol = "JLT-B23";
   const vintagePeriod = [
     1688169600, // Jul 01 2023 00:00:00 GMT
-    1703980801, // Dec 31 2023 00:00:01 GMT
+    1703980800, // Dec 31 2023 00:00:00 GMT
   ] as [number, number];
   const techType = AnyField;
   const registry = AnyField;

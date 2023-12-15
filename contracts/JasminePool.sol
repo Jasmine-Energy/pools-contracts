@@ -29,7 +29,7 @@ import {IJasmineOracle} from "./interfaces/core/IJasmineOracle.sol";
 import {PoolPolicy} from "./libraries/PoolPolicy.sol";
 
 /**
- * @title Jasmine Reference Pool
+ * @title Jasmine Reference Pool V2
  * @author Kai Aldag<kai.aldag@jasmine.energy>
  * @notice Jasmine Liquidity Pools allow users to deposit Jasmine EAT tokens into a
  *         pool and receive - pool specific - Jasmine Liquidity Tokens (JLT) in return.
@@ -60,18 +60,18 @@ contract JasminePool is JasmineBasePool, JasmineFeePool {
      * @param _eat Address of the Jasmine Energy Attribution Token (EAT) contract
      * @param _oracle Address of the Jasmine Oracle contract
      * @param _poolFactory Address of the Jasmine Pool Factory contract
-     * @param _minter Address of the Jasmine Minter address
+     * @param _retirementService Address of the Jasmine Minter address
      */
     constructor(
         address _eat,
         address _oracle,
         address _poolFactory,
-        address _minter
+        address _retirementService
     )
         JasmineFeePool(
             _eat,
             _poolFactory,
-            _minter,
+            _retirementService,
             "Jasmine Liquidity Pool (V1)"
         )
     {

@@ -20,7 +20,7 @@ async function main() {
     poolFactory: poolFactoryAddress,
     eat,
     oracle,
-    minter,
+    retirementService,
   } = await getNamedAccounts();
   const managerSigner = await ethers.getSigner(poolManager);
   const deployedFactory = await deployments.getOrNull(Contracts.factory);
@@ -60,11 +60,11 @@ async function main() {
     eat,
     oracle,
     poolFactoryAddress ?? deployedFactory.address,
-    minter
+    retirementService
   );
 
   colouredLog.green(
-    `Deployed new pool implementation at: ${deployedPoolImpl.address}`
+    `Deployed new pool implementation at: ${deployedPoolImpl.address} with transaction: ${deployedPoolImpl.deployTransaction.hash}`
   );
 
   const deployedPoolImplTx = await deployedPoolImpl.deployTransaction.wait();
@@ -74,19 +74,28 @@ async function main() {
     address: deployedPoolImpl.address,
     transactionHash: deployedPoolImpl.deployTransaction.hash,
     receipt: deployedPoolImplTx,
-    args: [eat, oracle, poolFactoryAddress ?? deployedFactory.address, minter],
+    args: [
+      eat,
+      oracle,
+      poolFactoryAddress ?? deployedFactory.address,
+      retirementService,
+    ],
   });
 
   // Wait 30 seconds for the contract to be deployed
-  await delay(15 * 1_000);
+  await delay(30 * 1_000);
 
   const addPoolImplTx = await poolFactory.addPoolImplementation(
     deployedPoolImpl.address
   );
-  await addPoolImplTx.wait();
+  const addPoolReceipt = await addPoolImplTx.wait();
+
+  const poolVersion = addPoolReceipt.events
+    ?.find((e) => e.event === "PoolImplementationAdded")
+    ?.args?.at(2);
 
   colouredLog.green(
-    `Added new pool implementation to factory at: ${poolFactory.address}`
+    `Added new pool implementation to factory at: ${poolFactory.address} with version: ${poolVersion}`
   );
 }
 

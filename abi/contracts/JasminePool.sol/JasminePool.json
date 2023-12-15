@@ -18,7 +18,7 @@
       },
       {
         "internalType": "address",
-        "name": "_minter",
+        "name": "_retirementService",
         "type": "address"
       }
     ],
