@@ -12,7 +12,6 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
-    "composite": true,
     "noImplicitThis": false,
     "skipLibCheck": true,
     "strict": true,
