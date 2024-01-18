@@ -23,6 +23,7 @@
     }
   },
   "include": [
+    "./package.json",
     "./src",
     "./hardhat.config.ts",
     "./hardhat",

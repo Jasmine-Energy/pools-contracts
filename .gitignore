@@ -15,6 +15,12 @@ coverage.json
 typechain/*
 !typechain/contracts
 typechain/contracts/test
+!typechain/factories
+typechain/factories/@uniswap
+typechain/factories/@openzeppelin
+typechain/factories/@crytic
+typechain/factories/@jasmine-energy
+typechain/factories/index.ts
 typechain-types
 gasReports
 .openzeppelin
