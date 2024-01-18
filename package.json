@@ -6,6 +6,7 @@
   "license": "BUSL-1.1",
   "private": true,
   "author": "Kai Aldag <kai.aldag@jasmine.energy>",
+  "type": "module",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "exports": {
