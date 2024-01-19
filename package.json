@@ -6,8 +6,7 @@
   "license": "BUSL-1.1",
   "private": true,
   "author": "Kai Aldag <kai.aldag@jasmine.energy>",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "src/index.ts",
   "scripts": {
     "prestart": "yarn build:sol:nodocs",
     "start": "npx hardhat node --network hardhat --nocompile --silent",
