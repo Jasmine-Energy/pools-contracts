@@ -13,7 +13,7 @@
     "start": "npx hardhat node --network hardhat --nocompile --silent",
     "postinstall": "yarn build:ts",
     "build": "yarn build:sol --force && yarn build:ts",
-    "build:ts": "tsc -p tsconfig.build.json",
+    "build:ts": "npx tsc -p tsconfig.build.json",
     "build:sol": "npx hardhat compile",
     "build:sol:nodocs": "npx hardhat compile --no-dodoc",
     "test": "npx hardhat test --network hardhat",
