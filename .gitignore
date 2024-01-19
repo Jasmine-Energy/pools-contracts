@@ -12,15 +12,17 @@ deployments/*
 !deployments/polygon
 coverage
 coverage.json
-typechain/*
-!typechain/contracts
-typechain/contracts/test
-!typechain/factories
-typechain/factories/@uniswap
-typechain/factories/@openzeppelin
-typechain/factories/@crytic
-typechain/factories/@jasmine-energy
-typechain/factories/index.ts
+# Commented out for now
+# typechain/*
+# !typechain/contracts
+# typechain/contracts/test
+# !typechain/factories
+# typechain/factories/contracts/test
+# typechain/factories/@uniswap
+# typechain/factories/@openzeppelin
+# typechain/factories/@crytic
+# typechain/factories/@jasmine-energy
+# typechain/factories/index.ts
 typechain-types
 gasReports
 .openzeppelin

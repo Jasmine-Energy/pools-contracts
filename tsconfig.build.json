@@ -31,7 +31,8 @@
     "./tasks",
     "./types",
     "./utils",
-    "./typechain",
+    "./typechain/contracts",
+    "./typechain/factories/contracts",
     "./abi/**/*.json"
   ]
 }

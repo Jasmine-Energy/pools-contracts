@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { Contracts, colouredLog } from "@/utils";
-import { JasminePoolFactory } from "@/typechain";
+import { JasminePoolFactory, JasminePoolFactory__factory } from "@/typechain";
 import { AnyField } from "@/utils/constants";
 import {
   CertificateEndorsement,
@@ -32,6 +32,7 @@ const deployFactory: DeployFunction = async function ({
     uniswapPoolFactory,
     USDC,
   } = await getNamedAccounts();
+  const deployerSigner = await ethers.getSigner(deployer);
 
   let tokenBaseURI: string;
   if (network.name === "polygon") {
@@ -56,15 +57,28 @@ const deployFactory: DeployFunction = async function ({
   ];
 
   // 2. Deploy Pool Factory Contract
-  const Factory = await ethers.getContractFactory(Contracts.factory);
+  const Factory = await ethers.getContractFactory(
+    Contracts.factory,
+    deployerSigner
+  );
   const factory = await upgrades.deployProxy(Factory, initializerArgs, {
-    deployer,
     kind: "uups",
     constructorArgs,
     unsafeAllow: ["state-variable-immutable", "constructor"],
   });
 
-  await save(Contracts.factory, factory);
+  const implementationAddress = await upgrades.erc1967.getImplementationAddress(
+    factory.address
+  );
+
+  await save(Contracts.factory, {
+    abi: JasminePoolFactory__factory.abi as unknown as any[],
+    address: factory.address,
+    bytecode: factory.bytecode,
+    transactionHash: factory.tx,
+    implementation: implementationAddress,
+    args: constructorArgs,
+  });
 
   if (network.tags["public"]) {
     if (network.name === "polygon") {
@@ -84,10 +98,6 @@ const deployFactory: DeployFunction = async function ({
       await delay(30 * 1_000);
     }
   }
-
-  const implementationAddress = await upgrades.erc1967.getImplementationAddress(
-    factory.address
-  );
 
   colouredLog.blue(
     `Deployed factory to: ${factory.address} implementation: ${implementationAddress}`

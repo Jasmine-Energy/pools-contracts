@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   ERC1155Errors,
   ERC1155ErrorsInterface,
@@ -116,12 +117,12 @@ const _abi = [
 export class ERC1155Errors__factory {
   static readonly abi = _abi;
   static createInterface(): ERC1155ErrorsInterface {
-    return new Interface(_abi) as ERC1155ErrorsInterface;
+    return new utils.Interface(_abi) as ERC1155ErrorsInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): ERC1155Errors {
-    return new Contract(address, _abi, runner) as unknown as ERC1155Errors;
+    return new Contract(address, _abi, signerOrProvider) as ERC1155Errors;
   }
 }

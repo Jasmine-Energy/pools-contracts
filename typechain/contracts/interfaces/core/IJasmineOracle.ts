@@ -3,26 +3,36 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../../common";
 
-export interface IJasmineOracleInterface extends Interface {
+export interface IJasmineOracleInterface extends utils.Interface {
+  functions: {
+    "getUUID(uint256)": FunctionFragment;
+    "hasCertificateType(uint256,uint256)": FunctionFragment;
+    "hasEndorsement(uint256,uint256)": FunctionFragment;
+    "hasFuel(uint256,uint256)": FunctionFragment;
+    "hasRegistry(uint256,uint256)": FunctionFragment;
+    "hasVintage(uint256,uint256,uint256)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "getUUID"
       | "hasCertificateType"
       | "hasEndorsement"
@@ -33,27 +43,31 @@ export interface IJasmineOracleInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "getUUID",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "hasCertificateType",
-    values: [BigNumberish, BigNumberish]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "hasEndorsement",
-    values: [BigNumberish, BigNumberish]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "hasFuel",
-    values: [BigNumberish, BigNumberish]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "hasRegistry",
-    values: [BigNumberish, BigNumberish]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "hasVintage",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
 
   decodeFunctionResult(functionFragment: "getUUID", data: BytesLike): Result;
@@ -71,125 +85,223 @@ export interface IJasmineOracleInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "hasVintage", data: BytesLike): Result;
+
+  events: {};
 }
 
 export interface IJasmineOracle extends BaseContract {
-  connect(runner?: ContractRunner | null): IJasmineOracle;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IJasmineOracleInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    getUUID(
+      id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    hasCertificateType(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  getUUID: TypedContractMethod<[id: BigNumberish], [bigint], "view">;
+    hasEndorsement(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  hasCertificateType: TypedContractMethod<
-    [id: BigNumberish, query: BigNumberish],
-    [boolean],
-    "view"
-  >;
+    hasFuel(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  hasEndorsement: TypedContractMethod<
-    [id: BigNumberish, query: BigNumberish],
-    [boolean],
-    "view"
-  >;
+    hasRegistry(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  hasFuel: TypedContractMethod<
-    [id: BigNumberish, query: BigNumberish],
-    [boolean],
-    "view"
-  >;
+    hasVintage(
+      id: PromiseOrValue<BigNumberish>,
+      min: PromiseOrValue<BigNumberish>,
+      max: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+  };
 
-  hasRegistry: TypedContractMethod<
-    [id: BigNumberish, query: BigNumberish],
-    [boolean],
-    "view"
-  >;
+  getUUID(
+    id: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  hasVintage: TypedContractMethod<
-    [id: BigNumberish, min: BigNumberish, max: BigNumberish],
-    [boolean],
-    "view"
-  >;
+  hasCertificateType(
+    id: PromiseOrValue<BigNumberish>,
+    query: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  hasEndorsement(
+    id: PromiseOrValue<BigNumberish>,
+    query: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  getFunction(
-    nameOrSignature: "getUUID"
-  ): TypedContractMethod<[id: BigNumberish], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "hasCertificateType"
-  ): TypedContractMethod<
-    [id: BigNumberish, query: BigNumberish],
-    [boolean],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "hasEndorsement"
-  ): TypedContractMethod<
-    [id: BigNumberish, query: BigNumberish],
-    [boolean],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "hasFuel"
-  ): TypedContractMethod<
-    [id: BigNumberish, query: BigNumberish],
-    [boolean],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "hasRegistry"
-  ): TypedContractMethod<
-    [id: BigNumberish, query: BigNumberish],
-    [boolean],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "hasVintage"
-  ): TypedContractMethod<
-    [id: BigNumberish, min: BigNumberish, max: BigNumberish],
-    [boolean],
-    "view"
-  >;
+  hasFuel(
+    id: PromiseOrValue<BigNumberish>,
+    query: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  hasRegistry(
+    id: PromiseOrValue<BigNumberish>,
+    query: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  hasVintage(
+    id: PromiseOrValue<BigNumberish>,
+    min: PromiseOrValue<BigNumberish>,
+    max: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  callStatic: {
+    getUUID(
+      id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    hasCertificateType(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    hasEndorsement(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    hasFuel(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    hasRegistry(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    hasVintage(
+      id: PromiseOrValue<BigNumberish>,
+      min: PromiseOrValue<BigNumberish>,
+      max: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+  };
 
   filters: {};
+
+  estimateGas: {
+    getUUID(
+      id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    hasCertificateType(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    hasEndorsement(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    hasFuel(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    hasRegistry(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    hasVintage(
+      id: PromiseOrValue<BigNumberish>,
+      min: PromiseOrValue<BigNumberish>,
+      max: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    getUUID(
+      id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    hasCertificateType(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    hasEndorsement(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    hasFuel(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    hasRegistry(
+      id: PromiseOrValue<BigNumberish>,
+      query: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    hasVintage(
+      id: PromiseOrValue<BigNumberish>,
+      min: PromiseOrValue<BigNumberish>,
+      max: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+  };
 }

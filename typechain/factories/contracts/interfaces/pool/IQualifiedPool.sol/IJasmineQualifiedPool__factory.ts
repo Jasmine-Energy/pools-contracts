@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IJasmineQualifiedPool,
   IJasmineQualifiedPoolInterface,
@@ -63,16 +64,16 @@ const _abi = [
 export class IJasmineQualifiedPool__factory {
   static readonly abi = _abi;
   static createInterface(): IJasmineQualifiedPoolInterface {
-    return new Interface(_abi) as IJasmineQualifiedPoolInterface;
+    return new utils.Interface(_abi) as IJasmineQualifiedPoolInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): IJasmineQualifiedPool {
     return new Contract(
       address,
       _abi,
-      runner
-    ) as unknown as IJasmineQualifiedPool;
+      signerOrProvider
+    ) as IJasmineQualifiedPool;
   }
 }

@@ -3,53 +3,103 @@
 /* eslint-disable */
 import type {
   BaseContract,
+  BigNumber,
   BigNumberish,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PayableOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../common";
 
 export declare namespace PoolPolicy {
   export type DepositPolicyStruct = {
-    vintagePeriod: [BigNumberish, BigNumberish];
-    techType: BigNumberish;
-    registry: BigNumberish;
-    certificateType: BigNumberish;
-    endorsement: BigNumberish;
+    vintagePeriod: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>];
+    techType: PromiseOrValue<BigNumberish>;
+    registry: PromiseOrValue<BigNumberish>;
+    certificateType: PromiseOrValue<BigNumberish>;
+    endorsement: PromiseOrValue<BigNumberish>;
   };
 
   export type DepositPolicyStructOutput = [
-    vintagePeriod: [bigint, bigint],
-    techType: bigint,
-    registry: bigint,
-    certificateType: bigint,
-    endorsement: bigint
+    [BigNumber, BigNumber],
+    number,
+    number,
+    number,
+    number
   ] & {
-    vintagePeriod: [bigint, bigint];
-    techType: bigint;
-    registry: bigint;
-    certificateType: bigint;
-    endorsement: bigint;
+    vintagePeriod: [BigNumber, BigNumber];
+    techType: number;
+    registry: number;
+    certificateType: number;
+    endorsement: number;
   };
 }
 
-export interface JasminePoolFactoryInterface extends Interface {
+export interface JasminePoolFactoryInterface extends utils.Interface {
+  functions: {
+    "DEFAULT_ADMIN_ROLE()": FunctionFragment;
+    "FEE_MANAGER_ROLE()": FunctionFragment;
+    "POOL_MANAGER_ROLE()": FunctionFragment;
+    "UNISWAP_FEE_TIER()": FunctionFragment;
+    "acceptOwnership()": FunctionFragment;
+    "addPoolImplementation(address)": FunctionFragment;
+    "baseRetirementRate()": FunctionFragment;
+    "baseWithdrawalRate()": FunctionFragment;
+    "baseWithdrawalSpecificRate()": FunctionFragment;
+    "computePoolAddress(bytes32)": FunctionFragment;
+    "deployNewBasePool((uint56[2],uint32,uint32,uint32,uint32),string,string,uint160)": FunctionFragment;
+    "deployNewPool(uint256,bytes4,bytes,string,string,uint160)": FunctionFragment;
+    "eligiblePoolsForToken(uint256)": FunctionFragment;
+    "feeBeneficiary()": FunctionFragment;
+    "getPoolAtIndex(uint256)": FunctionFragment;
+    "getRoleAdmin(bytes32)": FunctionFragment;
+    "grantRole(bytes32,address)": FunctionFragment;
+    "hasFeeManagerRole(address)": FunctionFragment;
+    "hasRole(bytes32,address)": FunctionFragment;
+    "initialize(address,address,address,address,address,string)": FunctionFragment;
+    "owner()": FunctionFragment;
+    "pendingOwner()": FunctionFragment;
+    "poolsBaseURI()": FunctionFragment;
+    "proxiableUUID()": FunctionFragment;
+    "readdPoolImplementation(uint256)": FunctionFragment;
+    "removePoolImplementation(uint256)": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
+    "renounceRole(bytes32,address)": FunctionFragment;
+    "revokeRole(bytes32,address)": FunctionFragment;
+    "setBaseRetirementRate(uint96)": FunctionFragment;
+    "setBaseWithdrawalRate(uint96)": FunctionFragment;
+    "setBaseWithdrawalSpecificRate(uint96)": FunctionFragment;
+    "setFeeBeneficiary(address)": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
+    "totalPools()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+    "uniswapFactory()": FunctionFragment;
+    "updateImplementationAddress(address,uint256)": FunctionFragment;
+    "updatePoolsBaseURI(string)": FunctionFragment;
+    "upgradeTo(address)": FunctionFragment;
+    "upgradeToAndCall(address,bytes)": FunctionFragment;
+    "usdc()": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "DEFAULT_ADMIN_ROLE"
       | "FEE_MANAGER_ROLE"
       | "POOL_MANAGER_ROLE"
@@ -94,26 +144,6 @@ export interface JasminePoolFactoryInterface extends Interface {
       | "usdc"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "AdminChanged"
-      | "BaseRetirementFeeUpdate"
-      | "BaseWithdrawalFeeUpdate"
-      | "BeaconUpgraded"
-      | "Initialized"
-      | "OwnershipTransferStarted"
-      | "OwnershipTransferred"
-      | "PoolCreated"
-      | "PoolImplementationAdded"
-      | "PoolImplementationRemoved"
-      | "PoolImplementationUpgraded"
-      | "PoolsBaseURIChanged"
-      | "RoleAdminChanged"
-      | "RoleGranted"
-      | "RoleRevoked"
-      | "Upgraded"
-  ): EventFragment;
-
   encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
     values?: undefined
@@ -136,7 +166,7 @@ export interface JasminePoolFactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "addPoolImplementation",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "baseRetirementRate",
@@ -152,19 +182,31 @@ export interface JasminePoolFactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "computePoolAddress",
-    values: [BytesLike]
+    values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "deployNewBasePool",
-    values: [PoolPolicy.DepositPolicyStruct, string, string, BigNumberish]
+    values: [
+      PoolPolicy.DepositPolicyStruct,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "deployNewPool",
-    values: [BigNumberish, BytesLike, BytesLike, string, string, BigNumberish]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "eligiblePoolsForToken",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "feeBeneficiary",
@@ -172,33 +214,33 @@ export interface JasminePoolFactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolAtIndex",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
-    values: [BytesLike]
+    values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "grantRole",
-    values: [BytesLike, AddressLike]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "hasFeeManagerRole",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "hasRole",
-    values: [BytesLike, AddressLike]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "initialize",
     values: [
-      AddressLike,
-      AddressLike,
-      AddressLike,
-      AddressLike,
-      AddressLike,
-      string
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
     ]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -216,11 +258,11 @@ export interface JasminePoolFactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "readdPoolImplementation",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "removePoolImplementation",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -228,31 +270,31 @@ export interface JasminePoolFactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
-    values: [BytesLike, AddressLike]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "revokeRole",
-    values: [BytesLike, AddressLike]
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setBaseRetirementRate",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "setBaseWithdrawalRate",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "setBaseWithdrawalSpecificRate",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "setFeeBeneficiary",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
-    values: [BytesLike]
+    values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "totalPools",
@@ -260,7 +302,7 @@ export interface JasminePoolFactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "uniswapFactory",
@@ -268,19 +310,19 @@ export interface JasminePoolFactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateImplementationAddress",
-    values: [AddressLike, BigNumberish]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "updatePoolsBaseURI",
-    values: [string]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "upgradeTo",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "upgradeToAndCall",
-    values: [AddressLike, BytesLike]
+    values: [PromiseOrValue<string>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(functionFragment: "usdc", values?: undefined): string;
 
@@ -428,1021 +470,1321 @@ export interface JasminePoolFactoryInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "usdc", data: BytesLike): Result;
+
+  events: {
+    "AdminChanged(address,address)": EventFragment;
+    "BaseRetirementFeeUpdate(uint96,address)": EventFragment;
+    "BaseWithdrawalFeeUpdate(uint96,address,bool)": EventFragment;
+    "BeaconUpgraded(address)": EventFragment;
+    "Initialized(uint8)": EventFragment;
+    "OwnershipTransferStarted(address,address)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
+    "PoolCreated(bytes,address,string,string)": EventFragment;
+    "PoolImplementationAdded(address,address,uint256)": EventFragment;
+    "PoolImplementationRemoved(address,uint256)": EventFragment;
+    "PoolImplementationUpgraded(address,address,uint256)": EventFragment;
+    "PoolsBaseURIChanged(string,string)": EventFragment;
+    "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
+    "RoleGranted(bytes32,address,address)": EventFragment;
+    "RoleRevoked(bytes32,address,address)": EventFragment;
+    "Upgraded(address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "AdminChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "BaseRetirementFeeUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "BaseWithdrawalFeeUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "BeaconUpgraded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferStarted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PoolCreated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PoolImplementationAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PoolImplementationRemoved"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PoolImplementationUpgraded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PoolsBaseURIChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Upgraded"): EventFragment;
 }
 
-export namespace AdminChangedEvent {
-  export type InputTuple = [previousAdmin: AddressLike, newAdmin: AddressLike];
-  export type OutputTuple = [previousAdmin: string, newAdmin: string];
-  export interface OutputObject {
-    previousAdmin: string;
-    newAdmin: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface AdminChangedEventObject {
+  previousAdmin: string;
+  newAdmin: string;
 }
+export type AdminChangedEvent = TypedEvent<
+  [string, string],
+  AdminChangedEventObject
+>;
 
-export namespace BaseRetirementFeeUpdateEvent {
-  export type InputTuple = [
-    retirementRateBips: BigNumberish,
-    beneficiary: AddressLike
-  ];
-  export type OutputTuple = [retirementRateBips: bigint, beneficiary: string];
-  export interface OutputObject {
-    retirementRateBips: bigint;
-    beneficiary: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type AdminChangedEventFilter = TypedEventFilter<AdminChangedEvent>;
 
-export namespace BaseWithdrawalFeeUpdateEvent {
-  export type InputTuple = [
-    withdrawRateBips: BigNumberish,
-    beneficiary: AddressLike,
-    specific: boolean
-  ];
-  export type OutputTuple = [
-    withdrawRateBips: bigint,
-    beneficiary: string,
-    specific: boolean
-  ];
-  export interface OutputObject {
-    withdrawRateBips: bigint;
-    beneficiary: string;
-    specific: boolean;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface BaseRetirementFeeUpdateEventObject {
+  retirementRateBips: BigNumber;
+  beneficiary: string;
 }
+export type BaseRetirementFeeUpdateEvent = TypedEvent<
+  [BigNumber, string],
+  BaseRetirementFeeUpdateEventObject
+>;
 
-export namespace BeaconUpgradedEvent {
-  export type InputTuple = [beacon: AddressLike];
-  export type OutputTuple = [beacon: string];
-  export interface OutputObject {
-    beacon: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type BaseRetirementFeeUpdateEventFilter =
+  TypedEventFilter<BaseRetirementFeeUpdateEvent>;
 
-export namespace InitializedEvent {
-  export type InputTuple = [version: BigNumberish];
-  export type OutputTuple = [version: bigint];
-  export interface OutputObject {
-    version: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface BaseWithdrawalFeeUpdateEventObject {
+  withdrawRateBips: BigNumber;
+  beneficiary: string;
+  specific: boolean;
 }
+export type BaseWithdrawalFeeUpdateEvent = TypedEvent<
+  [BigNumber, string, boolean],
+  BaseWithdrawalFeeUpdateEventObject
+>;
 
-export namespace OwnershipTransferStartedEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type BaseWithdrawalFeeUpdateEventFilter =
+  TypedEventFilter<BaseWithdrawalFeeUpdateEvent>;
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface BeaconUpgradedEventObject {
+  beacon: string;
 }
+export type BeaconUpgradedEvent = TypedEvent<
+  [string],
+  BeaconUpgradedEventObject
+>;
 
-export namespace PoolCreatedEvent {
-  export type InputTuple = [
-    policy: BytesLike,
-    pool: AddressLike,
-    name: string,
-    symbol: string
-  ];
-  export type OutputTuple = [
-    policy: string,
-    pool: string,
-    name: string,
-    symbol: string
-  ];
-  export interface OutputObject {
-    policy: string;
-    pool: string;
-    name: string;
-    symbol: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type BeaconUpgradedEventFilter = TypedEventFilter<BeaconUpgradedEvent>;
 
-export namespace PoolImplementationAddedEvent {
-  export type InputTuple = [
-    poolImplementation: AddressLike,
-    beaconAddress: AddressLike,
-    poolIndex: BigNumberish
-  ];
-  export type OutputTuple = [
-    poolImplementation: string,
-    beaconAddress: string,
-    poolIndex: bigint
-  ];
-  export interface OutputObject {
-    poolImplementation: string;
-    beaconAddress: string;
-    poolIndex: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface InitializedEventObject {
+  version: number;
 }
+export type InitializedEvent = TypedEvent<[number], InitializedEventObject>;
 
-export namespace PoolImplementationRemovedEvent {
-  export type InputTuple = [
-    beaconAddress: AddressLike,
-    poolIndex: BigNumberish
-  ];
-  export type OutputTuple = [beaconAddress: string, poolIndex: bigint];
-  export interface OutputObject {
-    beaconAddress: string;
-    poolIndex: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
 
-export namespace PoolImplementationUpgradedEvent {
-  export type InputTuple = [
-    newPoolImplementation: AddressLike,
-    beaconAddress: AddressLike,
-    poolIndex: BigNumberish
-  ];
-  export type OutputTuple = [
-    newPoolImplementation: string,
-    beaconAddress: string,
-    poolIndex: bigint
-  ];
-  export interface OutputObject {
-    newPoolImplementation: string;
-    beaconAddress: string;
-    poolIndex: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface OwnershipTransferStartedEventObject {
+  previousOwner: string;
+  newOwner: string;
 }
+export type OwnershipTransferStartedEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferStartedEventObject
+>;
 
-export namespace PoolsBaseURIChangedEvent {
-  export type InputTuple = [newBaseURI: string, oldBaseURI: string];
-  export type OutputTuple = [newBaseURI: string, oldBaseURI: string];
-  export interface OutputObject {
-    newBaseURI: string;
-    oldBaseURI: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type OwnershipTransferStartedEventFilter =
+  TypedEventFilter<OwnershipTransferStartedEvent>;
 
-export namespace RoleAdminChangedEvent {
-  export type InputTuple = [
-    role: BytesLike,
-    previousAdminRole: BytesLike,
-    newAdminRole: BytesLike
-  ];
-  export type OutputTuple = [
-    role: string,
-    previousAdminRole: string,
-    newAdminRole: string
-  ];
-  export interface OutputObject {
-    role: string;
-    previousAdminRole: string;
-    newAdminRole: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface OwnershipTransferredEventObject {
+  previousOwner: string;
+  newOwner: string;
 }
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
 
-export namespace RoleGrantedEvent {
-  export type InputTuple = [
-    role: BytesLike,
-    account: AddressLike,
-    sender: AddressLike
-  ];
-  export type OutputTuple = [role: string, account: string, sender: string];
-  export interface OutputObject {
-    role: string;
-    account: string;
-    sender: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
 
-export namespace RoleRevokedEvent {
-  export type InputTuple = [
-    role: BytesLike,
-    account: AddressLike,
-    sender: AddressLike
-  ];
-  export type OutputTuple = [role: string, account: string, sender: string];
-  export interface OutputObject {
-    role: string;
-    account: string;
-    sender: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface PoolCreatedEventObject {
+  policy: string;
+  pool: string;
+  name: string;
+  symbol: string;
 }
+export type PoolCreatedEvent = TypedEvent<
+  [string, string, string, string],
+  PoolCreatedEventObject
+>;
 
-export namespace UpgradedEvent {
-  export type InputTuple = [implementation: AddressLike];
-  export type OutputTuple = [implementation: string];
-  export interface OutputObject {
-    implementation: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type PoolCreatedEventFilter = TypedEventFilter<PoolCreatedEvent>;
+
+export interface PoolImplementationAddedEventObject {
+  poolImplementation: string;
+  beaconAddress: string;
+  poolIndex: BigNumber;
 }
+export type PoolImplementationAddedEvent = TypedEvent<
+  [string, string, BigNumber],
+  PoolImplementationAddedEventObject
+>;
+
+export type PoolImplementationAddedEventFilter =
+  TypedEventFilter<PoolImplementationAddedEvent>;
+
+export interface PoolImplementationRemovedEventObject {
+  beaconAddress: string;
+  poolIndex: BigNumber;
+}
+export type PoolImplementationRemovedEvent = TypedEvent<
+  [string, BigNumber],
+  PoolImplementationRemovedEventObject
+>;
+
+export type PoolImplementationRemovedEventFilter =
+  TypedEventFilter<PoolImplementationRemovedEvent>;
+
+export interface PoolImplementationUpgradedEventObject {
+  newPoolImplementation: string;
+  beaconAddress: string;
+  poolIndex: BigNumber;
+}
+export type PoolImplementationUpgradedEvent = TypedEvent<
+  [string, string, BigNumber],
+  PoolImplementationUpgradedEventObject
+>;
+
+export type PoolImplementationUpgradedEventFilter =
+  TypedEventFilter<PoolImplementationUpgradedEvent>;
+
+export interface PoolsBaseURIChangedEventObject {
+  newBaseURI: string;
+  oldBaseURI: string;
+}
+export type PoolsBaseURIChangedEvent = TypedEvent<
+  [string, string],
+  PoolsBaseURIChangedEventObject
+>;
+
+export type PoolsBaseURIChangedEventFilter =
+  TypedEventFilter<PoolsBaseURIChangedEvent>;
+
+export interface RoleAdminChangedEventObject {
+  role: string;
+  previousAdminRole: string;
+  newAdminRole: string;
+}
+export type RoleAdminChangedEvent = TypedEvent<
+  [string, string, string],
+  RoleAdminChangedEventObject
+>;
+
+export type RoleAdminChangedEventFilter =
+  TypedEventFilter<RoleAdminChangedEvent>;
+
+export interface RoleGrantedEventObject {
+  role: string;
+  account: string;
+  sender: string;
+}
+export type RoleGrantedEvent = TypedEvent<
+  [string, string, string],
+  RoleGrantedEventObject
+>;
+
+export type RoleGrantedEventFilter = TypedEventFilter<RoleGrantedEvent>;
+
+export interface RoleRevokedEventObject {
+  role: string;
+  account: string;
+  sender: string;
+}
+export type RoleRevokedEvent = TypedEvent<
+  [string, string, string],
+  RoleRevokedEventObject
+>;
+
+export type RoleRevokedEventFilter = TypedEventFilter<RoleRevokedEvent>;
+
+export interface UpgradedEventObject {
+  implementation: string;
+}
+export type UpgradedEvent = TypedEvent<[string], UpgradedEventObject>;
+
+export type UpgradedEventFilter = TypedEventFilter<UpgradedEvent>;
 
 export interface JasminePoolFactory extends BaseContract {
-  connect(runner?: ContractRunner | null): JasminePoolFactory;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: JasminePoolFactoryInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    FEE_MANAGER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-  DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
+    POOL_MANAGER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-  FEE_MANAGER_ROLE: TypedContractMethod<[], [string], "view">;
+    UNISWAP_FEE_TIER(overrides?: CallOverrides): Promise<[number]>;
 
-  POOL_MANAGER_ROLE: TypedContractMethod<[], [string], "view">;
+    acceptOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  UNISWAP_FEE_TIER: TypedContractMethod<[], [bigint], "view">;
+    addPoolImplementation(
+      newPoolImplementation: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  acceptOwnership: TypedContractMethod<[], [void], "nonpayable">;
+    baseRetirementRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  addPoolImplementation: TypedContractMethod<
-    [newPoolImplementation: AddressLike],
-    [bigint],
-    "nonpayable"
-  >;
+    baseWithdrawalRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  baseRetirementRate: TypedContractMethod<[], [bigint], "view">;
+    baseWithdrawalSpecificRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  baseWithdrawalRate: TypedContractMethod<[], [bigint], "view">;
+    computePoolAddress(
+      policyHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { poolAddress: string }>;
 
-  baseWithdrawalSpecificRate: TypedContractMethod<[], [bigint], "view">;
-
-  computePoolAddress: TypedContractMethod<
-    [policyHash: BytesLike],
-    [string],
-    "view"
-  >;
-
-  deployNewBasePool: TypedContractMethod<
-    [
+    deployNewBasePool(
       policy: PoolPolicy.DepositPolicyStruct,
-      name: string,
-      symbol: string,
-      initialSqrtPriceX96: BigNumberish
-    ],
-    [string],
-    "nonpayable"
-  >;
+      name: PromiseOrValue<string>,
+      symbol: PromiseOrValue<string>,
+      initialSqrtPriceX96: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  deployNewPool: TypedContractMethod<
-    [
-      version: BigNumberish,
-      initSelector: BytesLike,
-      initData: BytesLike,
-      name: string,
-      symbol: string,
-      initialSqrtPriceX96: BigNumberish
-    ],
-    [string],
-    "nonpayable"
-  >;
+    deployNewPool(
+      version: PromiseOrValue<BigNumberish>,
+      initSelector: PromiseOrValue<BytesLike>,
+      initData: PromiseOrValue<BytesLike>,
+      name: PromiseOrValue<string>,
+      symbol: PromiseOrValue<string>,
+      initialSqrtPriceX96: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  eligiblePoolsForToken: TypedContractMethod<
-    [tokenId: BigNumberish],
-    [string[]],
-    "view"
-  >;
+    eligiblePoolsForToken(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string[]] & { pools: string[] }>;
 
-  feeBeneficiary: TypedContractMethod<[], [string], "view">;
+    feeBeneficiary(overrides?: CallOverrides): Promise<[string]>;
 
-  getPoolAtIndex: TypedContractMethod<[index: BigNumberish], [string], "view">;
+    getPoolAtIndex(
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { pool: string }>;
 
-  getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-  grantRole: TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    grantRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  hasFeeManagerRole: TypedContractMethod<
-    [account: AddressLike],
-    [boolean],
-    "view"
-  >;
+    hasFeeManagerRole(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean] & { isFeeManager: boolean }>;
 
-  hasRole: TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [boolean],
-    "view"
-  >;
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  initialize: TypedContractMethod<
-    [
-      _owner: AddressLike,
-      _poolImplementation: AddressLike,
-      _poolManager: AddressLike,
-      _feeManager: AddressLike,
-      _feeBeneficiary: AddressLike,
-      _tokensBaseURI: string
-    ],
-    [void],
-    "nonpayable"
-  >;
+    initialize(
+      _owner: PromiseOrValue<string>,
+      _poolImplementation: PromiseOrValue<string>,
+      _poolManager: PromiseOrValue<string>,
+      _feeManager: PromiseOrValue<string>,
+      _feeBeneficiary: PromiseOrValue<string>,
+      _tokensBaseURI: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  owner: TypedContractMethod<[], [string], "view">;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-  pendingOwner: TypedContractMethod<[], [string], "view">;
+    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
 
-  poolsBaseURI: TypedContractMethod<[], [string], "view">;
+    poolsBaseURI(
+      overrides?: CallOverrides
+    ): Promise<[string] & { baseURI: string }>;
 
-  proxiableUUID: TypedContractMethod<[], [string], "view">;
+    proxiableUUID(overrides?: CallOverrides): Promise<[string]>;
 
-  readdPoolImplementation: TypedContractMethod<
-    [implementationsIndex: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    readdPoolImplementation(
+      implementationsIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  removePoolImplementation: TypedContractMethod<
-    [implementationsIndex: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    removePoolImplementation(
+      implementationsIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  renounceOwnership: TypedContractMethod<[], [void], "view">;
+    renounceOwnership(overrides?: CallOverrides): Promise<[void]>;
 
-  renounceRole: TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  revokeRole: TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setBaseRetirementRate: TypedContractMethod<
-    [newRetirementRate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    setBaseRetirementRate(
+      newRetirementRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setBaseWithdrawalRate: TypedContractMethod<
-    [newWithdrawalRate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    setBaseWithdrawalRate(
+      newWithdrawalRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setBaseWithdrawalSpecificRate: TypedContractMethod<
-    [newWithdrawalRate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    setBaseWithdrawalSpecificRate(
+      newWithdrawalRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  setFeeBeneficiary: TypedContractMethod<
-    [newFeeBeneficiary: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    setFeeBeneficiary(
+      newFeeBeneficiary: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  supportsInterface: TypedContractMethod<
-    [interfaceId: BytesLike],
-    [boolean],
-    "view"
-  >;
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-  totalPools: TypedContractMethod<[], [bigint], "view">;
+    totalPools(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { numberOfPools: BigNumber }>;
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  uniswapFactory: TypedContractMethod<[], [string], "view">;
+    uniswapFactory(overrides?: CallOverrides): Promise<[string]>;
 
-  updateImplementationAddress: TypedContractMethod<
-    [newPoolImplementation: AddressLike, poolIndex: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+    updateImplementationAddress(
+      newPoolImplementation: PromiseOrValue<string>,
+      poolIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  updatePoolsBaseURI: TypedContractMethod<
-    [newPoolsURI: string],
-    [void],
-    "nonpayable"
-  >;
+    updatePoolsBaseURI(
+      newPoolsURI: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  upgradeTo: TypedContractMethod<
-    [newImplementation: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    upgradeTo(
+      newImplementation: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  upgradeToAndCall: TypedContractMethod<
-    [newImplementation: AddressLike, data: BytesLike],
-    [void],
-    "payable"
-  >;
+    upgradeToAndCall(
+      newImplementation: PromiseOrValue<string>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-  usdc: TypedContractMethod<[], [string], "view">;
+    usdc(overrides?: CallOverrides): Promise<[string]>;
+  };
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
-  getFunction(
-    nameOrSignature: "DEFAULT_ADMIN_ROLE"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "FEE_MANAGER_ROLE"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "POOL_MANAGER_ROLE"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "UNISWAP_FEE_TIER"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "acceptOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "addPoolImplementation"
-  ): TypedContractMethod<
-    [newPoolImplementation: AddressLike],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "baseRetirementRate"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "baseWithdrawalRate"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "baseWithdrawalSpecificRate"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "computePoolAddress"
-  ): TypedContractMethod<[policyHash: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "deployNewBasePool"
-  ): TypedContractMethod<
-    [
+  FEE_MANAGER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  POOL_MANAGER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  UNISWAP_FEE_TIER(overrides?: CallOverrides): Promise<number>;
+
+  acceptOwnership(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  addPoolImplementation(
+    newPoolImplementation: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  baseRetirementRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+  baseWithdrawalRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+  baseWithdrawalSpecificRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+  computePoolAddress(
+    policyHash: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  deployNewBasePool(
+    policy: PoolPolicy.DepositPolicyStruct,
+    name: PromiseOrValue<string>,
+    symbol: PromiseOrValue<string>,
+    initialSqrtPriceX96: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  deployNewPool(
+    version: PromiseOrValue<BigNumberish>,
+    initSelector: PromiseOrValue<BytesLike>,
+    initData: PromiseOrValue<BytesLike>,
+    name: PromiseOrValue<string>,
+    symbol: PromiseOrValue<string>,
+    initialSqrtPriceX96: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  eligiblePoolsForToken(
+    tokenId: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
+
+  feeBeneficiary(overrides?: CallOverrides): Promise<string>;
+
+  getPoolAtIndex(
+    index: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getRoleAdmin(
+    role: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  grantRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  hasFeeManagerRole(
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  hasRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  initialize(
+    _owner: PromiseOrValue<string>,
+    _poolImplementation: PromiseOrValue<string>,
+    _poolManager: PromiseOrValue<string>,
+    _feeManager: PromiseOrValue<string>,
+    _feeBeneficiary: PromiseOrValue<string>,
+    _tokensBaseURI: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+  poolsBaseURI(overrides?: CallOverrides): Promise<string>;
+
+  proxiableUUID(overrides?: CallOverrides): Promise<string>;
+
+  readdPoolImplementation(
+    implementationsIndex: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  removePoolImplementation(
+    implementationsIndex: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+  renounceRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  revokeRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setBaseRetirementRate(
+    newRetirementRate: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setBaseWithdrawalRate(
+    newWithdrawalRate: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setBaseWithdrawalSpecificRate(
+    newWithdrawalRate: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setFeeBeneficiary(
+    newFeeBeneficiary: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  supportsInterface(
+    interfaceId: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  totalPools(overrides?: CallOverrides): Promise<BigNumber>;
+
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  uniswapFactory(overrides?: CallOverrides): Promise<string>;
+
+  updateImplementationAddress(
+    newPoolImplementation: PromiseOrValue<string>,
+    poolIndex: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updatePoolsBaseURI(
+    newPoolsURI: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  upgradeTo(
+    newImplementation: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  upgradeToAndCall(
+    newImplementation: PromiseOrValue<string>,
+    data: PromiseOrValue<BytesLike>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  usdc(overrides?: CallOverrides): Promise<string>;
+
+  callStatic: {
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    FEE_MANAGER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    POOL_MANAGER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    UNISWAP_FEE_TIER(overrides?: CallOverrides): Promise<number>;
+
+    acceptOwnership(overrides?: CallOverrides): Promise<void>;
+
+    addPoolImplementation(
+      newPoolImplementation: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    baseRetirementRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    baseWithdrawalRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    baseWithdrawalSpecificRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    computePoolAddress(
+      policyHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    deployNewBasePool(
       policy: PoolPolicy.DepositPolicyStruct,
-      name: string,
-      symbol: string,
-      initialSqrtPriceX96: BigNumberish
-    ],
-    [string],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "deployNewPool"
-  ): TypedContractMethod<
-    [
-      version: BigNumberish,
-      initSelector: BytesLike,
-      initData: BytesLike,
-      name: string,
-      symbol: string,
-      initialSqrtPriceX96: BigNumberish
-    ],
-    [string],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "eligiblePoolsForToken"
-  ): TypedContractMethod<[tokenId: BigNumberish], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "feeBeneficiary"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getPoolAtIndex"
-  ): TypedContractMethod<[index: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "getRoleAdmin"
-  ): TypedContractMethod<[role: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "grantRole"
-  ): TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "hasFeeManagerRole"
-  ): TypedContractMethod<[account: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "hasRole"
-  ): TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [boolean],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "initialize"
-  ): TypedContractMethod<
-    [
-      _owner: AddressLike,
-      _poolImplementation: AddressLike,
-      _poolManager: AddressLike,
-      _feeManager: AddressLike,
-      _feeBeneficiary: AddressLike,
-      _tokensBaseURI: string
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "pendingOwner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "poolsBaseURI"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "proxiableUUID"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "readdPoolImplementation"
-  ): TypedContractMethod<
-    [implementationsIndex: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "removePoolImplementation"
-  ): TypedContractMethod<
-    [implementationsIndex: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "renounceOwnership"
-  ): TypedContractMethod<[], [void], "view">;
-  getFunction(
-    nameOrSignature: "renounceRole"
-  ): TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "revokeRole"
-  ): TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setBaseRetirementRate"
-  ): TypedContractMethod<
-    [newRetirementRate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setBaseWithdrawalRate"
-  ): TypedContractMethod<
-    [newWithdrawalRate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setBaseWithdrawalSpecificRate"
-  ): TypedContractMethod<
-    [newWithdrawalRate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setFeeBeneficiary"
-  ): TypedContractMethod<
-    [newFeeBeneficiary: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "supportsInterface"
-  ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "totalPools"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "uniswapFactory"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "updateImplementationAddress"
-  ): TypedContractMethod<
-    [newPoolImplementation: AddressLike, poolIndex: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "updatePoolsBaseURI"
-  ): TypedContractMethod<[newPoolsURI: string], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "upgradeTo"
-  ): TypedContractMethod<
-    [newImplementation: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "upgradeToAndCall"
-  ): TypedContractMethod<
-    [newImplementation: AddressLike, data: BytesLike],
-    [void],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "usdc"
-  ): TypedContractMethod<[], [string], "view">;
+      name: PromiseOrValue<string>,
+      symbol: PromiseOrValue<string>,
+      initialSqrtPriceX96: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
-  getEvent(
-    key: "AdminChanged"
-  ): TypedContractEvent<
-    AdminChangedEvent.InputTuple,
-    AdminChangedEvent.OutputTuple,
-    AdminChangedEvent.OutputObject
-  >;
-  getEvent(
-    key: "BaseRetirementFeeUpdate"
-  ): TypedContractEvent<
-    BaseRetirementFeeUpdateEvent.InputTuple,
-    BaseRetirementFeeUpdateEvent.OutputTuple,
-    BaseRetirementFeeUpdateEvent.OutputObject
-  >;
-  getEvent(
-    key: "BaseWithdrawalFeeUpdate"
-  ): TypedContractEvent<
-    BaseWithdrawalFeeUpdateEvent.InputTuple,
-    BaseWithdrawalFeeUpdateEvent.OutputTuple,
-    BaseWithdrawalFeeUpdateEvent.OutputObject
-  >;
-  getEvent(
-    key: "BeaconUpgraded"
-  ): TypedContractEvent<
-    BeaconUpgradedEvent.InputTuple,
-    BeaconUpgradedEvent.OutputTuple,
-    BeaconUpgradedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Initialized"
-  ): TypedContractEvent<
-    InitializedEvent.InputTuple,
-    InitializedEvent.OutputTuple,
-    InitializedEvent.OutputObject
-  >;
-  getEvent(
-    key: "OwnershipTransferStarted"
-  ): TypedContractEvent<
-    OwnershipTransferStartedEvent.InputTuple,
-    OwnershipTransferStartedEvent.OutputTuple,
-    OwnershipTransferStartedEvent.OutputObject
-  >;
-  getEvent(
-    key: "OwnershipTransferred"
-  ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
-  >;
-  getEvent(
-    key: "PoolCreated"
-  ): TypedContractEvent<
-    PoolCreatedEvent.InputTuple,
-    PoolCreatedEvent.OutputTuple,
-    PoolCreatedEvent.OutputObject
-  >;
-  getEvent(
-    key: "PoolImplementationAdded"
-  ): TypedContractEvent<
-    PoolImplementationAddedEvent.InputTuple,
-    PoolImplementationAddedEvent.OutputTuple,
-    PoolImplementationAddedEvent.OutputObject
-  >;
-  getEvent(
-    key: "PoolImplementationRemoved"
-  ): TypedContractEvent<
-    PoolImplementationRemovedEvent.InputTuple,
-    PoolImplementationRemovedEvent.OutputTuple,
-    PoolImplementationRemovedEvent.OutputObject
-  >;
-  getEvent(
-    key: "PoolImplementationUpgraded"
-  ): TypedContractEvent<
-    PoolImplementationUpgradedEvent.InputTuple,
-    PoolImplementationUpgradedEvent.OutputTuple,
-    PoolImplementationUpgradedEvent.OutputObject
-  >;
-  getEvent(
-    key: "PoolsBaseURIChanged"
-  ): TypedContractEvent<
-    PoolsBaseURIChangedEvent.InputTuple,
-    PoolsBaseURIChangedEvent.OutputTuple,
-    PoolsBaseURIChangedEvent.OutputObject
-  >;
-  getEvent(
-    key: "RoleAdminChanged"
-  ): TypedContractEvent<
-    RoleAdminChangedEvent.InputTuple,
-    RoleAdminChangedEvent.OutputTuple,
-    RoleAdminChangedEvent.OutputObject
-  >;
-  getEvent(
-    key: "RoleGranted"
-  ): TypedContractEvent<
-    RoleGrantedEvent.InputTuple,
-    RoleGrantedEvent.OutputTuple,
-    RoleGrantedEvent.OutputObject
-  >;
-  getEvent(
-    key: "RoleRevoked"
-  ): TypedContractEvent<
-    RoleRevokedEvent.InputTuple,
-    RoleRevokedEvent.OutputTuple,
-    RoleRevokedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Upgraded"
-  ): TypedContractEvent<
-    UpgradedEvent.InputTuple,
-    UpgradedEvent.OutputTuple,
-    UpgradedEvent.OutputObject
-  >;
+    deployNewPool(
+      version: PromiseOrValue<BigNumberish>,
+      initSelector: PromiseOrValue<BytesLike>,
+      initData: PromiseOrValue<BytesLike>,
+      name: PromiseOrValue<string>,
+      symbol: PromiseOrValue<string>,
+      initialSqrtPriceX96: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    eligiblePoolsForToken(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
+
+    feeBeneficiary(overrides?: CallOverrides): Promise<string>;
+
+    getPoolAtIndex(
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    grantRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    hasFeeManagerRole(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    initialize(
+      _owner: PromiseOrValue<string>,
+      _poolImplementation: PromiseOrValue<string>,
+      _poolManager: PromiseOrValue<string>,
+      _feeManager: PromiseOrValue<string>,
+      _feeBeneficiary: PromiseOrValue<string>,
+      _tokensBaseURI: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+    poolsBaseURI(overrides?: CallOverrides): Promise<string>;
+
+    proxiableUUID(overrides?: CallOverrides): Promise<string>;
+
+    readdPoolImplementation(
+      implementationsIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    removePoolImplementation(
+      implementationsIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setBaseRetirementRate(
+      newRetirementRate: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setBaseWithdrawalRate(
+      newWithdrawalRate: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setBaseWithdrawalSpecificRate(
+      newWithdrawalRate: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setFeeBeneficiary(
+      newFeeBeneficiary: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    totalPools(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    uniswapFactory(overrides?: CallOverrides): Promise<string>;
+
+    updateImplementationAddress(
+      newPoolImplementation: PromiseOrValue<string>,
+      poolIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updatePoolsBaseURI(
+      newPoolsURI: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    upgradeTo(
+      newImplementation: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    upgradeToAndCall(
+      newImplementation: PromiseOrValue<string>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    usdc(overrides?: CallOverrides): Promise<string>;
+  };
 
   filters: {
-    "AdminChanged(address,address)": TypedContractEvent<
-      AdminChangedEvent.InputTuple,
-      AdminChangedEvent.OutputTuple,
-      AdminChangedEvent.OutputObject
-    >;
-    AdminChanged: TypedContractEvent<
-      AdminChangedEvent.InputTuple,
-      AdminChangedEvent.OutputTuple,
-      AdminChangedEvent.OutputObject
-    >;
+    "AdminChanged(address,address)"(
+      previousAdmin?: null,
+      newAdmin?: null
+    ): AdminChangedEventFilter;
+    AdminChanged(
+      previousAdmin?: null,
+      newAdmin?: null
+    ): AdminChangedEventFilter;
 
-    "BaseRetirementFeeUpdate(uint96,address)": TypedContractEvent<
-      BaseRetirementFeeUpdateEvent.InputTuple,
-      BaseRetirementFeeUpdateEvent.OutputTuple,
-      BaseRetirementFeeUpdateEvent.OutputObject
-    >;
-    BaseRetirementFeeUpdate: TypedContractEvent<
-      BaseRetirementFeeUpdateEvent.InputTuple,
-      BaseRetirementFeeUpdateEvent.OutputTuple,
-      BaseRetirementFeeUpdateEvent.OutputObject
-    >;
+    "BaseRetirementFeeUpdate(uint96,address)"(
+      retirementRateBips?: null,
+      beneficiary?: PromiseOrValue<string> | null
+    ): BaseRetirementFeeUpdateEventFilter;
+    BaseRetirementFeeUpdate(
+      retirementRateBips?: null,
+      beneficiary?: PromiseOrValue<string> | null
+    ): BaseRetirementFeeUpdateEventFilter;
 
-    "BaseWithdrawalFeeUpdate(uint96,address,bool)": TypedContractEvent<
-      BaseWithdrawalFeeUpdateEvent.InputTuple,
-      BaseWithdrawalFeeUpdateEvent.OutputTuple,
-      BaseWithdrawalFeeUpdateEvent.OutputObject
-    >;
-    BaseWithdrawalFeeUpdate: TypedContractEvent<
-      BaseWithdrawalFeeUpdateEvent.InputTuple,
-      BaseWithdrawalFeeUpdateEvent.OutputTuple,
-      BaseWithdrawalFeeUpdateEvent.OutputObject
-    >;
+    "BaseWithdrawalFeeUpdate(uint96,address,bool)"(
+      withdrawRateBips?: null,
+      beneficiary?: PromiseOrValue<string> | null,
+      specific?: PromiseOrValue<boolean> | null
+    ): BaseWithdrawalFeeUpdateEventFilter;
+    BaseWithdrawalFeeUpdate(
+      withdrawRateBips?: null,
+      beneficiary?: PromiseOrValue<string> | null,
+      specific?: PromiseOrValue<boolean> | null
+    ): BaseWithdrawalFeeUpdateEventFilter;
 
-    "BeaconUpgraded(address)": TypedContractEvent<
-      BeaconUpgradedEvent.InputTuple,
-      BeaconUpgradedEvent.OutputTuple,
-      BeaconUpgradedEvent.OutputObject
-    >;
-    BeaconUpgraded: TypedContractEvent<
-      BeaconUpgradedEvent.InputTuple,
-      BeaconUpgradedEvent.OutputTuple,
-      BeaconUpgradedEvent.OutputObject
-    >;
+    "BeaconUpgraded(address)"(
+      beacon?: PromiseOrValue<string> | null
+    ): BeaconUpgradedEventFilter;
+    BeaconUpgraded(
+      beacon?: PromiseOrValue<string> | null
+    ): BeaconUpgradedEventFilter;
 
-    "Initialized(uint8)": TypedContractEvent<
-      InitializedEvent.InputTuple,
-      InitializedEvent.OutputTuple,
-      InitializedEvent.OutputObject
-    >;
-    Initialized: TypedContractEvent<
-      InitializedEvent.InputTuple,
-      InitializedEvent.OutputTuple,
-      InitializedEvent.OutputObject
-    >;
+    "Initialized(uint8)"(version?: null): InitializedEventFilter;
+    Initialized(version?: null): InitializedEventFilter;
 
-    "OwnershipTransferStarted(address,address)": TypedContractEvent<
-      OwnershipTransferStartedEvent.InputTuple,
-      OwnershipTransferStartedEvent.OutputTuple,
-      OwnershipTransferStartedEvent.OutputObject
-    >;
-    OwnershipTransferStarted: TypedContractEvent<
-      OwnershipTransferStartedEvent.InputTuple,
-      OwnershipTransferStartedEvent.OutputTuple,
-      OwnershipTransferStartedEvent.OutputObject
-    >;
+    "OwnershipTransferStarted(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferStartedEventFilter;
+    OwnershipTransferStarted(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferStartedEventFilter;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
 
-    "PoolCreated(bytes,address,string,string)": TypedContractEvent<
-      PoolCreatedEvent.InputTuple,
-      PoolCreatedEvent.OutputTuple,
-      PoolCreatedEvent.OutputObject
-    >;
-    PoolCreated: TypedContractEvent<
-      PoolCreatedEvent.InputTuple,
-      PoolCreatedEvent.OutputTuple,
-      PoolCreatedEvent.OutputObject
-    >;
+    "PoolCreated(bytes,address,string,string)"(
+      policy?: null,
+      pool?: PromiseOrValue<string> | null,
+      name?: PromiseOrValue<string> | null,
+      symbol?: PromiseOrValue<string> | null
+    ): PoolCreatedEventFilter;
+    PoolCreated(
+      policy?: null,
+      pool?: PromiseOrValue<string> | null,
+      name?: PromiseOrValue<string> | null,
+      symbol?: PromiseOrValue<string> | null
+    ): PoolCreatedEventFilter;
 
-    "PoolImplementationAdded(address,address,uint256)": TypedContractEvent<
-      PoolImplementationAddedEvent.InputTuple,
-      PoolImplementationAddedEvent.OutputTuple,
-      PoolImplementationAddedEvent.OutputObject
-    >;
-    PoolImplementationAdded: TypedContractEvent<
-      PoolImplementationAddedEvent.InputTuple,
-      PoolImplementationAddedEvent.OutputTuple,
-      PoolImplementationAddedEvent.OutputObject
-    >;
+    "PoolImplementationAdded(address,address,uint256)"(
+      poolImplementation?: PromiseOrValue<string> | null,
+      beaconAddress?: PromiseOrValue<string> | null,
+      poolIndex?: PromiseOrValue<BigNumberish> | null
+    ): PoolImplementationAddedEventFilter;
+    PoolImplementationAdded(
+      poolImplementation?: PromiseOrValue<string> | null,
+      beaconAddress?: PromiseOrValue<string> | null,
+      poolIndex?: PromiseOrValue<BigNumberish> | null
+    ): PoolImplementationAddedEventFilter;
 
-    "PoolImplementationRemoved(address,uint256)": TypedContractEvent<
-      PoolImplementationRemovedEvent.InputTuple,
-      PoolImplementationRemovedEvent.OutputTuple,
-      PoolImplementationRemovedEvent.OutputObject
-    >;
-    PoolImplementationRemoved: TypedContractEvent<
-      PoolImplementationRemovedEvent.InputTuple,
-      PoolImplementationRemovedEvent.OutputTuple,
-      PoolImplementationRemovedEvent.OutputObject
-    >;
+    "PoolImplementationRemoved(address,uint256)"(
+      beaconAddress?: PromiseOrValue<string> | null,
+      poolIndex?: PromiseOrValue<BigNumberish> | null
+    ): PoolImplementationRemovedEventFilter;
+    PoolImplementationRemoved(
+      beaconAddress?: PromiseOrValue<string> | null,
+      poolIndex?: PromiseOrValue<BigNumberish> | null
+    ): PoolImplementationRemovedEventFilter;
 
-    "PoolImplementationUpgraded(address,address,uint256)": TypedContractEvent<
-      PoolImplementationUpgradedEvent.InputTuple,
-      PoolImplementationUpgradedEvent.OutputTuple,
-      PoolImplementationUpgradedEvent.OutputObject
-    >;
-    PoolImplementationUpgraded: TypedContractEvent<
-      PoolImplementationUpgradedEvent.InputTuple,
-      PoolImplementationUpgradedEvent.OutputTuple,
-      PoolImplementationUpgradedEvent.OutputObject
-    >;
+    "PoolImplementationUpgraded(address,address,uint256)"(
+      newPoolImplementation?: PromiseOrValue<string> | null,
+      beaconAddress?: PromiseOrValue<string> | null,
+      poolIndex?: PromiseOrValue<BigNumberish> | null
+    ): PoolImplementationUpgradedEventFilter;
+    PoolImplementationUpgraded(
+      newPoolImplementation?: PromiseOrValue<string> | null,
+      beaconAddress?: PromiseOrValue<string> | null,
+      poolIndex?: PromiseOrValue<BigNumberish> | null
+    ): PoolImplementationUpgradedEventFilter;
 
-    "PoolsBaseURIChanged(string,string)": TypedContractEvent<
-      PoolsBaseURIChangedEvent.InputTuple,
-      PoolsBaseURIChangedEvent.OutputTuple,
-      PoolsBaseURIChangedEvent.OutputObject
-    >;
-    PoolsBaseURIChanged: TypedContractEvent<
-      PoolsBaseURIChangedEvent.InputTuple,
-      PoolsBaseURIChangedEvent.OutputTuple,
-      PoolsBaseURIChangedEvent.OutputObject
-    >;
+    "PoolsBaseURIChanged(string,string)"(
+      newBaseURI?: PromiseOrValue<string> | null,
+      oldBaseURI?: PromiseOrValue<string> | null
+    ): PoolsBaseURIChangedEventFilter;
+    PoolsBaseURIChanged(
+      newBaseURI?: PromiseOrValue<string> | null,
+      oldBaseURI?: PromiseOrValue<string> | null
+    ): PoolsBaseURIChangedEventFilter;
 
-    "RoleAdminChanged(bytes32,bytes32,bytes32)": TypedContractEvent<
-      RoleAdminChangedEvent.InputTuple,
-      RoleAdminChangedEvent.OutputTuple,
-      RoleAdminChangedEvent.OutputObject
-    >;
-    RoleAdminChanged: TypedContractEvent<
-      RoleAdminChangedEvent.InputTuple,
-      RoleAdminChangedEvent.OutputTuple,
-      RoleAdminChangedEvent.OutputObject
-    >;
+    "RoleAdminChanged(bytes32,bytes32,bytes32)"(
+      role?: PromiseOrValue<BytesLike> | null,
+      previousAdminRole?: PromiseOrValue<BytesLike> | null,
+      newAdminRole?: PromiseOrValue<BytesLike> | null
+    ): RoleAdminChangedEventFilter;
+    RoleAdminChanged(
+      role?: PromiseOrValue<BytesLike> | null,
+      previousAdminRole?: PromiseOrValue<BytesLike> | null,
+      newAdminRole?: PromiseOrValue<BytesLike> | null
+    ): RoleAdminChangedEventFilter;
 
-    "RoleGranted(bytes32,address,address)": TypedContractEvent<
-      RoleGrantedEvent.InputTuple,
-      RoleGrantedEvent.OutputTuple,
-      RoleGrantedEvent.OutputObject
-    >;
-    RoleGranted: TypedContractEvent<
-      RoleGrantedEvent.InputTuple,
-      RoleGrantedEvent.OutputTuple,
-      RoleGrantedEvent.OutputObject
-    >;
+    "RoleGranted(bytes32,address,address)"(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleGrantedEventFilter;
+    RoleGranted(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleGrantedEventFilter;
 
-    "RoleRevoked(bytes32,address,address)": TypedContractEvent<
-      RoleRevokedEvent.InputTuple,
-      RoleRevokedEvent.OutputTuple,
-      RoleRevokedEvent.OutputObject
-    >;
-    RoleRevoked: TypedContractEvent<
-      RoleRevokedEvent.InputTuple,
-      RoleRevokedEvent.OutputTuple,
-      RoleRevokedEvent.OutputObject
-    >;
+    "RoleRevoked(bytes32,address,address)"(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleRevokedEventFilter;
+    RoleRevoked(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleRevokedEventFilter;
 
-    "Upgraded(address)": TypedContractEvent<
-      UpgradedEvent.InputTuple,
-      UpgradedEvent.OutputTuple,
-      UpgradedEvent.OutputObject
-    >;
-    Upgraded: TypedContractEvent<
-      UpgradedEvent.InputTuple,
-      UpgradedEvent.OutputTuple,
-      UpgradedEvent.OutputObject
-    >;
+    "Upgraded(address)"(
+      implementation?: PromiseOrValue<string> | null
+    ): UpgradedEventFilter;
+    Upgraded(
+      implementation?: PromiseOrValue<string> | null
+    ): UpgradedEventFilter;
+  };
+
+  estimateGas: {
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    FEE_MANAGER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    POOL_MANAGER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    UNISWAP_FEE_TIER(overrides?: CallOverrides): Promise<BigNumber>;
+
+    acceptOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    addPoolImplementation(
+      newPoolImplementation: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    baseRetirementRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    baseWithdrawalRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    baseWithdrawalSpecificRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    computePoolAddress(
+      policyHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    deployNewBasePool(
+      policy: PoolPolicy.DepositPolicyStruct,
+      name: PromiseOrValue<string>,
+      symbol: PromiseOrValue<string>,
+      initialSqrtPriceX96: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    deployNewPool(
+      version: PromiseOrValue<BigNumberish>,
+      initSelector: PromiseOrValue<BytesLike>,
+      initData: PromiseOrValue<BytesLike>,
+      name: PromiseOrValue<string>,
+      symbol: PromiseOrValue<string>,
+      initialSqrtPriceX96: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    eligiblePoolsForToken(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    feeBeneficiary(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getPoolAtIndex(
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    grantRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    hasFeeManagerRole(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    initialize(
+      _owner: PromiseOrValue<string>,
+      _poolImplementation: PromiseOrValue<string>,
+      _poolManager: PromiseOrValue<string>,
+      _feeManager: PromiseOrValue<string>,
+      _feeBeneficiary: PromiseOrValue<string>,
+      _tokensBaseURI: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    poolsBaseURI(overrides?: CallOverrides): Promise<BigNumber>;
+
+    proxiableUUID(overrides?: CallOverrides): Promise<BigNumber>;
+
+    readdPoolImplementation(
+      implementationsIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    removePoolImplementation(
+      implementationsIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setBaseRetirementRate(
+      newRetirementRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setBaseWithdrawalRate(
+      newWithdrawalRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setBaseWithdrawalSpecificRate(
+      newWithdrawalRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setFeeBeneficiary(
+      newFeeBeneficiary: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    totalPools(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    uniswapFactory(overrides?: CallOverrides): Promise<BigNumber>;
+
+    updateImplementationAddress(
+      newPoolImplementation: PromiseOrValue<string>,
+      poolIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updatePoolsBaseURI(
+      newPoolsURI: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    upgradeTo(
+      newImplementation: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    upgradeToAndCall(
+      newImplementation: PromiseOrValue<string>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    usdc(overrides?: CallOverrides): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    DEFAULT_ADMIN_ROLE(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    FEE_MANAGER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    POOL_MANAGER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    UNISWAP_FEE_TIER(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    acceptOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addPoolImplementation(
+      newPoolImplementation: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    baseRetirementRate(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    baseWithdrawalRate(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    baseWithdrawalSpecificRate(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    computePoolAddress(
+      policyHash: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    deployNewBasePool(
+      policy: PoolPolicy.DepositPolicyStruct,
+      name: PromiseOrValue<string>,
+      symbol: PromiseOrValue<string>,
+      initialSqrtPriceX96: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    deployNewPool(
+      version: PromiseOrValue<BigNumberish>,
+      initSelector: PromiseOrValue<BytesLike>,
+      initData: PromiseOrValue<BytesLike>,
+      name: PromiseOrValue<string>,
+      symbol: PromiseOrValue<string>,
+      initialSqrtPriceX96: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    eligiblePoolsForToken(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    feeBeneficiary(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getPoolAtIndex(
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    grantRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    hasFeeManagerRole(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    initialize(
+      _owner: PromiseOrValue<string>,
+      _poolImplementation: PromiseOrValue<string>,
+      _poolManager: PromiseOrValue<string>,
+      _feeManager: PromiseOrValue<string>,
+      _feeBeneficiary: PromiseOrValue<string>,
+      _tokensBaseURI: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    poolsBaseURI(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    proxiableUUID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    readdPoolImplementation(
+      implementationsIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    removePoolImplementation(
+      implementationsIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setBaseRetirementRate(
+      newRetirementRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setBaseWithdrawalRate(
+      newWithdrawalRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setBaseWithdrawalSpecificRate(
+      newWithdrawalRate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setFeeBeneficiary(
+      newFeeBeneficiary: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    totalPools(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    uniswapFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    updateImplementationAddress(
+      newPoolImplementation: PromiseOrValue<string>,
+      poolIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updatePoolsBaseURI(
+      newPoolsURI: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    upgradeTo(
+      newImplementation: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    upgradeToAndCall(
+      newImplementation: PromiseOrValue<string>,
+      data: PromiseOrValue<BytesLike>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    usdc(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

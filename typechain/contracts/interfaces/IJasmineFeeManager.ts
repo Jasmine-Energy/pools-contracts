@@ -3,29 +3,39 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumberish,
+  BigNumber,
   BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
+  CallOverrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
+import type {
+  TypedEventFilter,
+  TypedEvent,
   TypedListener,
-  TypedContractMethod,
+  OnEvent,
+  PromiseOrValue,
 } from "../../common";
 
-export interface IJasmineFeeManagerInterface extends Interface {
+export interface IJasmineFeeManagerInterface extends utils.Interface {
+  functions: {
+    "FEE_MANAGER_ROLE()": FunctionFragment;
+    "baseRetirementRate()": FunctionFragment;
+    "baseWithdrawalRate()": FunctionFragment;
+    "baseWithdrawalSpecificRate()": FunctionFragment;
+    "feeBeneficiary()": FunctionFragment;
+    "hasFeeManagerRole(address)": FunctionFragment;
+  };
+
   getFunction(
-    nameOrSignature:
+    nameOrSignatureOrTopic:
       | "FEE_MANAGER_ROLE"
       | "baseRetirementRate"
       | "baseWithdrawalRate"
@@ -34,12 +44,6 @@ export interface IJasmineFeeManagerInterface extends Interface {
       | "hasFeeManagerRole"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "BaseRetirementFeeUpdate"
-      | "BaseWithdrawalFeeUpdate"
-  ): EventFragment;
-
   encodeFunctionData(
     functionFragment: "FEE_MANAGER_ROLE",
     values?: undefined
@@ -62,7 +66,7 @@ export interface IJasmineFeeManagerInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "hasFeeManagerRole",
-    values: [AddressLike]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(
@@ -89,164 +93,175 @@ export interface IJasmineFeeManagerInterface extends Interface {
     functionFragment: "hasFeeManagerRole",
     data: BytesLike
   ): Result;
+
+  events: {
+    "BaseRetirementFeeUpdate(uint96,address)": EventFragment;
+    "BaseWithdrawalFeeUpdate(uint96,address,bool)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "BaseRetirementFeeUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "BaseWithdrawalFeeUpdate"): EventFragment;
 }
 
-export namespace BaseRetirementFeeUpdateEvent {
-  export type InputTuple = [
-    retirementRateBips: BigNumberish,
-    beneficiary: AddressLike
-  ];
-  export type OutputTuple = [retirementRateBips: bigint, beneficiary: string];
-  export interface OutputObject {
-    retirementRateBips: bigint;
-    beneficiary: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export interface BaseRetirementFeeUpdateEventObject {
+  retirementRateBips: BigNumber;
+  beneficiary: string;
 }
+export type BaseRetirementFeeUpdateEvent = TypedEvent<
+  [BigNumber, string],
+  BaseRetirementFeeUpdateEventObject
+>;
 
-export namespace BaseWithdrawalFeeUpdateEvent {
-  export type InputTuple = [
-    withdrawRateBips: BigNumberish,
-    beneficiary: AddressLike,
-    specific: boolean
-  ];
-  export type OutputTuple = [
-    withdrawRateBips: bigint,
-    beneficiary: string,
-    specific: boolean
-  ];
-  export interface OutputObject {
-    withdrawRateBips: bigint;
-    beneficiary: string;
-    specific: boolean;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+export type BaseRetirementFeeUpdateEventFilter =
+  TypedEventFilter<BaseRetirementFeeUpdateEvent>;
+
+export interface BaseWithdrawalFeeUpdateEventObject {
+  withdrawRateBips: BigNumber;
+  beneficiary: string;
+  specific: boolean;
 }
+export type BaseWithdrawalFeeUpdateEvent = TypedEvent<
+  [BigNumber, string, boolean],
+  BaseWithdrawalFeeUpdateEventObject
+>;
+
+export type BaseWithdrawalFeeUpdateEventFilter =
+  TypedEventFilter<BaseWithdrawalFeeUpdateEvent>;
 
 export interface IJasmineFeeManager extends BaseContract {
-  connect(runner?: ContractRunner | null): IJasmineFeeManager;
-  waitForDeployment(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
   interface: IJasmineFeeManagerInterface;
 
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  ): Promise<Array<TEvent>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  functions: {
+    FEE_MANAGER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+    baseRetirementRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  FEE_MANAGER_ROLE: TypedContractMethod<[], [string], "view">;
+    baseWithdrawalRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  baseRetirementRate: TypedContractMethod<[], [bigint], "view">;
+    baseWithdrawalSpecificRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-  baseWithdrawalRate: TypedContractMethod<[], [bigint], "view">;
+    feeBeneficiary(overrides?: CallOverrides): Promise<[string]>;
 
-  baseWithdrawalSpecificRate: TypedContractMethod<[], [bigint], "view">;
+    hasFeeManagerRole(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean] & { isFeeManager: boolean }>;
+  };
 
-  feeBeneficiary: TypedContractMethod<[], [string], "view">;
+  FEE_MANAGER_ROLE(overrides?: CallOverrides): Promise<string>;
 
-  hasFeeManagerRole: TypedContractMethod<
-    [account: AddressLike],
-    [boolean],
-    "view"
-  >;
+  baseRetirementRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  baseWithdrawalRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getFunction(
-    nameOrSignature: "FEE_MANAGER_ROLE"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "baseRetirementRate"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "baseWithdrawalRate"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "baseWithdrawalSpecificRate"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "feeBeneficiary"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "hasFeeManagerRole"
-  ): TypedContractMethod<[account: AddressLike], [boolean], "view">;
+  baseWithdrawalSpecificRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getEvent(
-    key: "BaseRetirementFeeUpdate"
-  ): TypedContractEvent<
-    BaseRetirementFeeUpdateEvent.InputTuple,
-    BaseRetirementFeeUpdateEvent.OutputTuple,
-    BaseRetirementFeeUpdateEvent.OutputObject
-  >;
-  getEvent(
-    key: "BaseWithdrawalFeeUpdate"
-  ): TypedContractEvent<
-    BaseWithdrawalFeeUpdateEvent.InputTuple,
-    BaseWithdrawalFeeUpdateEvent.OutputTuple,
-    BaseWithdrawalFeeUpdateEvent.OutputObject
-  >;
+  feeBeneficiary(overrides?: CallOverrides): Promise<string>;
+
+  hasFeeManagerRole(
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  callStatic: {
+    FEE_MANAGER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    baseRetirementRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    baseWithdrawalRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    baseWithdrawalSpecificRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeBeneficiary(overrides?: CallOverrides): Promise<string>;
+
+    hasFeeManagerRole(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+  };
 
   filters: {
-    "BaseRetirementFeeUpdate(uint96,address)": TypedContractEvent<
-      BaseRetirementFeeUpdateEvent.InputTuple,
-      BaseRetirementFeeUpdateEvent.OutputTuple,
-      BaseRetirementFeeUpdateEvent.OutputObject
-    >;
-    BaseRetirementFeeUpdate: TypedContractEvent<
-      BaseRetirementFeeUpdateEvent.InputTuple,
-      BaseRetirementFeeUpdateEvent.OutputTuple,
-      BaseRetirementFeeUpdateEvent.OutputObject
-    >;
+    "BaseRetirementFeeUpdate(uint96,address)"(
+      retirementRateBips?: null,
+      beneficiary?: PromiseOrValue<string> | null
+    ): BaseRetirementFeeUpdateEventFilter;
+    BaseRetirementFeeUpdate(
+      retirementRateBips?: null,
+      beneficiary?: PromiseOrValue<string> | null
+    ): BaseRetirementFeeUpdateEventFilter;
 
-    "BaseWithdrawalFeeUpdate(uint96,address,bool)": TypedContractEvent<
-      BaseWithdrawalFeeUpdateEvent.InputTuple,
-      BaseWithdrawalFeeUpdateEvent.OutputTuple,
-      BaseWithdrawalFeeUpdateEvent.OutputObject
-    >;
-    BaseWithdrawalFeeUpdate: TypedContractEvent<
-      BaseWithdrawalFeeUpdateEvent.InputTuple,
-      BaseWithdrawalFeeUpdateEvent.OutputTuple,
-      BaseWithdrawalFeeUpdateEvent.OutputObject
-    >;
+    "BaseWithdrawalFeeUpdate(uint96,address,bool)"(
+      withdrawRateBips?: null,
+      beneficiary?: PromiseOrValue<string> | null,
+      specific?: PromiseOrValue<boolean> | null
+    ): BaseWithdrawalFeeUpdateEventFilter;
+    BaseWithdrawalFeeUpdate(
+      withdrawRateBips?: null,
+      beneficiary?: PromiseOrValue<string> | null,
+      specific?: PromiseOrValue<boolean> | null
+    ): BaseWithdrawalFeeUpdateEventFilter;
+  };
+
+  estimateGas: {
+    FEE_MANAGER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    baseRetirementRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    baseWithdrawalRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    baseWithdrawalSpecificRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeBeneficiary(overrides?: CallOverrides): Promise<BigNumber>;
+
+    hasFeeManagerRole(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    FEE_MANAGER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    baseRetirementRate(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    baseWithdrawalRate(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    baseWithdrawalSpecificRate(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    feeBeneficiary(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    hasFeeManagerRole(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
   };
 }

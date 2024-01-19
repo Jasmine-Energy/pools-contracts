@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IJasmineRetireablePool,
   IJasmineRetireablePoolInterface,
@@ -367,16 +368,16 @@ const _abi = [
 export class IJasmineRetireablePool__factory {
   static readonly abi = _abi;
   static createInterface(): IJasmineRetireablePoolInterface {
-    return new Interface(_abi) as IJasmineRetireablePoolInterface;
+    return new utils.Interface(_abi) as IJasmineRetireablePoolInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): IJasmineRetireablePool {
     return new Contract(
       address,
       _abi,
-      runner
-    ) as unknown as IJasmineRetireablePool;
+      signerOrProvider
+    ) as IJasmineRetireablePool;
   }
 }

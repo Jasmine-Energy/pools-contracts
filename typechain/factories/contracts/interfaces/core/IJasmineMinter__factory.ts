@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IJasmineMinter,
   IJasmineMinterInterface,
@@ -218,12 +219,12 @@ const _abi = [
 export class IJasmineMinter__factory {
   static readonly abi = _abi;
   static createInterface(): IJasmineMinterInterface {
-    return new Interface(_abi) as IJasmineMinterInterface;
+    return new utils.Interface(_abi) as IJasmineMinterInterface;
   }
   static connect(
     address: string,
-    runner?: ContractRunner | null
+    signerOrProvider: Signer | Provider
   ): IJasmineMinter {
-    return new Contract(address, _abi, runner) as unknown as IJasmineMinter;
+    return new Contract(address, _abi, signerOrProvider) as IJasmineMinter;
   }
 }

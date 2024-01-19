@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { JasmineRetirementService__factory } from "@/typechain";
 import { Contracts, colouredLog } from "@/utils";
 import { delay } from "@/utils/delay";
 
@@ -16,6 +17,7 @@ const deployRetirementService: DeployFunction = async function ({
   const { save, get } = deployments;
   const namedAccounts = await getNamedAccounts();
   const { deployer, owner } = namedAccounts;
+  const deployerSigner = await ethers.getSigner(deployer);
 
   // 1. Get deployements
   let eat: string;
@@ -36,15 +38,28 @@ const deployRetirementService: DeployFunction = async function ({
     throw new Error("Required addresses not found");
 
   // 3. Deploy Retirement Service Contract
-  const Retirer = await ethers.getContractFactory(Contracts.retirementService);
+  const Retirer = await ethers.getContractFactory(
+    Contracts.retirementService,
+    deployerSigner
+  );
   const retirer = await upgrades.deployProxy(Retirer, [owner], {
-    deployer,
     kind: "uups",
     constructorArgs: [minter, eat],
     unsafeAllow: ["state-variable-immutable", "constructor"],
   });
 
-  await save(Contracts.retirementService, retirer);
+  const implementationAddress = await upgrades.erc1967.getImplementationAddress(
+    retirer.address
+  );
+
+  await save(Contracts.retirementService, {
+    abi: JasmineRetirementService__factory.abi as unknown as any[],
+    address: retirer.address,
+    bytecode: retirer.bytecode,
+    transactionHash: retirer.tx,
+    implementation: implementationAddress,
+    args: [minter, eat],
+  });
 
   if (network.tags["public"]) {
     if (network.name === "polygon") {
@@ -64,10 +79,6 @@ const deployRetirementService: DeployFunction = async function ({
       await delay(30 * 1_000);
     }
   }
-
-  const implementationAddress = await upgrades.erc1967.getImplementationAddress(
-    retirer.address
-  );
 
   colouredLog.blue(
     `Deployed Retirement Service to: ${retirer.address} implementation: ${implementationAddress}`

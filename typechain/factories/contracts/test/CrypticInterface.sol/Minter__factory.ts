@@ -2,7 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   Minter,
   MinterInterface,
@@ -62,9 +63,9 @@ const _abi = [
 export class Minter__factory {
   static readonly abi = _abi;
   static createInterface(): MinterInterface {
-    return new Interface(_abi) as MinterInterface;
+    return new utils.Interface(_abi) as MinterInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): Minter {
-    return new Contract(address, _abi, runner) as unknown as Minter;
+  static connect(address: string, signerOrProvider: Signer | Provider): Minter {
+    return new Contract(address, _abi, signerOrProvider) as Minter;
   }
 }
