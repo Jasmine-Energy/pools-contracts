@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { yellow, blue } from "@colors/colors";
 import { Contracts } from "../../utils";
-import { JasmineRetirementService__factory } from "../../typechain";
+import { JasmineRetirementService__factory } from "../../typechain/factories/contracts";
 import { deployProxy, proxyBytecode } from "../utils/proxy";
 
 const deployRetirementService: DeployFunction = async function ({
