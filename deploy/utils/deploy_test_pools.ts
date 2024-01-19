@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { blue } from "@colors/colors";
 import { Contracts, AnyField } from "../../utils";
-import { JasminePoolFactory__factory } from "../../typechain/factories/contracts";
+import { JasminePoolFactory__factory } from "../../typechain";
 import {
   CertificateEndorsement,
   CertificateEndorsementArr,

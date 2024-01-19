@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { blue, yellow } from "@colors/colors";
 import { Contracts } from "../../utils";
 import { deployProxy, proxyBytecode } from "../utils/proxy";
-import { JasminePoolFactory__factory } from "../../typechain/factories/contracts";
+import { JasminePoolFactory__factory } from "../../typechain";
 
 const deployFactory: DeployFunction = async function ({
   ethers,

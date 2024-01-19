@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { blue, yellow } from "@colors/colors";
 import { Contracts } from "../../utils";
-import { JasminePool__factory } from "../../typechain/factories/contracts";
+import { JasminePool__factory } from "../../typechain";
 
 const deployPoolImplementation: DeployFunction = async function ({
   ethers,
