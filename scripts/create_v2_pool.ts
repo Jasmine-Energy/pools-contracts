@@ -36,11 +36,21 @@ async function main() {
     return;
   }
 
-  const poolName = "Voluntary REC Back-Half 2023";
-  const poolSymbol = "JLT-B23";
+  let poolVersion;
+
+  if (network.name === "polygon") {
+    poolVersion = 1;
+  } else if (network.name === "mumbai") {
+    poolVersion = 7;
+  } else {
+    poolVersion = 1;
+  }
+
+  const poolName = "Voluntary REC Front-Half 2024";
+  const poolSymbol = "JLT-F24";
   const vintagePeriod = [
-    1688169600, // Jul 01 2023 00:00:00 GMT
-    1703980800, // Dec 31 2023 00:00:00 GMT
+    1704067200, // Jan 01 2024 00:00:00 GMT
+    1719705600, // June 30 2024 00:00:00 GMT
   ] as [number, number];
   const techType = AnyField;
   const registry = AnyField;
@@ -51,7 +61,6 @@ async function main() {
     BigInt(CertificateEndorsementArr.indexOf(CertificateEndorsement.GREEN_E)) &
     BigInt(2 ** 32 - 1);
 
-  const poolVersion = 1;
   const poolInterface = new JasminePool__factory().interface;
   const initSelector = poolInterface.getSighash(
     "initialize(bytes,string,string)"

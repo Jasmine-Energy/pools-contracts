@@ -105,6 +105,14 @@ export const namedAccounts = {
     polygon: "0x81A5Fbb9A131C104627B055d074c46d21576cF4a",
     mumbai: "0x1Fd4Dc2027C1Cfae1D5a09073809f3f3F97d93dd",
   },
+  backHalfPool: {
+    polygon: "0x0B31cC088Cd2cd54e2dD161Eb5dE7B5A3e626C9E",
+    mumbai: "0x5347b084B9f06216c21Cc80DfEe5ad85FbBfF2c7",
+  },
+  frontHalf24Pool: {
+    polygon: "0x8F722b2eae801CBFbe1a28CCf30E44B886f9f9B5",
+    mumbai: "0x706Fe4EE79dD0f3ef358E4495304B09813351BF4",
+  },
   // Core contracts
   eat: {
     polygon: "0xba3aa8083F8978257aAAFB19Ed698a623197A7C1",
