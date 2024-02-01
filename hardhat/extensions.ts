@@ -5,11 +5,7 @@ export const extensions = {
   abiExporter: {
     path: "./abi",
     format: "json",
-    except: [
-      "@jasmine-energy",
-      "@openzeppelin",
-      "@uniswap",
-    ],
+    except: ["@jasmine-energy", "@openzeppelin", "@uniswap"],
     runOnCompile: true,
     clear: true,
   },
@@ -19,7 +15,8 @@ export const extensions = {
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     token: "MATIC",
-    gasPriceApi: "https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice",
+    gasPriceApi:
+      "https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice",
     currency: "USD",
     outputFile: "./gasReport/gasReport-*.json",
     showTimeSpent: true,
@@ -37,9 +34,9 @@ export const extensions = {
   },
   dependencyCompiler: {
     paths: [
-      '@jasmine-energy/core-contracts/src/JasmineEAT.sol',
-      '@jasmine-energy/core-contracts/src/JasmineMinter.sol',
-      '@jasmine-energy/core-contracts/src/JasmineOracle.sol',
+      "@jasmine-energy/core-contracts/src/JasmineEAT.sol",
+      "@jasmine-energy/core-contracts/src/JasmineMinter.sol",
+      "@jasmine-energy/core-contracts/src/JasmineOracle.sol",
     ],
-  }
+  },
 };
