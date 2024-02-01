@@ -3,12 +3,12 @@
 
 pragma solidity ^0.8.0;
 
-import { IERC20 }         from "@openzeppelin/contracts/interfaces/IERC20.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { Context }        from "@openzeppelin/contracts/utils/Context.sol";
-import { ERC20Errors }    from "../../../interfaces/ERC/IERC6093.sol";
-import { ERC165 }         from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import { IERC165 }        from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {ERC20Errors} from "../../../interfaces/ERC/IERC6093.sol";
+import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -51,7 +51,11 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
     /**
      * @dev Indicates a failed `decreaseAllowance` request.
      */
-    error ERC20FailedDecreaseAllowance(address spender, uint256 currentAllowance, uint256 requestedDecrease);
+    error ERC20FailedDecreaseAllowance(
+        address spender,
+        uint256 currentAllowance,
+        uint256 requestedDecrease
+    );
 
     /**
      * @dev Sets the values for {name} and {symbol}.
@@ -106,7 +110,9 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
     /**
      * @dev See {IERC20-balanceOf}.
      */
-    function balanceOf(address account) public view virtual override returns (uint256) {
+    function balanceOf(
+        address account
+    ) public view virtual override returns (uint256) {
         return _balances[account];
     }
 
@@ -118,7 +124,10 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
      * - `to` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
      */
-    function transfer(address to, uint256 amount) public virtual override returns (bool) {
+    function transfer(
+        address to,
+        uint256 amount
+    ) public virtual override returns (bool) {
         address owner = _msgSender();
         _transfer(owner, to, amount);
         return true;
@@ -127,7 +136,10 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
     /**
      * @dev See {IERC20-allowance}.
      */
-    function allowance(address owner, address spender) public view virtual override returns (uint256) {
+    function allowance(
+        address owner,
+        address spender
+    ) public view virtual override returns (uint256) {
         return _allowances[owner][spender];
     }
 
@@ -141,7 +153,10 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
      *
      * - `spender` cannot be the zero address.
      */
-    function approve(address spender, uint256 amount) public virtual override returns (bool) {
+    function approve(
+        address spender,
+        uint256 amount
+    ) public virtual override returns (bool) {
         address owner = _msgSender();
         _approve(owner, spender, amount);
         return true;
@@ -163,7 +178,11 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
      * - the caller must have allowance for ``from``'s tokens of at least
      * `amount`.
      */
-    function transferFrom(address from, address to, uint256 amount) public virtual override returns (bool) {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public virtual override returns (bool) {
         address spender = _msgSender();
         _spendAllowance(from, spender, amount);
         _transfer(from, to, amount);
@@ -182,7 +201,10 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+    function increaseAllowance(
+        address spender,
+        uint256 addedValue
+    ) public virtual returns (bool) {
         address owner = _msgSender();
         _approve(owner, spender, allowance(owner, spender) + addedValue);
         return true;
@@ -202,11 +224,18 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+    function decreaseAllowance(
+        address spender,
+        uint256 subtractedValue
+    ) public virtual returns (bool) {
         address owner = _msgSender();
         uint256 currentAllowance = allowance(owner, spender);
         if (currentAllowance < subtractedValue) {
-            revert ERC20FailedDecreaseAllowance(spender, currentAllowance, subtractedValue);
+            revert ERC20FailedDecreaseAllowance(
+                spender,
+                currentAllowance,
+                subtractedValue
+            );
         }
         unchecked {
             _approve(owner, spender, currentAllowance - subtractedValue);
@@ -229,7 +258,11 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
      * - `to` cannot be the zero address.
      * - `from` must have a balance of at least `amount`.
      */
-    function _transfer(address from, address to, uint256 amount) internal virtual {
+    function _transfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));
         }
@@ -328,7 +361,11 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
      * - `owner` cannot be the zero address.
      * - `spender` cannot be the zero address.
      */
-    function _approve(address owner, address spender, uint256 amount) internal virtual {
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
         if (owner == address(0)) {
             revert ERC20InvalidApprover(address(0));
         }
@@ -348,11 +385,19 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
      *
      * Might emit an {Approval} event.
      */
-    function _spendAllowance(address owner, address spender, uint256 amount) internal virtual {
+    function _spendAllowance(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
         uint256 currentAllowance = allowance(owner, spender);
         if (currentAllowance != type(uint256).max) {
             if (currentAllowance < amount) {
-                revert ERC20InsufficientAllowance(spender, currentAllowance, amount);
+                revert ERC20InsufficientAllowance(
+                    spender,
+                    currentAllowance,
+                    amount
+                );
             }
             unchecked {
                 _approve(owner, spender, currentAllowance - amount);
@@ -374,7 +419,11 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {}
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
 
     /**
      * @dev Hook that is called after any transfer of tokens. This includes
@@ -390,16 +439,18 @@ contract ERC20 is Context, IERC20, IERC20Metadata, ERC20Errors, ERC165 {
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual {}
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
 
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId)
-        public view virtual
-        override
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
         return
             interfaceId == type(IERC20).interfaceId ||
             interfaceId == type(IERC20Metadata).interfaceId ||

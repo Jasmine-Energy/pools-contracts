@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
-import { CrypticInterface } from "./CrypticInterface.sol";
-import { JasminePoolFactory } from "../JasminePoolFactory.sol";
+import {CrypticInterface} from "./CrypticInterface.sol";
+import {JasminePoolFactory} from "../JasminePoolFactory.sol";
 
 contract InternalJasminePoolFactoryTest is JasminePoolFactory {
-
-    constructor() JasminePoolFactory(0x1F98431c8aD98523631AE4a59f267346ea31F984, 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174) {
-
-    }
+    constructor()
+        JasminePoolFactory(
+            0x1F98431c8aD98523631AE4a59f267346ea31F984,
+            0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174
+        )
+    {}
 }
 
 contract ExternalJasminePoolFactoryTest is CrypticInterface {
-
     event AssertionFailed(string reason);
 
     function test_setup() public view {

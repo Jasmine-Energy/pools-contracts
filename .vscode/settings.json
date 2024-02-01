@@ -1,18 +1,17 @@
 {
-    "mochaExplorer.env": {
-      "HARDHAT_NETWORK": "hardhat",
-      "HARDHAT_COMPILE": "true"
-    },
-    "solidity.monoRepoSupport": true,
-    "solidity.packageDefaultDependenciesContractsDirectory": "contracts",
-    "solidity.packageDefaultDependenciesDirectory": ["node_modules", "lib"],
-    "editor.formatOnSave": true,
-    "[solidity]": {
-      "editor.defaultFormatter": "NomicFoundation.hardhat-solidity"
-    },
-    "solidity.linter": "solhint",
-    "solidity.formatter": "prettier",
-    "solidity.compilerOptimization": 200,
-    "solidity.compileUsingRemoteVersion": "v0.8.23+commit.f704f36"
-  }
-  
+  "mochaExplorer.env": {
+    "HARDHAT_NETWORK": "hardhat",
+    "HARDHAT_COMPILE": "true"
+  },
+  "solidity.monoRepoSupport": true,
+  "solidity.packageDefaultDependenciesContractsDirectory": "contracts",
+  "solidity.packageDefaultDependenciesDirectory": ["node_modules", "lib"],
+  "editor.formatOnSave": true,
+  "[solidity]": {
+    "editor.defaultFormatter": "NomicFoundation.hardhat-solidity"
+  },
+  "solidity.linter": "solhint",
+  "solidity.formatter": "prettier",
+  "solidity.compilerOptimization": 200,
+  "solidity.compileUsingRemoteVersion": "v0.8.23+commit.f704f36"
+}

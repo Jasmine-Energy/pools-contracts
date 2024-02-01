@@ -10,20 +10,21 @@ import {
   JasmineOracle,
   JasmineMinter,
 } from "@/typechain";
-import { deployPoolImplementation, deployCoreFixture, deployPoolFactory, deployPoolsFixture } from "./shared/fixtures";
+import {
+  deployPoolImplementation,
+  deployCoreFixture,
+  deployPoolFactory,
+  deployPoolsFixture,
+} from "./shared/fixtures";
 
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { disableLogging } from "@/utils/hardhat_utils";
-import {
-  makeMintFunction,
-  mintFunctionType,
-} from "./shared/utilities";
+import { makeMintFunction, mintFunctionType } from "./shared/utilities";
 import {
   FuelType,
-  CertificateRegistry
+  CertificateRegistry,
 } from "@/types/energy-certificate.types";
-
 
 describe(Contracts.pool, function () {
   let owner: SignerWithAddress;
@@ -342,8 +343,11 @@ describe(Contracts.pool, function () {
       expect(await anyTechAnnualPool.withdraw(owner.address, tokenAmount, []))
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw")
         .withArgs(owner.address, owner.address, tokenAmount)
-        .and.to.changeTokenBalance(anyTechAnnualPool, owner.address, -tokenAmount);
-
+        .and.to.changeTokenBalance(
+          anyTechAnnualPool,
+          owner.address,
+          -tokenAmount
+        );
     });
 
     it("Should allow operator withdrawals", async function () {
@@ -351,7 +355,12 @@ describe(Contracts.pool, function () {
       const operatorPool = anyTechAnnualPool.connect(operator);
       const ownerBalance = await anyTechAnnualPool.balanceOf(owner.address);
 
-      expect(await anyTechAnnualPool.increaseAllowance(operator.address, ownerBalance))
+      expect(
+        await anyTechAnnualPool.increaseAllowance(
+          operator.address,
+          ownerBalance
+        )
+      )
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Approval")
         .withArgs(owner.address, operator.address, ownerBalance);
       expect(
@@ -364,7 +373,11 @@ describe(Contracts.pool, function () {
       )
         .to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw")
         .withArgs(owner.address, operator.address, tokenAmount)
-        .and.to.changeTokenBalance(anyTechAnnualPool, owner.address, -tokenAmount);
+        .and.to.changeTokenBalance(
+          anyTechAnnualPool,
+          owner.address,
+          -tokenAmount
+        );
     });
 
     it("Should allow allowance withdrawals", async function () {
@@ -391,23 +404,44 @@ describe(Contracts.pool, function () {
       const vintage = new Date().valueOf();
 
       // @ts-ignore
-      const firstToken = await mintEat(owner.address, 5, FuelType.SOLAR, CertificateRegistry.NAR, vintage);
-      // @ts-ignore
-      const secondToken = await mintEat(owner.address, 5, FuelType.WIND, CertificateRegistry.NAR, vintage);
-
-      expect(await eat.safeBatchTransferFrom(
+      const firstToken = await mintEat(
         owner.address,
-        anyTechAnnualPool.address,
-        [firstToken.id, secondToken.id],
-        [firstToken.amount, secondToken.amount],
-        []
-      )).to.be.ok;
+        5,
+        FuelType.SOLAR,
+        CertificateRegistry.NAR,
+        vintage
+      );
+      // @ts-ignore
+      const secondToken = await mintEat(
+        owner.address,
+        5,
+        FuelType.WIND,
+        CertificateRegistry.NAR,
+        vintage
+      );
 
-      expect(await eat.balanceOfBatch([owner.address, owner.address], [firstToken.id, secondToken.id])).to.deep.equal([0n, 0n]);
-      expect(await eat.balanceOfBatch(
-        [anyTechAnnualPool.address, anyTechAnnualPool.address],
-        [firstToken.id, secondToken.id])
-       ).to.deep.equal([firstToken.amount, secondToken.amount]);
+      expect(
+        await eat.safeBatchTransferFrom(
+          owner.address,
+          anyTechAnnualPool.address,
+          [firstToken.id, secondToken.id],
+          [firstToken.amount, secondToken.amount],
+          []
+        )
+      ).to.be.ok;
+
+      expect(
+        await eat.balanceOfBatch(
+          [owner.address, owner.address],
+          [firstToken.id, secondToken.id]
+        )
+      ).to.deep.equal([0n, 0n]);
+      expect(
+        await eat.balanceOfBatch(
+          [anyTechAnnualPool.address, anyTechAnnualPool.address],
+          [firstToken.id, secondToken.id]
+        )
+      ).to.deep.equal([firstToken.amount, secondToken.amount]);
 
       expect(await anyTechAnnualPool.withdraw(owner.address, 5, [])).to.be.ok;
       expect(await anyTechAnnualPool.withdraw(owner.address, 5, [])).to.be.ok;
@@ -415,45 +449,82 @@ describe(Contracts.pool, function () {
 
     it("Should successfully withdraw multiple EATs if required", async function () {
       const extraToken = await mintEat(owner.address, 5, FuelType.SOLAR);
-      expect(await eat.safeTransferFrom(
-        owner.address,
-        anyTechAnnualPool.address,
-        extraToken.id,
-        extraToken.amount,
-        []
-      )).to.be.ok;
+      expect(
+        await eat.safeTransferFrom(
+          owner.address,
+          anyTechAnnualPool.address,
+          extraToken.id,
+          extraToken.amount,
+          []
+        )
+      ).to.be.ok;
 
       expect(await anyTechAnnualPool.withdraw(owner.address, 10, [])).to.be.ok;
     });
 
     it("Should not have zero tokens sent in last token ID", async function () {
       const token1 = await mintEat(owner.address, 5, FuelType.SOLAR);
-      await eat.safeTransferFrom(owner.address,anyTechAnnualPool.address,token1.id,token1.amount,[]);
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        token1.id,
+        token1.amount,
+        []
+      );
       const token2 = await mintEat(owner.address, 5, FuelType.WIND);
-      await eat.safeTransferFrom(owner.address,anyTechAnnualPool.address,token2.id,token2.amount,[]);
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        token2.id,
+        token2.amount,
+        []
+      );
 
-      expect(await anyTechAnnualPool.withdraw(owner.address, 1, [])).to.be.ok
-        .and.to.emit(anyTechAnnualPool, "Withdraw");
-      
-      expect(await anyTechAnnualPool.withdrawSpecific(owner.address, owner.address, [token2.id], [token2.amount], [])).to.be.ok
+      expect(
+        await anyTechAnnualPool.withdraw(owner.address, 1, [])
+      ).to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw");
 
-      expect(await anyTechAnnualPool.withdraw(owner.address, 9, [])).to.be.ok
-        .and.to.emit(anyTechAnnualPool, "Withdraw");
+      expect(
+        await anyTechAnnualPool.withdrawSpecific(
+          owner.address,
+          owner.address,
+          [token2.id],
+          [token2.amount],
+          []
+        )
+      ).to.be.ok;
+
+      expect(
+        await anyTechAnnualPool.withdraw(owner.address, 9, [])
+      ).to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw");
     });
 
     it("Should successfully remove token via withdraw any when prior tx interacts with same token but expects it to be kept", async function () {
       const token1 = await mintEat(owner.address, 5, FuelType.SOLAR);
-      await eat.safeTransferFrom(owner.address, anyTechAnnualPool.address, token1.id, token1.amount, []);
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        token1.id,
+        token1.amount,
+        []
+      );
       const token2 = await mintEat(owner.address, 5, FuelType.WIND);
-      await eat.safeTransferFrom(owner.address, anyTechAnnualPool.address, token2.id, token2.amount, []);
+      await eat.safeTransferFrom(
+        owner.address,
+        anyTechAnnualPool.address,
+        token2.id,
+        token2.amount,
+        []
+      );
 
-      expect(await anyTechAnnualPool.withdraw(owner.address, tokenAmount + 9n, [])).to.be.ok
-        .and.to.emit(anyTechAnnualPool, "Withdraw");
+      expect(
+        await anyTechAnnualPool.withdraw(owner.address, tokenAmount + 9n, [])
+      ).to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw");
 
-      expect(await anyTechAnnualPool.withdraw(owner.address, 1, [])).to.be.ok
-        .and.to.emit(anyTechAnnualPool, "Withdraw");
+      expect(
+        await anyTechAnnualPool.withdraw(owner.address, 1, [])
+      ).to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw");
     });
-    
   });
 
   describe("Retire", async function () {
@@ -473,35 +544,43 @@ describe(Contracts.pool, function () {
       );
     });
 
-
     it("Should allow retire exact", async function () {
-      expect(await anyTechAnnualPool.retireExact(
-        owner.address, 
-        owner.address, 
-        tokenAmount,
-        [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement");
+      expect(
+        await anyTechAnnualPool.retireExact(
+          owner.address,
+          owner.address,
+          tokenAmount,
+          []
+        )
+      ).to.be.ok.and.to.emit(anyTechAnnualPool, "Retirement");
     });
 
     it("Should retire accrued fractions", async function () {
-      const retirementAmount = 2_500_000_000_000_000_000n;
-      expect(await anyTechAnnualPool.retireExact(
-        owner.address, 
-        owner.address, 
-        retirementAmount,
-        [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement")
+      const retirementAmount = 25n * 10n ** (DEFAULT_DECIMAL - 1n);
+      expect(
+        await anyTechAnnualPool.retireExact(
+          owner.address,
+          owner.address,
+          retirementAmount,
+          []
+        )
+      )
+        .to.be.ok.and.to.emit(anyTechAnnualPool, "Retirement")
         .withArgs(owner.address, owner.address, retirementAmount);
-      expect(await anyTechAnnualPool.retireExact(
-        owner.address, 
-        owner.address, 
-        retirementAmount,
-        [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement")
+      expect(
+        await anyTechAnnualPool.retireExact(
+          owner.address,
+          owner.address,
+          retirementAmount,
+          []
+        )
+      )
+        .to.be.ok.and.to.emit(anyTechAnnualPool, "Retirement")
         .withArgs(owner.address, owner.address, retirementAmount);
     });
 
     it("Should retire accrued fractions across multiple token IDs", async function () {
+      const retirementAmount = 25n * 10n ** (DEFAULT_DECIMAL - 1n);
       const { id, amount } = await mintEat(owner.address, 5, FuelType.SOLAR);
       await eat.safeTransferFrom(
         owner.address,
@@ -510,20 +589,30 @@ describe(Contracts.pool, function () {
         amount,
         []
       );
-      expect(await anyTechAnnualPool.retireExact(
-        owner.address, 
-        owner.address, 
-        2_500_000_000_000_000_000n,
-        [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement")
-        .withArgs(owner.address, owner.address, 2_500_000_000_000_000_000n);
-      expect(await anyTechAnnualPool.retireExact(
-        owner.address, 
-        owner.address, 
-        7_500_000_000_000_000_000n,
-        [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement")
-        .withArgs(owner.address, owner.address, 7_500_000_000_000_000_000n);
+      expect(
+        await anyTechAnnualPool.retireExact(
+          owner.address,
+          owner.address,
+          retirementAmount,
+          []
+        )
+      )
+        .to.be.ok.and.to.emit(anyTechAnnualPool, "Retirement")
+        .withArgs(owner.address, owner.address, retirementAmount);
+      expect(
+        await anyTechAnnualPool.retireExact(
+          owner.address,
+          owner.address,
+          75n * 10n ** (DEFAULT_DECIMAL - 1n),
+          []
+        )
+      )
+        .to.be.ok.and.to.emit(anyTechAnnualPool, "Retirement")
+        .withArgs(
+          owner.address,
+          owner.address,
+          75n * 10n ** (DEFAULT_DECIMAL - 1n)
+        );
     });
 
     it("Should support retiring numerous token IDs", async function () {
@@ -536,27 +625,35 @@ describe(Contracts.pool, function () {
         []
       );
 
-      expect(await anyTechAnnualPool.retireExact(
-        owner.address, 
-        owner.address, 
-        tokenAmount + windDeposit.amount,
-        [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement");
+      expect(
+        await anyTechAnnualPool.retireExact(
+          owner.address,
+          owner.address,
+          tokenAmount + windDeposit.amount,
+          []
+        )
+      ).to.be.ok.and.to.emit(anyTechAnnualPool, "Retirement");
     });
 
     it("Should support retiring numerous token IDs with fractional", async function () {
-      const initialRetirementAmount = 3_500_000_000_000_000_000n;
-      expect(await anyTechAnnualPool.retireExact(
-        owner.address, 
-        owner.address, 
-        initialRetirementAmount,
-        [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement")
+      const initialRetirementAmount = 35n * 10n ** (DEFAULT_DECIMAL - 1n);
+      expect(
+        await anyTechAnnualPool.retireExact(
+          owner.address,
+          owner.address,
+          initialRetirementAmount,
+          []
+        )
+      )
+        .to.be.ok.and.to.emit(anyTechAnnualPool, "Retirement")
         .withArgs(owner.address, owner.address, initialRetirementAmount)
         .and.to.emit(eat, "TransferSingle")
         .withArgs(
-          owner.address, owner.address, anyValue, 
-          tokenId, initialRetirementAmount
+          owner.address,
+          owner.address,
+          anyValue,
+          tokenId,
+          initialRetirementAmount
         );
 
       const windDeposit = await mintEat(owner.address, 5, FuelType.WIND);
@@ -571,16 +668,21 @@ describe(Contracts.pool, function () {
       );
 
       const balance = await anyTechAnnualPool.balanceOf(owner.address);
-      expect(await anyTechAnnualPool.retireExact(
-        owner.address, 
-        owner.address, 
-        balance,
-        [])).to.be.ok.and
-        .to.emit(anyTechAnnualPool, "Retirement")
+      expect(
+        await anyTechAnnualPool.retireExact(
+          owner.address,
+          owner.address,
+          balance,
+          []
+        )
+      )
+        .to.be.ok.and.to.emit(anyTechAnnualPool, "Retirement")
         .withArgs(owner.address, owner.address, balance)
         .and.to.emit(eat, "TransferBatch")
         .withArgs(
-          owner.address, owner.address, anyValue, 
+          owner.address,
+          owner.address,
+          anyValue,
           [tokenId, windDeposit.id, geoDeposit.id, bioDeposit.id],
           [2, windDeposit.amount, geoDeposit.amount, bioDeposit.amount]
         );
@@ -610,9 +712,9 @@ describe(Contracts.pool, function () {
         []
       );
 
-      expect(await solarPool.totalSupply()).to.exist
-        .and.to.not.be.eq(0)
-        .and.to.not.be.undefined;
+      expect(await solarPool.totalSupply()).to.exist.and.to.not.be.eq(
+        0
+      ).and.to.not.be.undefined;
     });
 
     it("Should correctly return tokenURI", async function () {
@@ -650,50 +752,76 @@ describe(Contracts.pool, function () {
     });
 
     it("Should allow withdrawals with frozen tokens in the pool", async function () {
-      expect(await anyTechAnnualPool.validateDepositValidity(frozenTokenId)).to.be.ok;
+      expect(
+        await anyTechAnnualPool.validateDepositValidity(frozenTokenId)
+      ).to.be.ok;
 
-      expect(await anyTechAnnualPool.withdraw(owner.address, 1, [])).to.be.ok
-        .and.to.emit(anyTechAnnualPool, "Withdraw")
+      expect(await anyTechAnnualPool.withdraw(owner.address, 1, []))
+        .to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw")
         .and.to.emit(anyTechAnnualPool, "TransferSingle")
         .withArgs(
-          owner.address, owner.address, anyValue, 
-          unfrozenTokenId, anyValue
+          owner.address,
+          owner.address,
+          anyValue,
+          unfrozenTokenId,
+          anyValue
         );
     });
 
     it("Should prohibit withdrawals with of frozen tokens in the pool", async function () {
-      expect(await anyTechAnnualPool.validateDepositValidity(frozenTokenId)).to.be.ok;
+      expect(
+        await anyTechAnnualPool.validateDepositValidity(frozenTokenId)
+      ).to.be.ok;
 
       await expect(
-        anyTechAnnualPool.withdrawSpecific(owner.address, owner.address, [frozenTokenId], [1], [])
-      ).to.be.revertedWithCustomError(anyTechAnnualPool, "WithdrawBlocked")
-      .withArgs(frozenTokenId);
+        anyTechAnnualPool.withdrawSpecific(
+          owner.address,
+          owner.address,
+          [frozenTokenId],
+          [1],
+          []
+        )
+      )
+        .to.be.revertedWithCustomError(anyTechAnnualPool, "WithdrawBlocked")
+        .withArgs(frozenTokenId);
     });
 
     it("Should allow withdrawals after a deposit is unfrozen", async function () {
       expect(await eat.thaw(frozenTokenId)).to.be.ok;
-      expect(await anyTechAnnualPool.validateDepositValidity(frozenTokenId)).to.be.ok;
+      expect(
+        await anyTechAnnualPool.validateDepositValidity(frozenTokenId)
+      ).to.be.ok;
 
-      expect(await anyTechAnnualPool.withdraw(owner.address, 10, [])).to.be.ok
-        .and.to.emit(anyTechAnnualPool, "Withdraw")
+      expect(await anyTechAnnualPool.withdraw(owner.address, 10, []))
+        .to.be.ok.and.to.emit(anyTechAnnualPool, "Withdraw")
         .and.to.emit(anyTechAnnualPool, "TransferBatch")
         .withArgs(
-          owner.address, owner.address, anyValue, 
-          [frozenTokenId, unfrozenTokenId], anyValue
+          owner.address,
+          owner.address,
+          anyValue,
+          [frozenTokenId, unfrozenTokenId],
+          anyValue
         );
     });
 
     it("Should allow burn JLT from caller is deposit becomes burned by owner", async function () {
-      expect(await eat.slash(anyTechAnnualPool.address, frozenTokenId, 5)).to.be.ok;
-      expect(await anyTechAnnualPool.validateDepositValidity(frozenTokenId)).to.be.ok
-        .and.to.emit(anyTechAnnualPool, "Transfer")
+      expect(
+        await eat.slash(anyTechAnnualPool.address, frozenTokenId, 5)
+      ).to.be.ok;
+      expect(await anyTechAnnualPool.validateDepositValidity(frozenTokenId))
+        .to.be.ok.and.to.emit(anyTechAnnualPool, "Transfer")
         .withArgs(
-          anyTechAnnualPool.address, ethers.constants.AddressZero, anyValue,
+          anyTechAnnualPool.address,
+          ethers.constants.AddressZero,
+          anyValue
         )
         .and.to.emit(anyTechAnnualPool, "TransferSingle")
         .withArgs(
-          anyTechAnnualPool.address, ethers.constants.AddressZero, anyValue, 
-          frozenTokenId, anyValue
+          anyTechAnnualPool.address,
+          ethers.constants.AddressZero,
+          anyValue,
+          frozenTokenId,
+          anyValue
         );
     });
   });

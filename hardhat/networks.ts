@@ -37,7 +37,8 @@ const polygon: HttpNetworkUserConfig = {
   deploy: ["deploy/full"],
   saveDeployments: true,
   tags: ["production", "public"],
-  gasPrice: 95000000000, // NOTE: 95 Gwei price for deployment
+  gasMultiplier: 1.5,
+  // gasPrice: 95000000000 // NOTE: 95 Gwei price for deployment
 };
 
 // Define external networks & Hardhat network
