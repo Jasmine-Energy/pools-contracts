@@ -7,6 +7,15 @@ const evmVersion = process.env.EVM_VERSION || "paris";
 export const solidity: SolidityUserConfig = {
   compilers: [
     {
+      version: "0.8.23",
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: defaultOptimizerRuns,
+        },
+      },
+    },
+    {
       version: "0.8.20",
       settings: {
         optimizer: {

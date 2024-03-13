@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 import "@crytic/properties/contracts/util/Hevm.sol";
 
@@ -30,15 +30,15 @@ interface IERC1155Mintable {
 
 interface Minter {
     function mint(
-    address receiver,
-    uint256 id,
-    uint256 amount,
-    bytes memory transferData,
-    bytes memory oracleData,
-    uint256 deadline,
-    bytes32 nonce,
-    bytes memory sig
-  ) external;
+        address receiver,
+        uint256 id,
+        uint256 amount,
+        bytes memory transferData,
+        bytes memory oracleData,
+        uint256 deadline,
+        bytes32 nonce,
+        bytes memory sig
+    ) external;
 }
 
 interface ERC712 {
@@ -76,7 +76,10 @@ abstract contract CrypticInterface {
         frontHalfPool = JasminePool(poolAddress);
 
         require(poolFactory.owner() == owner, "Owner must be owner");
-        require(poolFactory.hasRole(poolFactory.POOL_MANAGER_ROLE(), poolManager), "Pool manager must be a manager");
+        require(
+            poolFactory.hasRole(poolFactory.POOL_MANAGER_ROLE(), poolManager),
+            "Pool manager must be a manager"
+        );
     }
 
     function mintEAT(

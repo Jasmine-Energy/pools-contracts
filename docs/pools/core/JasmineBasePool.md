@@ -103,7 +103,7 @@ function decimals() external view returns (uint8)
 
 
 
-*Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5.05` (`505 / 10 ** 2`). Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the default value returned by this function, unless it&#39;s overridden. NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}.*
+
 
 
 #### Returns
@@ -527,13 +527,13 @@ function selectWithdrawTokens(uint256 amount) external view returns (uint256[] t
 
 
 
-*Internal function to select tokens to withdraw from the contract *
+*Internal function to select tokens to withdraw from the contract*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| amount | uint256 | Number of tokens to withdraw from contract  |
+| amount | uint256 | Number of tokens to withdraw from contract |
 
 #### Returns
 
@@ -670,7 +670,7 @@ function validateDepositValidity(uint256 tokenId) external nonpayable returns (b
 
 
 
-*Checks if an EAT depositted into the pool is frozen and validates internal      balance for token. If frozen, it is internally removed from the pool&#39;s      list of withdrawable tokens. If internal count does not match balance,      caller will have their JLT burned to rectify the inbalance. *
+*Checks if an EAT depositted into the pool is frozen and validates internal      balance for token. If frozen, it is internally removed from the pool&#39;s      list of withdrawable tokens. If internal count does not match balance,      caller will have their JLT burned to rectify the inbalance.*
 
 #### Parameters
 
