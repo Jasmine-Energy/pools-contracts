@@ -46,11 +46,11 @@ async function main() {
     poolVersion = 1;
   }
 
-  const poolName = "Voluntary REC Front-Half 2024";
-  const poolSymbol = "JLT-F24";
+  const poolName = "Voluntary REC Back-Half 2024";
+  const poolSymbol = "JLT-B24";
   const vintagePeriod = [
-    1704067200, // Jan 01 2024 00:00:00 GMT
-    1719705600, // June 30 2024 00:00:00 GMT
+    1719792000, // Jul 01 2024 00:00:00 GMT+0000
+    1735603200, // Dec 31 2024 00:00:00 GMT+0000
   ] as [number, number];
   const techType = AnyField;
   const registry = AnyField;

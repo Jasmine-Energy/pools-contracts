@@ -25,6 +25,8 @@ This repository contains the smart contracts for Jasmine's Reference Pools. Refe
 | Pool Factory         | [`0xD473bf49B43eA97315aAe69C28ad326B983418B7`](https://polygonscan.com/address/0xD473bf49B43eA97315aAe69C28ad326B983418B7#readProxyContract) | [`0x9c74b5ED0701953F58E2d212215540A4AA0E7050`](https://polygonscan.com/address/0x9c74b5ED0701953F58E2d212215540A4AA0E7050#readContract) |
 | Front-Half 2023 Pool | [`0x81A5Fbb9A131C104627B055d074c46d21576cF4a`](https://polygonscan.com/address/0x81A5Fbb9A131C104627B055d074c46d21576cF4a#readProxyContract) | [`0x2E747f832d6C36922176F422D78CD2C962f5aa96`](https://polygonscan.com/address/0x2E747f832d6C36922176F422D78CD2C962f5aa96#readContract) |
 | Back-Half 2023 Pool | [`0x0B31cC088Cd2cd54e2dD161Eb5dE7B5A3e626C9E`](https://polygonscan.com/address/0x0B31cC088Cd2cd54e2dD161Eb5dE7B5A3e626C9E#readProxyContract) | [`0x64F0f8F382599D0422c29026447ba62C37ED8De5`](https://polygonscan.com/address/0x64F0f8F382599D0422c29026447ba62C37ED8De5#readContract) |
+| Front-Half 2024 Pool | [`0x8F722b2eae801CBFbe1a28CCf30E44B886f9f9B5`](https://polygonscan.com/address/0x8F722b2eae801CBFbe1a28CCf30E44B886f9f9B5#readProxyContract) | [`0x64F0f8F382599D0422c29026447ba62C37ED8De5`](https://polygonscan.com/address/0x64F0f8F382599D0422c29026447ba62C37ED8De5#readContract) |
+| Back-Half 2024 Pool | [`0x27d7f25777C824801160a3EFE8A95CdB670AE72C`](https://polygonscan.com/address/0x27d7f25777C824801160a3EFE8A95CdB670AE72C#readProxyContract) | [`0x64F0f8F382599D0422c29026447ba62C37ED8De5`](https://polygonscan.com/address/0x64F0f8F382599D0422c29026447ba62C37ED8De5#readContract) |
 
 ## Mumbai Deployments
 
@@ -34,6 +36,8 @@ This repository contains the smart contracts for Jasmine's Reference Pools. Refe
 | Pool Factory         | [`0x66e04bc791c2BE81639bC277A813D782a967aBE7`](https://mumbai.polygonscan.com/address/0x66e04bc791c2BE81639bC277A813D782a967aBE7#readProxyContract) | [`0x81b3d093c7ec1e678958a4fd2146e65f74de7c1f`](https://mumbai.polygonscan.com/address/0x81b3d093c7ec1e678958a4fd2146e65f74de7c1f#readContract) |
 | Front-Half 2023 Pool | [`0x1Fd4Dc2027C1Cfae1D5a09073809f3f3F97d93dd`](https://mumbai.polygonscan.com/address/0x1Fd4Dc2027C1Cfae1D5a09073809f3f3F97d93dd#readProxyContract) | [`0xfd82bb56a9c6b86709a6bcfae9f3b58253c966ef`](https://mumbai.polygonscan.com/address/0xfd82bb56a9c6b86709a6bcfae9f3b58253c966ef#readContract) |
 | Back-Half 2023 Pool | [`0x5347b084B9f06216c21Cc80DfEe5ad85FbBfF2c7`](https://mumbai.polygonscan.com/address/0x5347b084B9f06216c21Cc80DfEe5ad85FbBfF2c7#readProxyContract) | [`0x64f0f8f382599d0422c29026447ba62c37ed8de5`](https://mumbai.polygonscan.com/address/0x64f0f8f382599d0422c29026447ba62c37ed8de5#readContract) |
+| Front-Half 2024 Pool | [`0x706Fe4EE79dD0f3ef358E4495304B09813351BF4`](https://mumbai.polygonscan.com/address/0x706Fe4EE79dD0f3ef358E4495304B09813351BF4#readProxyContract) | [`0x64f0f8f382599d0422c29026447ba62c37ed8de5`](https://mumbai.polygonscan.com/address/0x64f0f8f382599d0422c29026447ba62c37ed8de5#readContract) |
+| Back-Half 2024 Pool | [`0x8fa60CB31b8432713082C3DD5fba81bc95bC96fD`](https://mumbai.polygonscan.com/address/0x8fa60CB31b8432713082C3DD5fba81bc95bC96fD#readProxyContract) | [`0x64f0f8f382599d0422c29026447ba62c37ed8de5`](https://mumbai.polygonscan.com/address/0x64f0f8f382599d0422c29026447ba62c37ed8de5#readContract) |
 
 # Contracts Overview
 Jasmine Reference Pool's are supported by 3 primary contracts:
