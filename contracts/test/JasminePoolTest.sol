@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 import "@crytic/properties/contracts/util/Hevm.sol";
 
@@ -18,7 +18,6 @@ contract CryticERC20ExternalHarness is
     CryticERC20ExternalBasicProperties,
     CrypticInterface
 {
-
     uint40 public constant MIN_VINTAGE = 1672531200;
     uint40 public constant MAX_VINTAGE = 1688083200;
 
@@ -48,7 +47,6 @@ contract CryticERC20ExternalHarness is
         mintJLT(msg.sender, initialEATAmount, MIN_VINTAGE + 4);
     }
 
-
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Deposit Tests
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -56,12 +54,7 @@ contract CryticERC20ExternalHarness is
     function test_deposit(uint256 mintAmount, uint256 vintage) public {
         vintage = clampBetween(vintage, MIN_VINTAGE, MAX_VINTAGE);
 
-        uint256 tokenId = mintEAT(
-            msg.sender,
-            mintAmount,
-            uint40(vintage),
-            1
-        );
+        uint256 tokenId = mintEAT(msg.sender, mintAmount, uint40(vintage), 1);
 
         assert(frontHalfPool.meetsPolicy(tokenId));
 
@@ -83,23 +76,28 @@ contract CryticERC20ExternalHarness is
     }
 
     function test_invalid_deposit(uint256 mintAmount, uint40 vintage) public {
-        vintage = uint40(clampBetween(uint256(vintage), MIN_VINTAGE, MAX_VINTAGE));
-        vintage = mintAmount % 2 == 0 ?
-            uint40(vintage - MIN_VINTAGE) :
-            uint40(vintage + MAX_VINTAGE);
-
-        uint256 tokenId = mintEAT(
-            msg.sender,
-            mintAmount,
-            vintage,
-            1
+        vintage = uint40(
+            clampBetween(uint256(vintage), MIN_VINTAGE, MAX_VINTAGE)
         );
+        vintage = mintAmount % 2 == 0
+            ? uint40(vintage - MIN_VINTAGE)
+            : uint40(vintage + MAX_VINTAGE);
+
+        uint256 tokenId = mintEAT(msg.sender, mintAmount, vintage, 1);
 
         assert(!frontHalfPool.meetsPolicy(tokenId));
 
         uint256 preDepositBalance = frontHalfPool.balanceOf(msg.sender);
         hevm.prank(msg.sender);
-        try IERC1155(eat).safeTransferFrom(msg.sender, address(frontHalfPool), tokenId, mintAmount, "") {
+        try
+            IERC1155(eat).safeTransferFrom(
+                msg.sender,
+                address(frontHalfPool),
+                tokenId,
+                mintAmount,
+                ""
+            )
+        {
             revert("Accepted deposit of ineligible token");
         } catch {
             uint256 postDepositBalance = frontHalfPool.balanceOf(msg.sender);
@@ -148,8 +146,10 @@ contract CryticERC20ExternalHarness is
                     callerHoldings[i] + expectedAmount[i]
             );
             assert(
-                IERC1155(eat).balanceOf(address(frontHalfPool), expectedTokens[i]) ==
-                    poolHoldings[i] - expectedAmount[i]
+                IERC1155(eat).balanceOf(
+                    address(frontHalfPool),
+                    expectedTokens[i]
+                ) == poolHoldings[i] - expectedAmount[i]
             );
         }
     }
@@ -158,47 +158,91 @@ contract CryticERC20ExternalHarness is
         uint256[2] memory deposit = deposits[indexSeed % deposits.length];
 
         // TODO: Not a huge fan of this approach to checking if the deposit is held by the pool. Fix it
-        bool isHeldByPool = IERC1155(eat).balanceOf(address(frontHalfPool), deposit[0]) >= deposit[1];
-        while(!isHeldByPool) {
+        bool isHeldByPool = IERC1155(eat).balanceOf(
+            address(frontHalfPool),
+            deposit[0]
+        ) >= deposit[1];
+        while (!isHeldByPool) {
             delete deposits[indexSeed % deposits.length];
             indexSeed++;
             deposit = deposits[indexSeed % deposits.length];
-            uint256 balance = IERC1155(eat).balanceOf(address(frontHalfPool), deposit[0]);
-            isHeldByPool = balance  >= deposit[1];
+            uint256 balance = IERC1155(eat).balanceOf(
+                address(frontHalfPool),
+                deposit[0]
+            );
+            isHeldByPool = balance >= deposit[1];
             deposits[indexSeed % deposits.length][1] = balance;
         }
 
-        uint256 withdrawalCost = frontHalfPool.withdrawalCost(_asSingletonArray(deposit[0]), _asSingletonArray(deposit[1]));
+        uint256 withdrawalCost = frontHalfPool.withdrawalCost(
+            _asSingletonArray(deposit[0]),
+            _asSingletonArray(deposit[1])
+        );
         uint256 preWithdrawalBalance = frontHalfPool.balanceOf(msg.sender);
 
         if (withdrawalCost > preWithdrawalBalance) {
-            mintJLT(msg.sender, withdrawalCost - preWithdrawalBalance, MIN_VINTAGE);
+            mintJLT(
+                msg.sender,
+                withdrawalCost - preWithdrawalBalance,
+                MIN_VINTAGE
+            );
             preWithdrawalBalance = frontHalfPool.balanceOf(msg.sender);
             assert(withdrawalCost <= preWithdrawalBalance);
         }
 
-        uint256 preWithdrawalPoolHolding = IERC1155(eat).balanceOf(address(frontHalfPool), deposit[0]);
-        uint256 preWithdrawalCallerHolding = IERC1155(eat).balanceOf(msg.sender, deposit[0]);
+        uint256 preWithdrawalPoolHolding = IERC1155(eat).balanceOf(
+            address(frontHalfPool),
+            deposit[0]
+        );
+        uint256 preWithdrawalCallerHolding = IERC1155(eat).balanceOf(
+            msg.sender,
+            deposit[0]
+        );
         hevm.prank(msg.sender);
-        frontHalfPool.withdrawSpecific(msg.sender, msg.sender, _asSingletonArray(deposit[0]), _asSingletonArray(deposit[1]), "");
-        uint256 postWithdrawalPoolHolding = IERC1155(eat).balanceOf(address(frontHalfPool), deposit[0]);
-        uint256 postWithdrawalCallerHolding = IERC1155(eat).balanceOf(msg.sender, deposit[0]);
+        frontHalfPool.withdrawSpecific(
+            msg.sender,
+            msg.sender,
+            _asSingletonArray(deposit[0]),
+            _asSingletonArray(deposit[1]),
+            ""
+        );
+        uint256 postWithdrawalPoolHolding = IERC1155(eat).balanceOf(
+            address(frontHalfPool),
+            deposit[0]
+        );
+        uint256 postWithdrawalCallerHolding = IERC1155(eat).balanceOf(
+            msg.sender,
+            deposit[0]
+        );
         uint256 postWithdrawalBalance = frontHalfPool.balanceOf(msg.sender);
 
         assert(postWithdrawalBalance == preWithdrawalBalance - withdrawalCost);
-        assert(postWithdrawalPoolHolding == preWithdrawalPoolHolding - deposit[1]);
-        assert(postWithdrawalCallerHolding == preWithdrawalCallerHolding + deposit[1]);
+        assert(
+            postWithdrawalPoolHolding == preWithdrawalPoolHolding - deposit[1]
+        );
+        assert(
+            postWithdrawalCallerHolding ==
+                preWithdrawalCallerHolding + deposit[1]
+        );
     }
 
-    function test_withdraw_specific_batch(uint256 indexSeed, uint256 quantity) public {
+    function test_withdraw_specific_batch(
+        uint256 indexSeed,
+        uint256 quantity
+    ) public {
         quantity = clampBetween(quantity, 1, 10);
         uint256[] memory tokenIds = new uint256[](quantity);
         uint256[] memory amounts = new uint256[](quantity);
 
         uint256 insertIndex = 0;
         while (insertIndex < quantity) {
-            uint256[2] memory deposit = deposits[(indexSeed % deposits.length) + insertIndex];
-            if (IERC1155(eat).balanceOf(address(frontHalfPool), deposit[0]) >= deposit[1]) {
+            uint256[2] memory deposit = deposits[
+                (indexSeed % deposits.length) + insertIndex
+            ];
+            if (
+                IERC1155(eat).balanceOf(address(frontHalfPool), deposit[0]) >=
+                deposit[1]
+            ) {
                 tokenIds[insertIndex] = deposit[0];
                 amounts[insertIndex] = deposit[1];
                 insertIndex++;
@@ -207,7 +251,10 @@ contract CryticERC20ExternalHarness is
             }
         }
 
-        uint256 withdrawalCost = frontHalfPool.withdrawalCost(tokenIds, amounts);
+        uint256 withdrawalCost = frontHalfPool.withdrawalCost(
+            tokenIds,
+            amounts
+        );
         uint256 preWithdrawalBalance = frontHalfPool.balanceOf(msg.sender);
         uint256[] memory poolHoldings = IERC1155(eat).balanceOfBatch(
             ArrayUtils.fill(address(frontHalfPool), quantity),
@@ -219,22 +266,32 @@ contract CryticERC20ExternalHarness is
         );
 
         hevm.prank(msg.sender);
-        frontHalfPool.withdrawSpecific(msg.sender, msg.sender, tokenIds, amounts, "");
+        frontHalfPool.withdrawSpecific(
+            msg.sender,
+            msg.sender,
+            tokenIds,
+            amounts,
+            ""
+        );
 
         uint256 postWithdrawalBalance = frontHalfPool.balanceOf(msg.sender);
-        uint256[] memory postWithdrawalPoolHoldings = IERC1155(eat).balanceOfBatch(
-            ArrayUtils.fill(address(frontHalfPool), quantity),
-            tokenIds
-        );
-        uint256[] memory postWithdrawalCallerHoldings = IERC1155(eat).balanceOfBatch(
-            ArrayUtils.fill(msg.sender, quantity),
-            tokenIds
-        );
+        uint256[] memory postWithdrawalPoolHoldings = IERC1155(eat)
+            .balanceOfBatch(
+                ArrayUtils.fill(address(frontHalfPool), quantity),
+                tokenIds
+            );
+        uint256[] memory postWithdrawalCallerHoldings = IERC1155(eat)
+            .balanceOfBatch(ArrayUtils.fill(msg.sender, quantity), tokenIds);
 
         assert(postWithdrawalBalance == preWithdrawalBalance - withdrawalCost);
         for (uint256 i = 0; i < quantity; i++) {
-            assert(postWithdrawalPoolHoldings[i] == poolHoldings[i] - amounts[i]);
-            assert(postWithdrawalCallerHoldings[i] == callerHoldings[i] + amounts[i]);
+            assert(
+                postWithdrawalPoolHoldings[i] == poolHoldings[i] - amounts[i]
+            );
+            assert(
+                postWithdrawalCallerHoldings[i] ==
+                    callerHoldings[i] + amounts[i]
+            );
         }
     }
 
@@ -269,7 +326,11 @@ contract CryticERC20ExternalHarness is
     //  Utility Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function mintJLT(address recipient, uint256 amount, uint256 vintage) public {
+    function mintJLT(
+        address recipient,
+        uint256 amount,
+        uint256 vintage
+    ) public {
         vintage = clampBetween(vintage, MIN_VINTAGE, MAX_VINTAGE);
         uint256 tokenId = mintEAT(recipient, amount, uint40(vintage), 1);
         hevm.prank(recipient);
@@ -283,7 +344,9 @@ contract CryticERC20ExternalHarness is
         deposits.push([tokenId, amount]);
     }
 
-    function _asSingletonArray(uint256 element) private pure returns (uint256[] memory array) {
+    function _asSingletonArray(
+        uint256 element
+    ) private pure returns (uint256[] memory array) {
         array = new uint256[](1);
         assembly ("memory-safe") {
             mstore(add(array, 32), element)

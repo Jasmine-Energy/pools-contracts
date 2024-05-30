@@ -4,14 +4,13 @@ pragma solidity ^0.8.0;
 
 //  ─────────────────────────────────  Imports  ─────────────────────────────────  \\
 
-import { JasmineErrors }        from "../../../interfaces/errors/JasmineErrors.sol";
-import { IERC1155 }             from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import { IERC165 }              from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import { IERC1155Receiver }     from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import { StructuredLinkedList } from "../../../libraries/StructuredLinkedList.sol";
-import { BitMaps }              from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
-import { ArrayUtils }           from "../../../libraries/ArrayUtils.sol";
-
+import {JasmineErrors} from "../../../interfaces/errors/JasmineErrors.sol";
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
+import {StructuredLinkedList} from "../../../libraries/StructuredLinkedList.sol";
+import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
+import {ArrayUtils} from "../../../libraries/ArrayUtils.sol";
 
 /**
  * @title Jasmine EAT Manager
@@ -20,7 +19,6 @@ import { ArrayUtils }           from "../../../libraries/ArrayUtils.sol";
  * @custom:security-contact dev@jasmine.energy
  */
 abstract contract EATManager is IERC1155Receiver {
-
     // ──────────────────────────────────────────────────────────────────────────────
     // Libraries
     // ──────────────────────────────────────────────────────────────────────────────
@@ -55,7 +53,6 @@ abstract contract EATManager is IERC1155Receiver {
 
     uint256 private constant LIST_HEAD = 0;
 
-
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Errors
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -86,8 +83,17 @@ abstract contract EATManager is IERC1155Receiver {
     //  Hooks
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function _beforeDeposit(address from, uint256[] memory tokenIds, uint256[] memory values) internal virtual;
-    function _afterDeposit(address operator, address from, uint256 quantity) internal virtual;
+    function _beforeDeposit(
+        address from,
+        uint256[] memory tokenIds,
+        uint256[] memory values
+    ) internal virtual;
+
+    function _afterDeposit(
+        address operator,
+        address from,
+        uint256 quantity
+    ) internal virtual;
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  ERC-1155 Deposit Functions
@@ -100,13 +106,14 @@ abstract contract EATManager is IERC1155Receiver {
         uint256 tokenId,
         uint256 value,
         bytes memory
-    )
-        external
-        returns (bytes4)
-    {
+    ) external returns (bytes4) {
         _enforceTokenCaller();
 
-        _beforeDeposit(from, _asSingletonArray(tokenId), _asSingletonArray(value));
+        _beforeDeposit(
+            from,
+            _asSingletonArray(tokenId),
+            _asSingletonArray(value)
+        );
         _addDeposit(tokenId, value);
         _afterDeposit(operator, from, value);
 
@@ -120,10 +127,7 @@ abstract contract EATManager is IERC1155Receiver {
         uint256[] memory tokenIds,
         uint256[] memory values,
         bytes memory
-    )
-        external
-        returns (bytes4)
-    {
+    ) external returns (bytes4) {
         _enforceTokenCaller();
 
         _beforeDeposit(from, tokenIds, values);
@@ -137,11 +141,13 @@ abstract contract EATManager is IERC1155Receiver {
      * @inheritdoc IERC165
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
-        return interfaceId == type(IERC1155Receiver).interfaceId || 
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual returns (bool) {
+        return
+            interfaceId == type(IERC1155Receiver).interfaceId ||
             interfaceId == type(IERC165).interfaceId;
     }
-
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Deposit Modifying Functions
@@ -149,9 +155,9 @@ abstract contract EATManager is IERC1155Receiver {
 
     /**
      * @dev Internal utility for sending specific tokens out of the contract.
-     * 
+     *
      * @dev Requires withdraws to be unlocked via "unlocked" modifier.
-     * 
+     *
      * @param recipient Address to receive tokens
      * @param tokenIds Token IDs held by the contract to transfer
      * @param values Number of tokens to transfer for each token ID
@@ -162,10 +168,7 @@ abstract contract EATManager is IERC1155Receiver {
         uint256[] memory tokenIds,
         uint256[] memory values,
         bytes memory data
-    )
-        internal
-        withdrawsUnlocked
-    {
+    ) internal withdrawsUnlocked {
         if (tokenIds.length == 1) {
             _removeDeposit(tokenIds[0], values[0]);
             IERC1155(eat).safeTransferFrom(
@@ -190,9 +193,9 @@ abstract contract EATManager is IERC1155Receiver {
     /**
      * @dev Internal utility for sending tokens out of the contract where
      *      the contract selects the tokens, ordered by vintage, to send.
-     * 
+     *
      * @dev Requires withdraws to be unlocked via "unlocked" modifier.
-     * 
+     *
      * @param recipient Address to receive tokens
      * @param amount Total number of tokens to transfer
      * @param data Additional calldata to include in transfer
@@ -201,23 +204,28 @@ abstract contract EATManager is IERC1155Receiver {
         address recipient,
         uint256 amount,
         bytes memory data
-    ) 
+    )
         internal
         withdrawsUnlocked
-        returns (
-            uint256[] memory tokenIds,
-            uint256[] memory amounts
-        )
+        returns (uint256[] memory tokenIds, uint256[] memory amounts)
     {
-        (uint256 withdrawLength, uint256 finalAmount, bool popLast) = _queuedTokenLength(amount);
+        (
+            uint256 withdrawLength,
+            uint256 finalAmount,
+            bool popLast
+        ) = _queuedTokenLength(amount);
         if (withdrawLength == 1) {
             if (popLast) {
-                tokenIds = _asSingletonArray(_decodeDeposit(_depositsList.popFront()));
+                tokenIds = _asSingletonArray(
+                    _decodeDeposit(_depositsList.popFront())
+                );
             } else {
-                tokenIds = _asSingletonArray(_decodeDeposit(_depositsList.front()));
+                tokenIds = _asSingletonArray(
+                    _decodeDeposit(_depositsList.front())
+                );
             }
             amounts = _asSingletonArray(finalAmount);
-            
+
             _removeDeposit(tokenIds[0], finalAmount);
             IERC1155(eat).safeTransferFrom(
                 address(this),
@@ -227,9 +235,14 @@ abstract contract EATManager is IERC1155Receiver {
                 data
             );
         } else {
-            tokenIds = _decodeDeposits(_depositsList.popFront(withdrawLength, !popLast));
-            amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), withdrawLength), tokenIds);
-            amounts[withdrawLength-1] = finalAmount;
+            tokenIds = _decodeDeposits(
+                _depositsList.popFront(withdrawLength, !popLast)
+            );
+            amounts = IERC1155(eat).balanceOfBatch(
+                ArrayUtils.fill(address(this), withdrawLength),
+                tokenIds
+            );
+            amounts[withdrawLength - 1] = finalAmount;
 
             _removeDeposits(tokenIds, amounts);
             IERC1155(eat).safeBatchTransferFrom(
@@ -248,16 +261,19 @@ abstract contract EATManager is IERC1155Receiver {
 
     /**
      * @dev Determines the number of token IDs required to get "amount" withdrawn
-     * 
+     *
      * @param amount Number of tokens to withdraw from contract
      */
-    function _queuedTokenLength(uint256 amount)
-        private view 
+    function _queuedTokenLength(
+        uint256 amount
+    )
+        private
+        view
         returns (
             uint256 length,
             uint256 finalWithdrawAmount,
             bool fullAmountOfLastToken
-        ) 
+        )
     {
         uint256 sum = 0;
         uint256 current = LIST_HEAD;
@@ -265,7 +281,7 @@ abstract contract EATManager is IERC1155Receiver {
 
         while (sum != amount && exists) {
             (exists, current) = _depositsList.getNextNode(current);
-            
+
             if (!exists) continue;
 
             uint256 balance = _balances[current];
@@ -290,37 +306,41 @@ abstract contract EATManager is IERC1155Receiver {
 
     /**
      * @dev Internal function to select tokens to withdraw from the contract
-     * 
+     *
      * @param amount Number of tokens to withdraw from contract
-     * 
+     *
      * @return tokenIds Token IDs to withdraw
      * @return amounts Number of tokens to withdraw for each token ID
      */
-    function selectWithdrawTokens(uint256 amount)
-        public view
-        returns (
-            uint256[] memory tokenIds,
-            uint256[] memory amounts
-        )
+    function selectWithdrawTokens(
+        uint256 amount
+    )
+        public
+        view
+        returns (uint256[] memory tokenIds, uint256[] memory amounts)
     {
-        (uint256 withdrawLength, uint256 finalAmount,) = _queuedTokenLength(amount);
+        (uint256 withdrawLength, uint256 finalAmount, ) = _queuedTokenLength(
+            amount
+        );
 
         uint256 current = LIST_HEAD;
         tokenIds = new uint256[](withdrawLength);
-        for (uint256 i = 0; i < withdrawLength;) {
-            (,current) = _depositsList.getNextNode(current);
+        for (uint256 i = 0; i < withdrawLength; ) {
+            (, current) = _depositsList.getNextNode(current);
             tokenIds[i] = _decodeDeposit(current);
 
             unchecked {
                 i++;
             }
         }
-        amounts = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), withdrawLength), tokenIds);
-        amounts[withdrawLength-1] = finalAmount;
+        amounts = IERC1155(eat).balanceOfBatch(
+            ArrayUtils.fill(address(this), withdrawLength),
+            tokenIds
+        );
+        amounts[withdrawLength - 1] = finalAmount;
 
         return (tokenIds, amounts);
     }
-
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Deposit Management Functions
@@ -330,26 +350,23 @@ abstract contract EATManager is IERC1155Receiver {
 
     /**
      * @dev Adds a deposit to the contract's tree of vintages and token IDs
-     * 
+     *
      * @param tokenId Newly deposited token ID to store
      * @param value Amount of the token received
      */
-    function _addDeposit(
-        uint256 tokenId,
-        uint256 value
-    )
-        private
-    {
+    function _addDeposit(uint256 tokenId, uint256 value) private {
         // 1. Encode the token ID to deposit format
-        uint256 encodedDeposit;
-        encodedDeposit = _encodeDeposit(tokenId);
+        uint256 encodedDeposit = _encodeDeposit(tokenId);
 
         // 2. Get next node in list and check if it exists
-        (bool exists, uint256 next,) = _depositsList.getNode(encodedDeposit);
+        bool exists = _depositsList.nodeExists(encodedDeposit);
 
         // 3. If node does not exist, add to list
         if (!exists) {
-            _depositsList.insertBefore(next, encodedDeposit);
+            uint256 insertionIndex = _depositsList.getSortedSpot(
+                encodedDeposit
+            );
+            _depositsList.insertAfter(insertionIndex, encodedDeposit);
         }
 
         // 4. Update balance and total deposits
@@ -359,19 +376,16 @@ abstract contract EATManager is IERC1155Receiver {
 
     /**
      * @dev Adds a deposit to the contract's tree of vintages and token IDs
-     * 
+     *
      * @param tokenIds Newly deposited token IDs to store
      * @param values Amounts of the token received
      */
     function _addDeposits(
         uint256[] memory tokenIds,
         uint256[] memory values
-    )
-        private
-        returns (uint256 quantity)
-    {
+    ) private returns (uint256 quantity) {
         quantity = _totalDeposits;
-        for (uint256 i = 0; i < tokenIds.length;) {
+        for (uint256 i = 0; i < tokenIds.length; ) {
             _addDeposit(tokenIds[i], values[i]);
             unchecked {
                 i++;
@@ -385,19 +399,15 @@ abstract contract EATManager is IERC1155Receiver {
     /**
      * @dev Used to record a token removal from the contract's internal records. Removes
      * token ID from tree and vintage to token ID mapping if possible.
-     * 
+     *
      * @dev If token ID is frozen, reverts with "WithdrawBlocked" error.
-     * 
+     *
      * @param tokenId Token ID to remove from internal records
      * @param value Amount of token being removed
      */
-    function _removeDeposit(
-        uint256 tokenId,
-        uint256 value
-    )
-        private
-    {
-        if (_frozenDeposits.get(_encodeDeposit(tokenId))) revert WithdrawBlocked(tokenId);
+    function _removeDeposit(uint256 tokenId, uint256 value) private {
+        if (_frozenDeposits.get(_encodeDeposit(tokenId)))
+            revert WithdrawBlocked(tokenId);
 
         uint256 balance = IERC1155(eat).balanceOf(address(this), tokenId);
         uint256 encodedDeposit = _encodeDeposit(tokenId);
@@ -413,21 +423,23 @@ abstract contract EATManager is IERC1155Receiver {
     /**
      * @dev Used to record a token removal from the contract's internal records. Removes
      * token ID from tree and vintage to token ID mapping if possible.
-     * 
+     *
      * @param tokenIds Token IDs to remove from internal records
      * @param values Amount per token being removed
      */
     function _removeDeposits(
         uint256[] memory tokenIds,
         uint256[] memory values
-    )
-        private
-    {
-        uint256[] memory balances = IERC1155(eat).balanceOfBatch(ArrayUtils.fill(address(this), tokenIds.length), tokenIds);
+    ) private {
+        uint256[] memory balances = IERC1155(eat).balanceOfBatch(
+            ArrayUtils.fill(address(this), tokenIds.length),
+            tokenIds
+        );
 
         uint256 total;
-        for (uint256 i = 0; i < tokenIds.length;) {
-            if (_frozenDeposits.get(_encodeDeposit(tokenIds[i]))) revert WithdrawBlocked(tokenIds[i]);
+        for (uint256 i = 0; i < tokenIds.length; ) {
+            if (_frozenDeposits.get(_encodeDeposit(tokenIds[i])))
+                revert WithdrawBlocked(tokenIds[i]);
 
             total += values[i];
 
@@ -439,12 +451,13 @@ abstract contract EATManager is IERC1155Receiver {
                 _balances[encodedDeposit] -= values[i];
             }
 
-            unchecked { i++; }
+            unchecked {
+                i++;
+            }
         }
 
         _totalDeposits -= total;
     }
-
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Internal Upkeep Functionality
@@ -453,13 +466,16 @@ abstract contract EATManager is IERC1155Receiver {
     /**
      * @dev Updates the status of a token ID to be frozen or unfrozen. If frozen,
      *      removes from deposits list. If unfrozen, adds to deposits list.
-     * 
+     *
      * @param tokenId EAT ID to set status of
      * @param isWithdrawable Whether the token ID is withdrawable
-     * 
+     *
      * @return wasUpdated Whether the token status was updated
      */
-    function _updateTokenStatus(uint256 tokenId, bool isWithdrawable) internal returns (bool wasUpdated) {
+    function _updateTokenStatus(
+        uint256 tokenId,
+        bool isWithdrawable
+    ) internal returns (bool wasUpdated) {
         uint256 encodedDeposit = _encodeDeposit(tokenId);
 
         wasUpdated = _frozenDeposits.get(encodedDeposit) != isWithdrawable;
@@ -469,7 +485,9 @@ abstract contract EATManager is IERC1155Receiver {
         if (!isWithdrawable) {
             _depositsList.remove(encodedDeposit);
         } else {
-            (bool exists, uint256 next,) = _depositsList.getNode(encodedDeposit);
+            (bool exists, uint256 next, ) = _depositsList.getNode(
+                encodedDeposit
+            );
             if (!exists) {
                 _depositsList.insertBefore(next, encodedDeposit);
             }
@@ -477,21 +495,24 @@ abstract contract EATManager is IERC1155Receiver {
     }
 
     /**
-     * @dev Checks the balance of a token ID held by contract. If different, updates 
+     * @dev Checks the balance of a token ID held by contract. If different, updates
      *      internal records and returns true.
-     * 
+     *
      * @param tokenId EAT ID to check balance of
-     * 
+     *
      * @return wasUpdated Whether the balance was updated
      */
-    function _validateInternalBalance(uint256 tokenId) internal returns (bool wasUpdated) {
+    function _validateInternalBalance(
+        uint256 tokenId
+    ) internal returns (bool wasUpdated) {
         uint256 encodedDeposit = _encodeDeposit(tokenId);
         uint256 balance = IERC1155(eat).balanceOf(address(this), tokenId);
 
         wasUpdated = _balances[encodedDeposit] != balance;
         if (wasUpdated) {
             // NOTE: Validating internal balance should only ever decrement balance in case of deposit being burned
-            if (balance > _balances[encodedDeposit]) revert JasmineErrors.ValidationFailed();
+            if (balance > _balances[encodedDeposit])
+                revert JasmineErrors.ValidationFailed();
             _totalDeposits -= _balances[encodedDeposit] - balance;
             _balances[encodedDeposit] = balance;
         }
@@ -500,50 +521,53 @@ abstract contract EATManager is IERC1155Receiver {
     /**
      * @dev Checks if a token ID is in the contract's internal records (either deposits
      *      list or frozen deposits set)
-     * 
+     *
      * @param tokenId EAT ID to check if in contract's records
-     * 
+     *
      * @return isRecorded Whether the token is in records
      */
-    function _isTokenInRecords(uint256 tokenId) internal view returns (bool isRecorded) {
+    function _isTokenInRecords(
+        uint256 tokenId
+    ) internal view returns (bool isRecorded) {
         uint256 encodedDeposit = _encodeDeposit(tokenId);
-        (bool exists,,) = _depositsList.getNode(encodedDeposit);
+        (bool exists, , ) = _depositsList.getNode(encodedDeposit);
         isRecorded = exists || _frozenDeposits.get(encodedDeposit);
     }
-
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Encoding and Decoding Functions
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * @dev Encodes an EAT ID for internal storage by ordering vintage. 
-     * @dev Encodes an EAT ID for internal storage by ordering vintage. 
+     * @dev Encodes an EAT ID for internal storage by ordering vintage.
+     * @dev Encodes an EAT ID for internal storage by ordering vintage.
      *      Additionally, stores balance in 56 bit of expected padding.
      * @dev Encodes an EAT ID for internal storage by ordering vintage.
      *      Additionally, stores balance in 56 bit of expected padding.
-     * 
+     *
      * @param tokenId EAT token ID to format for storage
      */
-    function _encodeDeposit(uint256 tokenId) private pure returns (uint256 formatted) {
+    function _encodeDeposit(
+        uint256 tokenId
+    ) private pure returns (uint256 formatted) {
         (uint256 uuid, uint256 registry, uint256 vintage, uint256 pad) = (
-          tokenId >> 128,
-          (tokenId >> 96) & type(uint32).max,
-          (tokenId >> 56) & type(uint40).max,
-          tokenId & type(uint56).max
+            tokenId >> 128,
+            (tokenId >> 96) & type(uint32).max,
+            (tokenId >> 56) & type(uint40).max,
+            tokenId & type(uint56).max
         );
 
         if (pad != 0) revert JasmineErrors.ValidationFailed();
 
-        formatted = (vintage << 216) |
-                      (uuid << 88)     |
-                      (registry << 56);
+        formatted = (vintage << 216) | (uuid << 88) | (registry << 56);
     }
 
     /// @dev Batch version of decodeDeposit
-    function _decodeDeposits(uint256[] memory deposits) private pure returns (uint256[] memory tokenIds) {
+    function _decodeDeposits(
+        uint256[] memory deposits
+    ) private pure returns (uint256[] memory tokenIds) {
         tokenIds = new uint256[](deposits.length);
-        for (uint256 i = 0; i < deposits.length;) {
+        for (uint256 i = 0; i < deposits.length; ) {
             tokenIds[i] = _decodeDeposit(deposits[i]);
 
             unchecked {
@@ -554,24 +578,26 @@ abstract contract EATManager is IERC1155Receiver {
 
     /**
      * @dev Decode a deposit from linked list to EAT token ID and balance
-     * 
+     *
      * @param deposit Encoded deposit id to decode to EAT token ID
      * @return tokenId EAT token ID
      */
-    function _decodeDeposit(uint256 deposit) private pure returns (uint256 tokenId) {
+    function _decodeDeposit(
+        uint256 deposit
+    ) private pure returns (uint256 tokenId) {
         (uint256 vintage, uint256 uuid, uint256 registry) = (
-          deposit >> 216,
-          (deposit >> 88) & type(uint128).max,
-          (deposit >> 56) & type(uint32).max
+            deposit >> 216,
+            (deposit >> 88) & type(uint128).max,
+            (deposit >> 56) & type(uint32).max
         );
 
-        tokenId = (uuid << 128) |
-                    (registry << 96) |
-                    (vintage << 56);
+        tokenId = (uuid << 128) | (registry << 96) | (vintage << 56);
     }
 
     /// @dev Returns element in an array by iteself
-    function _asSingletonArray(uint256 element) private pure returns (uint256[] memory array) {
+    function _asSingletonArray(
+        uint256 element
+    ) private pure returns (uint256[] memory array) {
         array = new uint256[](1);
         assembly ("memory-safe") {
             mstore(add(array, 32), element)

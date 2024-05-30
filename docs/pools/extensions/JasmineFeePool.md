@@ -103,7 +103,7 @@ function decimals() external view returns (uint8)
 
 
 
-*Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5.05` (`505 / 10 ** 2`). Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the default value returned by this function, unless it&#39;s overridden. NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}.*
+
 
 
 #### Returns
@@ -505,7 +505,7 @@ Retires an exact amount of JLTs. If fees or other conversions are set,         c
 function retirementCost(uint256 amount) external view returns (uint256 cost)
 ```
 
-Cost of retiring JLTs from pool including retirement fees. 
+Cost of retiring JLTs from pool including retirement fees.
 
 
 
@@ -513,7 +513,7 @@ Cost of retiring JLTs from pool including retirement fees.
 
 | Name | Type | Description |
 |---|---|---|
-| amount | uint256 | Amount of JLTs to retire.  |
+| amount | uint256 | Amount of JLTs to retire. |
 
 #### Returns
 
@@ -527,9 +527,9 @@ Cost of retiring JLTs from pool including retirement fees.
 function retirementRate() external view returns (uint96)
 ```
 
-Returns the pool&#39;s JLT retirement rate in basis points 
+Returns the pool&#39;s JLT retirement rate in basis points
 
-*If pool&#39;s retirement rate is not set, defer to pool factory&#39;s base rate *
+*If pool&#39;s retirement rate is not set, defer to pool factory&#39;s base rate*
 
 
 #### Returns
@@ -563,13 +563,13 @@ function selectWithdrawTokens(uint256 amount) external view returns (uint256[] t
 
 
 
-*Internal function to select tokens to withdraw from the contract *
+*Internal function to select tokens to withdraw from the contract*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| amount | uint256 | Number of tokens to withdraw from contract  |
+| amount | uint256 | Number of tokens to withdraw from contract |
 
 #### Returns
 
@@ -704,9 +704,9 @@ function transferFrom(address from, address to, uint256 amount) external nonpaya
 function updateRetirementRate(uint96 newRetirementRate) external nonpayable
 ```
 
-Allows pool fee managers to update the retirement rate 
+Allows pool fee managers to update the retirement rate
 
-*Requirements:     - Caller must have fee manager role - in pool factory emits RetirementRateUpdate *
+*Requirements:     - Caller must have fee manager role - in pool factoryemits RetirementRateUpdate*
 
 #### Parameters
 
@@ -720,9 +720,9 @@ Allows pool fee managers to update the retirement rate
 function updateWithdrawalRate(uint96 newWithdrawalRate, bool isSpecificRate) external nonpayable
 ```
 
-Allows pool fee managers to update the withdrawal rate 
+Allows pool fee managers to update the withdrawal rate
 
-*Requirements:     - Caller must have fee manager role - in pool factory emits WithdrawalRateUpdate *
+*Requirements:     - Caller must have fee manager role - in pool factoryemits WithdrawalRateUpdate*
 
 #### Parameters
 
@@ -739,7 +739,7 @@ function validateDepositValidity(uint256 tokenId) external nonpayable returns (b
 
 
 
-*Checks if an EAT depositted into the pool is frozen and validates internal      balance for token. If frozen, it is internally removed from the pool&#39;s      list of withdrawable tokens. If internal count does not match balance,      caller will have their JLT burned to rectify the inbalance. *
+*Checks if an EAT depositted into the pool is frozen and validates internal      balance for token. If frozen, it is internally removed from the pool&#39;s      list of withdrawable tokens. If internal count does not match balance,      caller will have their JLT burned to rectify the inbalance.*
 
 #### Parameters
 
@@ -830,7 +830,7 @@ Withdraw specific EATs from pool by burning the sum of &#39;quantities&#39; in J
 function withdrawalCost(uint256 amount) external view returns (uint256 cost)
 ```
 
-Cost of withdrawing amount of tokens from pool where pool         selects the tokens to withdraw, including withdrawal fee. 
+Cost of withdrawing amount of tokens from pool where pool         selects the tokens to withdraw, including withdrawal fee.
 
 
 
@@ -838,7 +838,7 @@ Cost of withdrawing amount of tokens from pool where pool         selects the to
 
 | Name | Type | Description |
 |---|---|---|
-| amount | uint256 | Number of EATs to withdraw.  |
+| amount | uint256 | Number of EATs to withdraw. |
 
 #### Returns
 
@@ -852,7 +852,7 @@ Cost of withdrawing amount of tokens from pool where pool         selects the to
 function withdrawalCost(uint256[] tokenIds, uint256[] amounts) external view returns (uint256 cost)
 ```
 
-Cost of withdrawing specified amounts of tokens from pool including         withdrawal fee. 
+Cost of withdrawing specified amounts of tokens from pool including         withdrawal fee.
 
 
 
@@ -861,7 +861,7 @@ Cost of withdrawing specified amounts of tokens from pool including         with
 | Name | Type | Description |
 |---|---|---|
 | tokenIds | uint256[] | IDs of EATs to withdaw |
-| amounts | uint256[] | Amounts of EATs to withdaw  |
+| amounts | uint256[] | Amounts of EATs to withdaw |
 
 #### Returns
 
@@ -875,9 +875,9 @@ Cost of withdrawing specified amounts of tokens from pool including         with
 function withdrawalRate() external view returns (uint96)
 ```
 
-Returns the pool&#39;s JLT withdrawal rate in basis points 
+Returns the pool&#39;s JLT withdrawal rate in basis points
 
-*If pool&#39;s withdrawal rate is not set, defer to pool factory&#39;s base rate *
+*If pool&#39;s withdrawal rate is not set, defer to pool factory&#39;s base rate*
 
 
 #### Returns
@@ -892,9 +892,9 @@ Returns the pool&#39;s JLT withdrawal rate in basis points
 function withdrawalSpecificRate() external view returns (uint96)
 ```
 
-Returns the pool&#39;s JLT withdrawal rate for withdrawing specific tokens,         in basis points 
+Returns the pool&#39;s JLT withdrawal rate for withdrawing specific tokens,         in basis points
 
-*If pool&#39;s specific withdrawal rate is not set, defer to pool factory&#39;s base rate *
+*If pool&#39;s specific withdrawal rate is not set, defer to pool factory&#39;s base rate*
 
 
 #### Returns
