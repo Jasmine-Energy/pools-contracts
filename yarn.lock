@@ -517,10 +517,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@jasmine-energy/core-contracts@^1.0.0":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@jasmine-energy/core-contracts/-/core-contracts-1.0.1.tgz#f3f74d29c192dd198e84330b9c0f3587fccdc26a"
-  integrity sha512-GYv16X9/OnRqOE1v15tpWO+cAUV3QVpggke/sbgPcqGMm7gvTJMzltCIw7MNnoFAhE1OQFRsuRM1R9KU1mqzsA==
+"@jasmine-energy/core-contracts@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@jasmine-energy/core-contracts/-/core-contracts-1.0.2.tgz#c037dbbdff2c9182047fb69f0fc4f2b34dbc31fa"
+  integrity sha512-61E+ylAcpnPr3FtyVNEVGNnOkelftNR1T4eX92Kym2ZPv1PStGf8rPVMBuAUjKNdy/hrD4bGWnERTQiu+bXJDw==
 
 "@jridgewell/resolve-uri@^3.0.3":
   version "3.1.1"
