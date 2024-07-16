@@ -1,6 +1,6 @@
 {
   "name": "@jasmine-energy/pools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Jasmine EVM smart contracts for liquidity pools",
   "homepage": "https://jasmine.energy",
   "license": "BUSL-1.1",
