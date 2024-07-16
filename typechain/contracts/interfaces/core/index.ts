@@ -4,3 +4,4 @@
 export type { IJasmineEAT } from "./IJasmineEAT";
 export type { IJasmineMinter } from "./IJasmineMinter";
 export type { IJasmineOracle } from "./IJasmineOracle";
+export type { IJasmineOracleV2 } from "./IJasmineOracleV2";

@@ -9,6 +9,7 @@ import type * as errors from "./errors";
 export type { errors };
 import type * as pool from "./pool";
 export type { pool };
+export type { IBaseURIProvider } from "./IBaseURIProvider";
 export type { IJasmineFeeManager } from "./IJasmineFeeManager";
 export type { IJasminePool } from "./IJasminePool";
 export type { IJasminePoolFactory } from "./IJasminePoolFactory";

@@ -7,6 +7,8 @@ import type * as pools from "./pools";
 export type { pools };
 import type * as test from "./test";
 export type { test };
+export type { JasmineLocationPool } from "./JasmineLocationPool";
+export type { JasmineMultiPool } from "./JasmineMultiPool";
 export type { JasminePool } from "./JasminePool";
 export type { JasminePoolFactory } from "./JasminePoolFactory";
 export type { JasmineRetirementService } from "./JasmineRetirementService";

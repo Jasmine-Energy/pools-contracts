@@ -36,7 +36,7 @@ export const extensions = {
     paths: [
       "@jasmine-energy/core-contracts/src/JasmineEAT.sol",
       "@jasmine-energy/core-contracts/src/JasmineMinter.sol",
-      "@jasmine-energy/core-contracts/src/JasmineOracle.sol",
+      "@jasmine-energy/core-contracts/src/JasmineOracleV2.sol",
     ],
   },
 };
